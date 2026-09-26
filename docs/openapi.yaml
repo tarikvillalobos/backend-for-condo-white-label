@@ -3138,3 +3138,23 @@ paths:
           name: "locationId"
           in: "path"
           required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/RequestCommentInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RequestCommentRecord"}
+        default: {"$ref":"#/components/responses/Error"}
