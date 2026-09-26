@@ -18,3 +18,23 @@ The included Compose stack is for local development. It starts PostgreSQL, the
 API, and Mailpit, which captures outgoing authentication email. Open Mailpit at
 `http://localhost:8025`. No email is delivered to real recipients by this stack.
 
+```sh
+export DATABASE_PASSWORD="$(openssl rand -hex 24)"
+docker compose up -d --build
+```
+
+Export `BOOTSTRAP_CLIENT_NAME`, `BOOTSTRAP_EMAIL`, and `BOOTSTRAP_PASSWORD`, then:
+
+```sh
+docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
+```
+
+Keep the database password in your local secret store for future Compose runs.
+Changing this environment variable does not change an existing PostgreSQL user's
+password. Compose's built-in `.env` loading is separate from the native server,
+which reads only the process environment.
+
+## Client lifecycle
+
+`bootstrap` creates a new client and administrator, prints their identifiers,
+and never overwrites existing accounts. Client-wide administrator memberships
