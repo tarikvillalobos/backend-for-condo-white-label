@@ -178,3 +178,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         ctx.allow("packages.manage")
         val record = packageRecord(tx, ctx, id)
         val data = record.decode<PackageData>()
+        requireOutstanding(data)
+        release(tx, ctx, id, data)
+        val updated = tx.update(record, body(data.copy(status = "CANCELLED", credentialHash = null,
+            credentialExpiresAt = null, history = data.history + event(ctx, "cancelled"))))
+        tx.audit(ctx, "package.cancelled", id)
+        return view(updated)
+    }
+
+    fun trustedPickup(tx: Tx, ctx: Context, request: LockerPickupEvent): LockerEventResult {
+        ctx.allow("packages.collect")
+        if (!ctx.userId.startsWith("integration:")) forbidden()
+        if (request.eventId.isBlank() || request.eventId.length > 128 || request.type != "pickup_confirmed") {
+            badRequest("Invalid locker event")
+        }
+        val integrationId = ctx.userId.removePrefix("integration:")
+        val keyId = digest("${ctx.tenantId}:$integrationId:${request.eventId}")
+        val fingerprint = digest(body(request).toString())
+        tx.get("locker_event", keyId, ctx.tenantId)?.let {
+            val previous = it.decode<StoredLockerEvent>()
+            if (previous.fingerprint != fingerprint) conflict("Event ID has already been used with a different payload")
