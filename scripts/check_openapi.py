@@ -18,3 +18,23 @@ for file in (root / "src/main/kotlin/com/community/api").rglob("*.kt"):
     for line in file.read_text().splitlines():
         match = re.match(r'^(\s*)(route|get|post|put|patch|delete)(?:\(("[^"]*"|path)\))?\s*\{', line)
         if not match:
+            continue
+        indent, kind, value = match.groups()
+        depth = len(indent)
+        while stack and stack[-1][0] >= depth:
+            stack.pop()
+        suffixes = ["/api/v1", "/api/v1/locations/{locationId}"] if value == "path" else [json.loads(value) if value else ""]
+        prefix = stack[-1][1] if stack else ["/api/v1/locations/{locationId}" if community else ""]
+        combined = [a + b for a in prefix for b in suffixes]
+        if kind == "route":
+            stack.append((depth, combined))
+        else:
+            actual.update((kind, path) for path in combined)
+methods = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
+documented = {(method, path) for path, item in spec["paths"].items() for method in item if method in methods}
+assert actual == documented, f"Missing: {actual - documented}; extra: {documented - actual}"
+seen = set()
+for path, verbs in spec["paths"].items():
+    for method, operation in verbs.items():
+        if method not in methods:
+            continue
