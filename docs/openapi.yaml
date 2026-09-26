@@ -5058,3 +5058,23 @@ components:
       required: ["action","actorId","at"]
     ReservationView:
       type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        ownerId: {"type":"string"}
+        details: {"$ref":"#/components/schemas/ReservationData"}
+      required: ["id","ownerId","details"]
+    ReservationViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ReservationView"}
+    ResidentRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        content: {"$ref":"#/components/schemas/RequestInput"}
