@@ -98,3 +98,23 @@ internal fun Route.maintenanceRoutes(db: Database) {
     }
     route("/equipment") {
         get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.list("equipment", ctx.tenantId, ctx.locationId)
+            })
+        }
+        post {
+            val input = call.receive<EquipmentInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.saved(ctx, "equipment", body(input))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<EquipmentInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.changed(ctx, tx.record(ctx, "equipment", call.resourceId()), body(input), "equipment.updated")
+            })
+        }
+    }
