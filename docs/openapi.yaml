@@ -3698,3 +3698,23 @@ paths:
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/NotificationPreferences"}
+        default: {"$ref":"#/components/responses/Error"}
+components:
+  securitySchemes:
+    SessionBearer:
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "opaque access token"
+      description: "Access token from POST /api/v1/auth/login or /otp/confirm. Refresh via /auth/refresh. Tokens are not JWTs."
+    IntegrationBearer:
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "opaque integration token"
+      description: "Dedicated credential from /locations/{locationId}/integrations. Accepted only by /locker-events; human session tokens are rejected."
+  parameters:
+    Offset:
+      name: "offset"
+      in: "query"
+      schema: {"type":"integer","minimum":0,"default":0}
+    Limit:
+      name: "limit"
