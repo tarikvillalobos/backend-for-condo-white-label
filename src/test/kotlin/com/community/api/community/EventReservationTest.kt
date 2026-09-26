@@ -38,3 +38,23 @@ class EventReservationTest {
     @Test
     fun `owner and reservation manager can link confirmed or pending bookings`() = database().use { db ->
         db.tx { tx ->
+            tx.validateEventReservation(tx.context(), event)
+            tx.validateEventReservation(tx.context("manager"), event)
+            val row = tx.requireRecord("reservation", "booking", "tenant")
+            tx.update(row, body(row.decode<ReservationData>().copy(status = "PENDING")))
+            tx.validateEventReservation(tx.context(), event)
+            tx.validateEventReservation(tx.context(), event.copy(reservationId = null))
+        }
+    }
+
+    @Test
+    fun `event management alone does not grant access to another members booking`() = database().use { db ->
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { tx -> tx.validateEventReservation(tx.context("other"), event) }
+        }.status)
+    }
+
+    @Test
+    fun `reservation links are confined to tenant and location`() = database().use { db ->
+        db.tx { tx ->
+            val data = tx.requireRecord("reservation", "booking", "tenant").data
