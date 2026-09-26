@@ -18,3 +18,23 @@ class ReservationServiceTest {
     private val resident = Context(Actor("resident", "tenant", "session"), "location", setOf("reservations.create", "reservations.read.own", "facilities.read"))
     private val other = resident.copy(actor = resident.actor.copy(userId = "other"))
 
+    private fun database(): Database = Database.memory().also { db ->
+        db.tx { tx ->
+            listOf("manager", "resident", "other").forEach { userId ->
+                tx.create("account", "tenant", data = buildJsonObject { put("active", true) }, id = userId)
+                tx.create("membership", "tenant", "location", userId, body(Membership(userId, "location")))
+            }
+        }
+    }
+
+    private fun facility(db: Database, approval: Boolean = false): String = db.tx {
+        service.saveFacility(it, manager, FacilityData("Pool", capacity = 10, requiresApproval = approval)).id
+    }
+
+    private fun request(facility: String) = CreateReservation(facility, "2030-01-02T12:00:00Z", "2030-01-02T13:00:00Z", 3)
+
+    @Test
+    fun `reservation retries are idempotent and conflicting payloads are rejected`() = database().use { db ->
+        val request = request(facility(db))
+        val booking = db.tx { service.create(it, resident, request, "booking") }
+        assertEquals(booking.id, db.tx { service.create(it, resident, request, "booking") }.id)
