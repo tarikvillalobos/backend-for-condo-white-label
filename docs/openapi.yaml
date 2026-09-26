@@ -2118,3 +2118,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/vehicles":
+    get:
+      tags: ["Vehicles"]
+      summary: "List authorized vehicles"
+      operationId: "get_api_v1_locations_locationId_vehicles"
+      description: "Required permission: vehicles.read.own or vehicles.read.all. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
