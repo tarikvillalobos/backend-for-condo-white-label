@@ -4698,3 +4698,23 @@ components:
           format: "date-time"
       required: ["userId"]
     MembershipRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/Membership"}
+    MembershipRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/MembershipRecord"}
+    NotificationDeliveryStatus:
+      type: "object"
+      additionalProperties: false
+      properties:
+        status: {"type":"string"}
