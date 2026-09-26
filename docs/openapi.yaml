@@ -418,3 +418,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema:
+                type: "array"
+                items: {"$ref":"#/components/schemas/RoleDefinition"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Platform"]
+      summary: "Create a custom role"
+      operationId: "post_api_v1_roles"
+      description: "Permissions cannot exceed the caller delegated authority. Built-in templates cannot be replaced. Required permission: roles.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/RoleDefinition"}
+      responses:
+        "201":
+          description: "Created."
+          content:
