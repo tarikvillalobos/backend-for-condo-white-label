@@ -38,3 +38,23 @@ internal fun Tx.matchChallenge(token: String, type: String): Record? {
         !sameSecret(challenge.secretHash, digest("${record.id}:$token")) || !tenantAvailable(record.tenantId)) return null
     return record
 }
+
+fun Tx.issueInvitation(tenantId: String, email: String, name: String): InvitationIssue {
+    val normalized = normalizedEmail(email)
+    val existing = findAccount(tenantId, normalized)
+    if (existing?.decode<Account>()?.active == true) conflict("Account already active")
+    val account = existing ?: create("account", tenantId, data = body(Account(normalized, normalizedName(name), "", false)))
+    val challenge = issueChallenge(account, "activation", 72 * 3600)
+    identityAudit(tenantId, account.id, "account.invited")
+    return InvitationIssue(account.id, challenge.token, challenge.expiresAt)
+}
+
+internal fun Tx.activate(request: ActivationRequest, host: String, type: String): AuthResult<Accepted> {
+    val parts = parseToken(request.token)
+    if (!allowAttempt(type, parts?.get(0).orEmpty(), parts?.get(1).orEmpty(), host)) return AuthResult(status = 429, code = "rate_limited")
+    val challenge = matchChallenge(request.token, type) ?: return AuthResult()
+    val account = challenge.ownerId?.let { get("account", it, challenge.tenantId) } ?: return AuthResult()
+    val data = account.decode<Account>()
+    if (type == "recovery" && !data.active || type == "activation" && data.active) return AuthResult()
+    update(account, body(data.copy(passwordHash = Passwords.hash(request.password), active = true)))
+    consumeChallenge(challenge)
