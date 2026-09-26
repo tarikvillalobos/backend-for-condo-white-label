@@ -58,3 +58,23 @@ Ownership or household membership must not automatically grant administrative pr
 
 Register deliveries received at reception desks or lockers, identify recipients, track status and storage location, and provide package details, history, reminders, and collection deadlines.
 
+Manage lockers, compartments, availability, maintenance status, and provider integrations. Support pickup codes or QR credentials with expiration, revocation, and single-use rules, plus explicitly authorized collection by another person.
+
+Distinguish a resident reporting a pickup from confirmation by authorized staff or a trusted locker event. Handle duplicate or out-of-order integration events without creating duplicate deliveries or collections.
+
+Both apps must use the same package records and business rules when accessing the same authorized context.
+
+### Cameras
+
+Manage camera locations, availability, permitted audiences, and authorized viewing sessions. Provide live-view access through supported camera providers.
+
+Recording access, playback, or footage requests may be enabled when supported and authorized. Treat live viewing and recording access as separate permissions; do not expose equipment administrator credentials to users.
+
+### Pets
+
+Manage pet registration, responsible residents, unit association, photos, identification details, and vaccination documents where required by the property.
+
+Support lost-and-found notices and property-specific pet rules. Restrict access to private pet and owner records according to the user's responsibilities.
+
+### Common Areas and Reservations
+
