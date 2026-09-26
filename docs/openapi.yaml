@@ -2238,3 +2238,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/ParkingInputRecordPage"}
         default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Vehicles"]
+      summary: "Create parking"
+      operationId: "post_api_v1_locations_locationId_parking"
+      description: "Required permission: vehicles.manage. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ParkingInput"}
+      responses:
+        "201":
+          description: "Created."
