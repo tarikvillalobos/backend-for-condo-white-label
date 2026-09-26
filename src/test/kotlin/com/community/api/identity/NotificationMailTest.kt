@@ -58,3 +58,23 @@ class NotificationMailTest {
                         "location" -> tx.get("location", notification.locationId!!, tenantA)!!.let { tx.update(it, body(it.decode<Location>().copy(active = false))) }
                         else -> tx.get("client", tenantA, tenantA)!!.let { tx.update(it, body(it.decode<ClientSettings>().copy(features = emptySet()))) }
                     }
+                }
+                val result = deliverNotificationMailBatch(db, config, MailSender { _, _ -> fail("Sent despite disabled $disabled") })
+                assertEquals(MailBatchResult(0, 0), result)
+                assertEquals("suppressed", db.tx { it.notificationMailStatus(notification)!!.status })
+            }
+        }
+    }
+
+    @Test
+    fun `preferences are rechecked after claim before sending`() = Database.memory().use { db ->
+        val notification = db.notificationFixture()
+        val claim = db.tx { it.claimNotificationDelivery() }!!
+        db.tx { it.setEmailPreference(notification.ownerId!!, false) }
+        assertNull(db.tx { it.recheckNotificationDelivery(claim) })
+        assertEquals("suppressed", db.tx { it.notificationMailStatus(notification)!!.status })
+    }
+
+    @Test
+    fun `failed notification delivery backs off and obeys opt out before retry`() = runBlocking {
+        Database.memory().use { db ->
