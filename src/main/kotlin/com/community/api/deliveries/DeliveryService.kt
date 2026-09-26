@@ -138,3 +138,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         return view(updated)
     }
 
+    fun remind(tx: Tx, ctx: Context, id: String): PackageView {
+        ctx.allow("packages.receive")
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        requireOutstanding(data)
+        if (data.lastReminderAt?.let { Instant.parse(it).plusSeconds(86400).isAfter(clock.instant()) } == true) {
+            return view(record)
+        }
+        val updated = tx.update(record, body(data.copy(lastReminderAt = clock.instant().toString(),
+            history = data.history + event(ctx, "reminder_sent"))))
+        tx.notify(ctx.tenantId, ctx.location(), data.receipt.recipientId, "Package awaiting collection", "A delivery is still waiting for collection.")
+        tx.audit(ctx, "package.reminder_sent", id)
+        return view(updated)
+    }
+
+    fun confirmPickup(tx: Tx, ctx: Context, id: String, request: ConfirmPickup): PackageView {
+        ctx.allow("packages.collect")
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        requireOutstanding(data)
