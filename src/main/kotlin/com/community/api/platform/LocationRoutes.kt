@@ -78,3 +78,11 @@ fun Route.locationRoutes(db: Database) {
                 })
             }
         }
+    }
+}
+
+private fun UnitData.validate() {
+    name.validText("unit name", 80)
+    building?.validText("building", 80)
+    floor?.validText("floor", 80)
+}
