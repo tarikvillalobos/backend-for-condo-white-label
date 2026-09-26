@@ -27,6 +27,13 @@ import java.util.UUID
 @Serializable
 data class ApiError(val code: String, val message: String, val requestId: String?)
 
+private val responseHeaders = createApplicationPlugin("PrivateApiHeaders") {
+    onCall { call ->
+        call.response.headers.append("Cache-Control", "no-store")
+        call.response.headers.append("X-Content-Type-Options", "nosniff")
+    }
+}
+
 fun Application.configureHttp() {
     install(ContentNegotiation) { json() }
     install(CallId) {
