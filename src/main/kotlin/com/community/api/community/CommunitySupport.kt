@@ -38,3 +38,17 @@ internal fun Tx.own(ctx: Context, record: Record, permission: String) {
 internal fun Tx.visible(ctx: Context, kind: String, allPermission: String): List<Record> =
     list(kind, ctx.tenantId, ctx.locationId, if (ctx.can(allPermission)) null else ctx.userId)
 internal fun Tx.saved(ctx: Context, kind: String, data: JsonObject, ownerId: String? = ctx.userId): Record =
+    create(kind, ctx.tenantId, ctx.locationId, ownerId, data).also { audit(ctx, "$kind.created", it.id) }
+internal fun Tx.changed(ctx: Context, record: Record, data: JsonObject, action: String): Record =
+    update(record, data).also { audit(ctx, action, it.id) }
+internal fun Tx.record(ctx: Context, kind: String, id: String) = requireRecord(kind, id, ctx.tenantId, ctx.locationId)
+
+internal fun Tx.audience(ctx: Context, unitId: String?, managePermission: String = "announcements.manage"): Boolean {
+    if (unitId == null || ctx.can(managePermission)) return true
+    return list("membership", ctx.tenantId).any {
+        it.data["userId"]?.jsonPrimitive?.content == ctx.userId &&
+            it.data["locationId"]?.jsonPrimitive?.content == ctx.locationId &&
+            it.data["unitId"]?.jsonPrimitive?.content == unitId && it.data["active"]?.jsonPrimitive?.booleanOrNull == true &&
+            it.data["expiresAt"]?.jsonPrimitive?.contentOrNull.let { expiry -> expiry == null || instant(expiry, "expiresAt").isAfter(Instant.now()) }
+    }
+}
