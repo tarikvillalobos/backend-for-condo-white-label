@@ -1118,3 +1118,23 @@ paths:
         required: true
         content:
           "application/json":
+            schema: {"$ref":"#/components/schemas/LockerPickupEvent"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LockerEventResult"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/packages":
+    get:
+      tags: ["Packages"]
+      summary: "List authorized packages"
+      operationId: "get_api_v1_locations_locationId_packages"
+      description: "Required permission: packages.read.own or packages.read.all. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
