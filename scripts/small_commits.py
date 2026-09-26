@@ -78,3 +78,14 @@ def main():
     if git("diff", "--cached", "--name-only").strip():
         raise RuntimeError("Commit or unstage existing staged changes first")
     for path in args.paths:
+        resolved = Path(path).resolve()
+        relative = resolved.relative_to(Path(root)).as_posix()
+        if relative.startswith(".git/"):
+            raise ValueError("Cannot commit Git internals")
+        commit_file(relative)
+    if args.push:
+        subprocess.run(["git", "push", "-u", "origin", "main"], check=True)
+
+
+if __name__ == "__main__":
+    main()
