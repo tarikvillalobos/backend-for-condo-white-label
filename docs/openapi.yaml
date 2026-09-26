@@ -658,3 +658,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/MembershipRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/invitations":
+    post:
+      tags: ["Platform"]
+      summary: "Invite an account and create its membership"
+      operationId: "post_api_v1_locations_locationId_invitations"
+      description: "Activation credential is returned once. A repeated idempotency key returns 409. locationId in the body must equal the selected location; use null and role client_admin for client scope. Required permission: memberships.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/IdempotencyKey"}
+      requestBody:
+        required: true
