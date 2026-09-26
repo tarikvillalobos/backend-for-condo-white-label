@@ -3978,3 +3978,23 @@ components:
     CameraInput:
       type: "object"
       additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        area: {"type":"string"}
+        enabled: {"type":"boolean","default":true}
+        unitId:
+          type: ["string","null"]
+          default: null
+      required: ["name","area"]
+    CameraInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/CameraInput"}
+    CameraInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
