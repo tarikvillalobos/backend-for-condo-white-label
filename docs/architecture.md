@@ -127,3 +127,23 @@ The integration event contract accepts trusted provider events but does not
 simulate hardware or claim that a physical action occurred.
 
 Managed attachments are stored in the database with a 2 MiB decoded limit,
+PNG/JPEG/PDF signature checks, ownership, and download authorization. This is
+suitable for small files; larger deployments should add object storage, scanning,
+retention, and tested authorization-preserving download adapters. Domain metadata
+may also reference HTTPS documents hosted elsewhere; those providers enforce
+their URL access policies independently.
+
+## Runtime and operations
+
+`/health/live` confirms HTTP handling. `/health/ready` checks the database and
+returns 503 when unavailable. It does not certify SMTP or hardware availability.
+The default listener is `127.0.0.1`; containers use an explicit `HOST=0.0.0.0`.
+Production configuration requires PostgreSQL credentials and authenticated SMTP
+with STARTTLS. TLS termination, database encryption/backups, restore drills,
+monitoring, and retention must be configured for the deployment.
+
+HTTP logs contain method, status, and a generated request ID. Errors return a
+stable code and safe message with that ID. Unexpected-error logs omit exception
+messages that might contain secrets. Request bodies, credentials, and private
+records are not written to HTTP logs.
+
