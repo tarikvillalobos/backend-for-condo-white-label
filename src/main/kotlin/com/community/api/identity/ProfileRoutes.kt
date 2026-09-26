@@ -38,3 +38,16 @@ internal fun Route.profileRoutes(db: Database) {
             call.respond(result.unwrap())
         }
         post("/contact/request") {
+            val request = call.receive<ContactRequest>()
+            val token = call.identityBearer()
+            val result = db.query { tx -> tx.requestContactChange(tx.authenticate(token), request, call.request.local.remoteHost) }
+            call.respond(result.unwrap())
+        }
+        post("/contact/confirm") {
+            val request = call.receive<ContactConfirmation>()
+            val token = call.identityBearer()
+            val result = db.query { tx -> tx.confirmContactChange(tx.authenticate(token), request.token) }
+            call.respond(result.unwrap())
+        }
+    }
+}
