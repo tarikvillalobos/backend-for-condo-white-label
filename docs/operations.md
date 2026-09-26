@@ -98,3 +98,15 @@ events are supported through separate integration credentials.
 
 External push/SMS, camera streaming/recordings, and gate/locker opening adapters
 still require provider contracts and credentials. Never infer a physical event
+from a command request. Optional financial, voting, waitlist, and recurrence
+features remain outside this implementation.
+
+## Commit policy
+
+Use `python3 scripts/small_commits.py FILE... --push` to split text changes into
+commits of at most 20 added/deleted lines, one file per commit on `main`.
+`python3 scripts/check_commits.py` verifies the entire history, including in CI.
+Binary Gradle Wrapper JAR changes occupy a single-file commit; Git reports no
+textual line count for binary artifacts. Intermediate small commits may not build;
+push after validating each complete batch. Never force-push to resolve a diverged
+remote automatically.
