@@ -118,3 +118,23 @@ Manage staff responsibilities, approved service providers, work orders, schedule
 
 Support temporary access for contractors, task assignment, completion evidence, and service history. Staff access must be limited to the properties and work they are authorized to handle.
 
+### Documents and Useful Contacts
+
+Publish property rules, manuals, forms, meeting records, and other authorized documents. Support versions, visibility rules, and acknowledgment when needed.
+
+Maintain property contacts, administration contacts, operating hours, and emergency contact information without exposing private resident contact details to unrelated users.
+
+### Notifications and Communication Preferences
+
+Provide an in-app notification inbox, unread counts, notification history, and preferences. Support push notifications and configurable email, SMS, or messaging providers when integrated.
+
+Track delivery attempts and failures. Target the correct client, property, and recipient, and avoid sending access credentials or unnecessary personal information in notification content.
+
+### Administration, Reporting, and Audit
+
+Provide administrative operations for onboarding clients and properties, managing users and memberships, configuring modules, assigning permissions, and maintaining integrations.
+
+Include operational reports for packages, reservations, requests, visits, and maintenance. Exports must respect the same access restrictions as interactive access.
+
+Record relevant administrative actions, permission changes, and sensitive operations with their actor and context, without logging passwords, authentication codes, or pickup credentials.
+
