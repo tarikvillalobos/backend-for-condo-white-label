@@ -287,6 +287,24 @@ an `Idempotency-Key`; consult each module's retry semantics.
 | `DATABASE_PASSWORD` | Empty for local H2; required in production |
 | `SMTP_HOST`, `SMTP_FROM` | Configure authentication email delivery |
 | `SMTP_PORT` | `587` |
+| `SMTP_USER`, `SMTP_PASSWORD` | Configure together; required for production SMTP |
+| `SMTP_STARTTLS` | `true`; required in production |
+
+Production startup requires PostgreSQL and authenticated SMTP with STARTTLS.
+Development can omit SMTP, leaving authentication emails queued in private
+storage. [Identity documentation](docs/identity.md) covers worker retries,
+credential handling, local SMTP, and the external-delivery boundary.
+
+The application reads process environment variables. `.env.example` is a
+reference; Gradle does not automatically load a `.env` file. For PostgreSQL,
+set the JDBC URL, application user, and password in the same environment before
+bootstrap and server startup. Flyway applies schema migrations at startup.
+
+### Containers
+
+The Docker image runs the Java 21 distribution. Docker Compose includes `api`,
+`db` (PostgreSQL 17), and `mail` (Mailpit for local email capture). Export a
+`DATABASE_PASSWORD` before starting the development stack:
 
 ```sh
 HOST=0.0.0.0 PORT=8080 APP_ENV=development ./gradlew run
