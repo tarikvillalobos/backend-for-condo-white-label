@@ -458,3 +458,23 @@ paths:
         required: true
         content:
           "application/json":
+            schema: {"$ref":"#/components/schemas/RoleDefinition"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RoleDefinitionRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/accounts":
+    get:
+      tags: ["Platform"]
+      summary: "List account summaries"
+      operationId: "get_api_v1_accounts"
+      description: "Required permission: accounts.manage."
+      parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
