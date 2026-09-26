@@ -498,3 +498,23 @@ paths:
       requestBody:
         required: true
         content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/AccountState"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AccountSummary"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/memberships":
+    get:
+      tags: ["Platform"]
+      summary: "List memberships in the selected scope"
+      operationId: "get_api_v1_memberships"
+      description: "Required permission: memberships.read."
+      parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
