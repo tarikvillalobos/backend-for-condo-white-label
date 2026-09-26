@@ -2898,3 +2898,23 @@ paths:
       operationId: "delete_api_v1_locations_locationId_events_id_attendance"
       description: "Required permission: events.attend. The client and location must enable the events feature."
       parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
+    get:
+      tags: ["Events"]
+      summary: "List authorized attendance records"
+      operationId: "get_api_v1_locations_locationId_events_id_attendance"
+      description: "Required permission: events.read. The client and location must enable the events feature."
