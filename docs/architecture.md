@@ -87,6 +87,9 @@ Roles are permission sets; custom roles and direct grants are constrained by the
 assigning administrator's authority. Client administrators have explicit
 client-wide privileges. Other roles remain scoped to their memberships.
 Unit membership alone never grants collection rights for another person's parcel.
+Owner, tenant, dependent, and household classifications describe a unit relationship;
+they do not add role permissions. Location policies can require vaccination
+references, restrict species, and limit registered pets per unit.
 
 Brands select presentation and application configuration. They do not establish
 tenant ownership or bypass permissions. Standalone locker locations belong to a
