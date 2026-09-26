@@ -320,7 +320,13 @@ local mail capture. Production requires authenticated STARTTLS SMTP and a
 deployment-specific TLS/proxy setup. Persist the PostgreSQL volume and keep
 database backups outside the application container.
 
-| Method | Path | Current behavior |
+An operator can suspend or reactivate a client with `CLIENT_ID` and
+`CLIENT_ACTIVE=true|false` through `./gradlew run --args=client-state`.
+Suspension revokes the client's account credentials; it does not delete records.
+
+### Health endpoints
+
+| Method | Path | Behavior |
 | --- | --- | --- |
 | `GET` | `/health/live` | Returns HTTP 200 with `{"status":"UP"}` when the application can handle requests. |
 | `GET` | `/health/ready` | Returns HTTP 200 with `{"status":"UP"}` after application startup. |
