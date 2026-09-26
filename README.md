@@ -18,3 +18,23 @@ The capabilities and requirements below describe the planned product scope. Feat
 
 ## Technology Stack
 
+- Kotlin/JVM 2.4.20 with Java 21.
+- Ktor 3.6.0 with the Netty server engine.
+- Gradle 9.4.1 with Kotlin DSL and the Gradle Wrapper.
+- JSON responses through Kotlin serialization.
+- Logback 1.6.4 for logging.
+
+The backend will remain a shared monolith for both applications. Business capabilities will be organized into modules as they are implemented.
+
+See [Architecture](docs/architecture.md) for the current layout, planned module boundaries, and delivery order.
+
+## Planned Capabilities
+
+### Authentication and Account Management
+
+Account activation, invitations, login, recovery, verified contact changes, and profile management. Support password-based and one-time-code authentication according to the configured login policy.
+
+Include session expiration, renewal, logout, session revocation, device/session visibility, and additional verification for privileged or sensitive actions. Protect login and recovery flows against repeated attempts and account enumeration.
+
+### Clients, Brands, and Feature Configuration
+
