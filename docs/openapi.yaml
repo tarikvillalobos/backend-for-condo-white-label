@@ -1298,3 +1298,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        -
+          name: "userId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageView"}
+        default: {"$ref":"#/components/responses/Error"}
