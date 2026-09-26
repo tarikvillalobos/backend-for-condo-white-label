@@ -258,3 +258,23 @@ paths:
         "200":
           description: "Successful operation."
           content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me/contact/confirm":
+    post:
+      tags: ["Identity"]
+      summary: "Confirm your email change and revoke sessions"
+      operationId: "post_api_v1_me_contact_confirm"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ContactConfirmation"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
