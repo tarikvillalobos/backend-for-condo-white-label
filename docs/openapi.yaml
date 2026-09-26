@@ -998,3 +998,23 @@ paths:
         -
           name: "id"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/integrations":
+    get:
+      tags: ["Integrations"]
+      summary: "List configured provider accounts"
+      operationId: "get_api_v1_locations_locationId_integrations"
+      description: "Required permission: integrations.manage."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
