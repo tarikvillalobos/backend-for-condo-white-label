@@ -58,3 +58,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
     fun list(tx: Tx, ctx: Context): List<ReservationView> {
         if (!ctx.can("reservations.read.all") && !ctx.can("reservations.read.own")) forbidden()
         return records(tx, ctx).filter { ctx.can("reservations.read.all") || it.ownerId == ctx.userId }.map(::view)
+    }
+
+    fun get(tx: Tx, ctx: Context, id: String): ReservationView {
+        val record = tx.requireRecord("reservation", id, ctx.tenantId, ctx.location())
+        if (!ctx.can("reservations.read.all") && !(ctx.can("reservations.read.own") && record.ownerId == ctx.userId)) forbidden()
+        return view(record)
+    }
+
+    fun availability(tx: Tx, ctx: Context, facilityId: String, startsAt: String, endsAt: String): FacilityAvailability {
+        ctx.allow("facilities.read")
+        val facility = tx.requireRecord("facility", facilityId, ctx.tenantId, ctx.location()).decode<FacilityData>()
+        val start = instant(startsAt)
+        val end = instant(endsAt)
+        if (!start.isBefore(end) || Duration.between(start, end) > Duration.ofDays(93)) badRequest("Availability range must be positive and at most 93 days")
+        val busy = records(tx, ctx).map { it.decode<ReservationData>() }.filter {
+            it.request.facilityId == facilityId && it.status in blocking &&
+                instant(it.request.startsAt).isBefore(end) && instant(it.request.endsAt).isAfter(start)
+        }.map { AvailabilitySlot(it.request.startsAt, it.request.endsAt) }.sortedBy { it.startsAt }
+        return FacilityAvailability(facilityId, facility, busy)
+    }
