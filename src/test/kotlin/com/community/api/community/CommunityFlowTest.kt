@@ -38,3 +38,23 @@ class CommunityFlowTest {
             assertEquals(HttpStatusCode.Forbidden, client.post(f.path("visitors/$id/check-in")) {
                 bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
                 setBody(json.encodeToString(VisitorCheckIn(code)))
+            }.status)
+            assertEquals(HttpStatusCode.OK, client.post(f.path("visitors/$id/check-in")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(VisitorCheckIn(code)))
+            }.status)
+            assertEquals(HttpStatusCode.OK, client.post(f.path("visitors/$id/check-out")) { bearerAuth(f.manager.token) }.status)
+            assertEquals(HttpStatusCode.Conflict, client.post(f.path("visitors/$id/check-in")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(VisitorCheckIn(code)))
+            }.status)
+        }
+    }
+
+    @Test
+    fun `concurrent attendance cannot exceed capacity`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            val now = Instant.now()
+            val response = client.post(f.path("events")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
