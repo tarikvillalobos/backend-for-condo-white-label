@@ -98,3 +98,23 @@ private fun Tx.context(actor: Actor, locationId: String?, feature: String?): Con
     if (get("account", actor.userId, actor.tenantId)?.data?.get("active")?.jsonPrimitive?.booleanOrNull != true) forbidden()
     val memberships = activeMemberships(actor.tenantId, actor.userId)
         .filter { it.locationId == null || (locationId != null && it.locationId == locationId) }
+    if (memberships.isEmpty()) forbidden()
+    val permissions = memberships.flatMap { memberPermissions(actor.tenantId, it.decode()) }.toSet()
+    val location = locationId?.let { requireRecord("location", it, actor.tenantId) }
+    if (location != null && location.data["active"]?.jsonPrimitive?.booleanOrNull != true) forbidden()
+    if (feature != null) {
+        val clientFeatures = json.decodeFromJsonElement<Set<String>>(client.data["features"] ?: forbidden())
+        if (feature !in clientFeatures) forbidden()
+        if (location != null) {
+            val locationFeatures = json.decodeFromJsonElement<Set<String>>(location.data["features"] ?: forbidden())
+            if (feature !in locationFeatures) forbidden()
+        }
+    }
+    return Context(actor, locationId, permissions)
+}
+
+fun Tx.authorize(actor: Actor, locationId: String?, permission: String, feature: String? = null): Context =
+    context(actor, locationId, feature).also { if (!it.can(permission)) forbidden() }
+
+fun Tx.authorizeAny(actor: Actor, locationId: String?, permissions: Set<String>, feature: String? = null): Context =
+    context(actor, locationId, feature).also { ctx -> if (permissions.none(ctx::can)) forbidden() }
