@@ -118,3 +118,11 @@ internal fun Route.maintenanceRoutes(db: Database) {
             })
         }
     }
+}
+
+private fun ContractorInput.validated() = copy(name = text(name, "name", 160), service = text(service, "service", 200), contact = text(contact, "contact", 200))
+private fun EquipmentInput.validated(): EquipmentInput {
+    nextInspectionAt?.let { instant(it, "nextInspectionAt") }
+    return copy(name = text(name, "name", 160), description = text(description, "description", 2000),
+        serialNumber = serialNumber?.let { text(it, "serialNumber", 160) })
+}
