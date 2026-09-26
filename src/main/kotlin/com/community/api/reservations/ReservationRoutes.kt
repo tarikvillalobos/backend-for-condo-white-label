@@ -58,3 +58,19 @@ fun Route.reservationRoutes(db: Database) {
                 call.respond(db.query { tx -> service.transition(tx, call.reservationContext(tx, "reservations.manage"), call.reservationId(), "approve") })
             }
             post("/{id}/reject") {
+                call.respond(db.query { tx -> service.transition(tx, call.reservationContext(tx, "reservations.manage"), call.reservationId(), "reject") })
+            }
+        }
+    }
+}
+
+private fun ApplicationCall.reservationId(): String = parameters["id"] ?: badRequest("Resource ID is required")
+private fun ApplicationCall.reservationKey(): String = request.headers["Idempotency-Key"] ?: badRequest("Idempotency-Key is required")
+
+private fun ApplicationCall.reservationContext(tx: Tx, permission: String? = null): Context {
+    val locationId = parameters["locationId"] ?: badRequest("Location is required")
+    val actor = actor(tx)
+    return if (permission == null) tx.authorizeAny(actor, locationId,
+        setOf("reservations.read.own", "reservations.read.all"), "reservations")
+    else tx.authorize(actor, locationId, permission, "reservations")
+}
