@@ -2978,3 +2978,23 @@ paths:
         required: true
         content:
           "application/json":
+            schema: {"$ref":"#/components/schemas/LostPetInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LostPetView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/lost-pets/{id}/resolve":
+    post:
+      tags: ["Pets"]
+      summary: "Resolve a lost-pet notice"
+      operationId: "post_api_v1_locations_locationId_lost_pets_id_resolve"
+      description: "Required permission: pets.manage.own or pets.manage. The client and location must enable the pets feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
