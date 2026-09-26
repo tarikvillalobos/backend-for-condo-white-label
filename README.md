@@ -45,7 +45,7 @@ provider-dependent features and optional workflows are identified separately.
 - Kotlin serialization for JSON; opaque bearer sessions with hashed secrets.
 - PostgreSQL for production; persistent H2 for local development and H2 for tests.
 - HikariCP connection pooling and Flyway schema migrations.
-- Eclipse Angus Mail for authentication email; Logback for redacted HTTP logs.
+- Eclipse Angus Mail for authentication and notification email; Logback for redacted HTTP logs.
 
 ## Documentation
 
