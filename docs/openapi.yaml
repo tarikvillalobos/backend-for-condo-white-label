@@ -738,3 +738,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/LocationRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    put:
+      tags: ["Platform"]
+      summary: "Update or restore a location"
+      operationId: "put_api_v1_locations_locationId"
+      description: "Restoring an inactive location requires tenant-level authority. Required permission: locations.manage."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Location"}
+      responses:
