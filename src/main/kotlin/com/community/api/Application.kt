@@ -16,6 +16,13 @@ import com.community.api.reservations.reservationRoutes
 import com.community.api.health.healthRoutes
 import com.community.api.plugins.configureHttp
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.log
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import io.ktor.server.application.serverConfig
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
