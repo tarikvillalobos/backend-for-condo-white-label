@@ -2578,3 +2578,23 @@ paths:
         content:
           "application/json":
             schema: {"$ref":"#/components/schemas/DocumentInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityDocumentRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/contacts":
+    get:
+      tags: ["Contacts"]
+      summary: "List authorized contacts"
+      operationId: "get_api_v1_locations_locationId_contacts"
+      description: "Required permission: contacts.read. The client and location must enable the contacts feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
