@@ -78,3 +78,15 @@ internal fun Route.petRoutes(db: Database) {
                 val saved = tx.saved(ctx, "lost_pet", body(notice))
                 LostPetView(saved.id, notice, saved.createdAt)
             })
+        }
+        post("/{id}/resolve") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("pets.manage.own", "pets.manage"), "pets")
+                val row = tx.record(ctx, "lost_pet", call.resourceId())
+                tx.own(ctx, row, "pets.manage")
+                val saved = tx.changed(ctx, row, body(row.decode<LostPet>().copy(resolved = true)), "lost_pet.resolved")
+                LostPetView(saved.id, saved.decode<LostPet>(), saved.createdAt)
+            })
+        }
+    }
+}
