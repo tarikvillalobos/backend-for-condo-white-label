@@ -2058,3 +2058,23 @@ paths:
       description: "Required permission: pets.manage.own or pets.manage. The client and location must enable the pets feature."
       parameters:
         -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests":
+    get:
+      tags: ["Requests"]
+      summary: "List authorized requests"
+      operationId: "get_api_v1_locations_locationId_requests"
+      description: "Required permission: requests.read.own or requests.read.all. The client and location must enable the requests feature."
