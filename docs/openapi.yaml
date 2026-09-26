@@ -5398,3 +5398,19 @@ components:
           type: "object"
           properties:
             items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/WorkOrderRecord"}
+    WorkOrderUpdate:
+      type: "object"
+      additionalProperties: false
+      properties:
+        status:
+          type: "string"
+          enum: ["scheduled","in_progress","completed","cancelled"]
+        notes: {"type":"string"}
+        evidence:
+          type: "array"
+          items: {"type":"string","format":"uri"}
+          default: []
+          maxItems: 10
+      required: ["status","notes"]
