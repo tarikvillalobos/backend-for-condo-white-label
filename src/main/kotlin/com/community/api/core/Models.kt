@@ -38,3 +38,13 @@ data class Page<T>(val items: List<T>, val total: Int, val offset: Int, val limi
 
 class ApiException(val status: Int, val code: String, override val message: String) : RuntimeException(message)
 
+fun badRequest(message: String = "Invalid request"): Nothing = throw ApiException(400, "bad_request", message)
+fun unauthorized(): Nothing = throw ApiException(401, "unauthorized", "Authentication required")
+fun forbidden(): Nothing = throw ApiException(403, "forbidden", "Access denied")
+fun notFound(): Nothing = throw ApiException(404, "not_found", "Resource not found")
+fun conflict(message: String = "Operation conflicts with current state"): Nothing = throw ApiException(409, "conflict", message)
+
+fun String.validText(field: String, max: Int = 200): String {
+    if (isBlank() || length > max || any { it == '\u0000' }) badRequest("Invalid $field")
+    return trim()
+}
