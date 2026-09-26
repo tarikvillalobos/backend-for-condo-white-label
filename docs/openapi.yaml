@@ -2818,3 +2818,23 @@ paths:
       summary: "List read acknowledgments"
       operationId: "get_api_v1_locations_locationId_announcements_id_receipts"
       description: "Required permission: announcements.manage. The client and location must enable the announcements feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
