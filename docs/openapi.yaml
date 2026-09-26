@@ -3818,3 +3818,23 @@ components:
           format: "date-time"
         pinned: {"type":"boolean","default":false}
         priority:
+          type: "string"
+          default: "normal"
+          enum: ["normal","high","urgent"]
+        attachments:
+          type: "array"
+          items: {"type":"string","format":"uri"}
+          default: []
+          maxItems: 10
+        acknowledgmentRequired: {"type":"boolean","default":false}
+      required: ["title","message"]
+    AnnouncementRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/Announcement"}
+    AnnouncementRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
