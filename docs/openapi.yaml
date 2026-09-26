@@ -3218,3 +3218,23 @@ paths:
       description: "Required permission: visitors.create (owner) or visitors.manage. The client and location must enable the visitors feature."
       parameters:
         -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VisitorView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/visitors/{id}/check-in":
+    post:
