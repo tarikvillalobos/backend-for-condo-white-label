@@ -92,10 +92,12 @@ Brands select presentation and application configuration. They do not establish
 tenant ownership or bypass permissions. Standalone locker locations belong to a
 client but need neither a condominium nor a unit.
 
-1. Trusted identity, revocable sessions, client/location context, and permission checks.
-2. Persistent client, location, membership, and package records with audit trails.
-3. Package receipt and authorized collection shared by both apps, then provider adapters.
-4. Condominium modules, each with its access rules, transaction guarantees, and tests.
+Resident lists filter by owner or audience. Staff-only request comments are
+filtered separately from resident-visible history. Public lost-pet notices omit
+private owner/unit/vaccination data. Inbox entries cease to be visible when their
+location membership or feature access is revoked. Uploaded private attachments
+require ownership or an explicit read-all grant; published attachments require
+location document access.
 
 The full planned product scope remains in [README.md](../README.md).
 
