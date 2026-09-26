@@ -58,3 +58,12 @@ internal fun Route.notificationRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val actor = call.actor(tx)
                 val ctx = tx.notificationContext(actor, null, "notifications.manage")
+                val row = tx.list("notification_preferences", actor.tenantId, ownerId = actor.userId).firstOrNull()
+                if (row == null) tx.create("notification_preferences", actor.tenantId, ownerId = actor.userId, data = body(input))
+                else tx.update(row, body(input))
+                tx.audit(ctx, "notification.preferences.updated", actor.userId)
+                input
+            })
+        }
+    }
+}
