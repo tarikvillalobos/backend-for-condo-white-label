@@ -78,3 +78,23 @@ For H2 local backups, stop the process before copying `data/community.mv.db`.
 
 Authentication delivery entries are deleted after delivery or credential use;
 the mail worker removes expired deliveries. Audit and business records are kept
+until a client-specific retention policy is agreed and implemented. There is no
+automatic purge of business history. Attachment deletion is explicit and audited.
+
+Uploads accept base64 PNG, JPEG, or PDF, validate size (2 MiB), extension and file
+signature, and limit each user to 200 attachments. Downloads require current
+access and force attachment disposition with `nosniff`. These checks do not replace
+malware scanning; use a scanning provider before enabling untrusted document
+distribution in a deployment that requires it.
+
+## Monitoring and limitations
+
+`GET /health/live` checks HTTP responsiveness; `/health/ready` checks database
+connectivity and returns 503 when unavailable. Logs carry generated request IDs,
+methods, statuses, and sanitized failures. Alert on readiness failures, mail
+delivery failures, sustained 5xx responses, and backup failures. Hardware command
+routes return 501 until a real provider is configured; verified locker pickup
+events are supported through separate integration credentials.
+
+External push/SMS, camera streaming/recordings, and gate/locker opening adapters
+still require provider contracts and credentials. Never infer a physical event
