@@ -5148,6 +5148,26 @@ components:
             items:
               type: "array"
               items: {"$ref":"#/components/schemas/RequestCommentRecord"}
+    RequestEscalation:
+      type: "object"
+      additionalProperties: false
+      properties:
+        requestId: {"type":"string"}
+        reason: {"type":"string"}
+        previousPriority: {"type":"string"}
+        priority: {"type":"string"}
+        previousAssignee:
+          type: ["string","null"]
+        assignedTo:
+          type: ["string","null"]
+        previousDueAt:
+          type: ["string","null"]
+          format: "date-time"
+        dueAt:
+          type: ["string","null"]
+          format: "date-time"
+      required: ["requestId","reason","previousPriority","priority","previousAssignee","assignedTo","previousDueAt","dueAt"]
+    RequestEscalationInput:
     RequestInput:
       type: "object"
       additionalProperties: false
