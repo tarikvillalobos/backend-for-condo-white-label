@@ -98,3 +98,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
         if (!maintenance) validateBooking(facility, request, start, end)
         val existing = records(tx, ctx)
         val active = existing.filter { it.decode<ReservationData>().let { booking ->
+            booking.status in blocking && instant(booking.request.endsAt).isAfter(clock.instant())
+        } }
+        if (!maintenance && active.count { it.ownerId == ctx.userId && it.decode<ReservationData>().request.facilityId == request.facilityId } >= facility.maxActivePerMember) {
+            conflict("Active reservation limit reached")
+        }
+        ensureNoOverlap(active, request.facilityId, start, end)
+        val status = when { maintenance -> "MAINTENANCE"; facility.requiresApproval -> "PENDING"; else -> "CONFIRMED" }
+        val record = tx.create("reservation", ctx.tenantId, ctx.location(), ctx.userId,
+            body(ReservationData(request, status, listOf(event(ctx, "created")))))
+        tx.create("reservation_key", ctx.tenantId, ctx.location(), ctx.userId, body(ReservationKey(fingerprint, record.id)), keyId)
+        tx.audit(ctx, "reservation.created", record.id)
+        if (!maintenance) tx.notify(ctx.tenantId, ctx.location(), ctx.userId, "Reservation registered", "Your reservation is ${status.lowercase()}.")
+        return view(record)
+    }
+
+    private fun validateBooking(facility: FacilityData, request: CreateReservation, start: Instant, end: Instant) {
+        if (facility.maintenance) conflict("Facility is under maintenance")
+        if (request.attendees !in 1..facility.capacity) badRequest("Attendees exceed facility capacity")
+        val now = clock.instant()
+        if (start.isBefore(now.plusSeconds(facility.minNoticeMinutes * 60L))) badRequest("Reservation does not meet minimum notice")
