@@ -92,7 +92,7 @@ class ApplicationTest {
     @Test
     fun `malformed JSON returns a safe bad request error`() = testApplication {
         application {
-            module()
+            module(Database.memory())
             routing {
                 post("/test/json") { call.respond(call.receive<JsonObject>()) }
             }
