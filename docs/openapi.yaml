@@ -2658,3 +2658,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ContactInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    delete:
+      tags: ["Contacts"]
+      summary: "Delete contacts"
+      operationId: "delete_api_v1_locations_locationId_contacts_id"
+      description: "Required permission: contacts.manage. The client and location must enable the contacts feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
