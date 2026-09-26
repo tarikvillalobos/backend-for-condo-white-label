@@ -2278,3 +2278,23 @@ paths:
         -
           name: "id"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ParkingInput"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ParkingInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/staff":
+    get:
+      tags: ["Maintenance"]
+      summary: "List authorized staff"
+      operationId: "get_api_v1_locations_locationId_staff"
