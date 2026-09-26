@@ -58,3 +58,12 @@ fun Route.reportRoutes(db: Database) {
 private val reportKinds = mapOf(
     "package" to ("packages.read.all" to "packages"),
     "reservation" to ("reservations.read.all" to "reservations"),
+    "request" to ("requests.read.all" to "requests"),
+    "visitor" to ("visitors.read.all" to "visitors"),
+    "work_order" to ("maintenance.manage" to "maintenance"),
+)
+
+private fun csvCell(value: String): String {
+    val safe = if (value.firstOrNull() in setOf('=', '+', '-', '@', '\t', '\r')) "'$value" else value
+    return "\"${safe.replace("\"", "\"\"")}\""
+}
