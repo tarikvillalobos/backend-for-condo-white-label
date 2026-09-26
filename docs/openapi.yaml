@@ -2478,3 +2478,23 @@ paths:
         - {"$ref":"#/components/parameters/Offset"}
         - {"$ref":"#/components/parameters/Limit"}
       responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/EquipmentInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Maintenance"]
+      summary: "Create equipment"
+      operationId: "post_api_v1_locations_locationId_equipment"
+      description: "Required permission: maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
