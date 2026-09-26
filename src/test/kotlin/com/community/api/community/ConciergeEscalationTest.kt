@@ -38,3 +38,23 @@ class ConciergeEscalationTest {
                 assertFalse(client.get(path) { bearerAuth(f.resident.token) }.bodyAsText().contains(input.reason))
             }
             assertTrue(client.get("/api/v1/notifications") { bearerAuth(f.resident.token) }.bodyAsText().contains("Request escalated"))
+            assertEquals(HttpStatusCode.Conflict, client.post(f.path("requests/$id/escalate")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(input.copy(priority = "normal")))
+            }.status)
+            assertEquals(1, f.db.tx { it.list("request_escalation", f.tenant, f.location).size })
+        }
+    }
+
+    @Test
+    fun `escalation rejects a resident assignee without leaving partial history`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            val row = f.db.tx { it.create("request", f.tenant, f.location, f.resident.id, body(ResidentRequest(RequestInput("Help", "Need repair")))) }
+            val response = client.post(f.path("requests/${row.id}/escalate")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(RequestEscalationInput("Assigning", "high", f.other.id)))
+            }
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+            assertEquals(0, f.db.tx { it.list("request_escalation", f.tenant, f.location).size })
+            assertEquals("normal", f.db.tx { it.get("request", row.id, f.tenant)!!.decode<ResidentRequest>().content.priority })
