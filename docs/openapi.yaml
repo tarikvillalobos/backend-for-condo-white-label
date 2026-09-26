@@ -2558,3 +2558,23 @@ paths:
         "200":
           description: "Successful operation."
           content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityDocumentRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Documents"]
+      summary: "Create documents"
+      operationId: "post_api_v1_locations_locationId_documents"
+      description: "Required permission: documents.manage. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/DocumentInput"}
