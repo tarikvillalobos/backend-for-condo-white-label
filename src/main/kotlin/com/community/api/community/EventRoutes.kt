@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
 import java.time.Instant
 
 @Serializable
-data class EventInput(val title: String, val description: String, val startsAt: String, val endsAt: String, val capacity: Int = 100)
+data class EventInput(val title: String, val description: String, val startsAt: String, val endsAt: String,
+    val capacity: Int = 100, val reservationId: String? = null)
 @Serializable
 data class CommunityEvent(val content: EventInput, val cancelled: Boolean = false)
 @Serializable
