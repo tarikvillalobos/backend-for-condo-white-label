@@ -38,3 +38,23 @@ class DeliveryServiceTest {
         }.status)
         assertEquals(403, assertFailsWith<ApiException> { db.tx { service.get(it, outsider, first.id) } }.status)
         assertEquals(404, assertFailsWith<ApiException> {
+            db.tx { service.get(it, staff.copy(locationId = "other-location"), first.id) }
+        }.status)
+        assertEquals(404, assertFailsWith<ApiException> {
+            db.tx { service.get(it, staff.copy(actor = staff.actor.copy(tenantId = "other-tenant")), first.id) }
+        }.status)
+    }
+
+    @Test
+    fun `reported pickup does not release a compartment and staff confirmation consumes credential`() = database().use { db ->
+        val locker = db.tx { service.saveLocker(it, staff, LockerData("Entrance", listOf(Compartment("A", "A")))) }
+        val parcel = db.tx { service.receive(it, staff, ReceivePackage("recipient", "Parcel", lockerId = locker.id, compartmentId = "A"), "receipt") }
+        val credential = db.tx { service.credential(it, recipient, parcel.id, 30) }
+        val stored = db.tx { it.requireRecord("package", parcel.id, "tenant").decode<PackageData>() }
+        assertNotEquals(credential.credential, stored.credentialHash)
+        assertFalse(body(parcel).toString().contains("credential"))
+        assertEquals("PICKUP_REPORTED", db.tx { service.reportPickup(it, recipient, parcel.id) }.status)
+        assertEquals(parcel.id, db.tx { service.lockers(it, staff).single().compartments.single().packageId })
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { service.confirmPickup(it, recipient, parcel.id, ConfirmPickup("recipient", credential.credential)) }
+        }.status)
