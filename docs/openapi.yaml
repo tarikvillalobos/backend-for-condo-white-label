@@ -1738,3 +1738,23 @@ paths:
       responses:
         "201":
           description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ReservationView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/reservations/{id}/cancel":
+    post:
+      tags: ["Reservations"]
+      summary: "Cancel a reservation"
+      operationId: "post_api_v1_locations_locationId_reservations_id_cancel"
+      description: "Required permission: reservations.create (owner) or reservations.manage. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
