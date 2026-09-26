@@ -1818,3 +1818,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/ReservationView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/announcements":
+    get:
+      tags: ["Announcements"]
+      summary: "List authorized announcements"
+      operationId: "get_api_v1_locations_locationId_announcements"
+      description: "Required permission: announcements.read. The client and location must enable the announcements feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
