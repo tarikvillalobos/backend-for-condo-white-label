@@ -38,3 +38,23 @@ with tempfile.TemporaryDirectory(prefix="community-smoke-") as temporary:
     base = f"http://127.0.0.1:{port}"
 
     def request(method, path, payload=None, token=None, key=None, expected=200):
+        headers = {}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        if key:
+            headers["Idempotency-Key"] = key
+        data = None
+        if payload is not None:
+            headers["Content-Type"] = "application/json"
+            data = json.dumps(payload).encode()
+        req = urllib.request.Request(base + path, data=data, headers=headers, method=method)
+        try:
+            response = urllib.request.urlopen(req, timeout=10)
+        except urllib.error.HTTPError as error:
+            response = error
+        with response:
+            assert response.status == expected, f"{method} {path}: expected {expected}, received {response.status}"
+            assert response.headers["X-Request-ID"]
+            content = response.read()
+            return json.loads(content) if content else None
+
