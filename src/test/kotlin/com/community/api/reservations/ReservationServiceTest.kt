@@ -118,3 +118,11 @@ class ReservationServiceTest {
             db.tx { service.create(it, resident, request.copy(startsAt = "2030-01-03T12:00:00Z", endsAt = "2030-01-03T13:00:00Z"), "weekday") }
         }.status)
         assertEquals(400, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(endsAt = "2030-01-02T14:00:00Z"), "duration") }
+        }.status)
+        db.tx { service.create(it, resident, request, "first") }
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(startsAt = "2030-01-02T14:00:00Z", endsAt = "2030-01-02T15:00:00Z"), "limit") }
+        }.status)
+    }
+}
