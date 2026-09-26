@@ -38,3 +38,23 @@ suspend fun deliverAuthMailBatch(db: Database, config: MailConfig, sender: MailS
             failed++
         }
     }
+    return MailBatchResult(sent, failed)
+}
+
+internal fun Tx.claimAuthDelivery(): Record? {
+    val now = Instant.now()
+    for (client in clients()) {
+        for (record in list("auth_delivery", client.id)) {
+            val data = record.decode<AuthDelivery>()
+            val challenge = record.ownerId?.let { get("auth_challenge", it, record.tenantId) }?.decode<ChallengeData>()
+            if (expired(data.expiresAt) || challenge == null || challenge.consumed || !tenantAvailable(record.tenantId)) {
+                delete(record)
+                continue
+            }
+            if (data.status == "failed" || data.nextAttemptAt?.let { Instant.parse(it).isAfter(now) } == true ||
+                data.leaseUntil?.let { Instant.parse(it).isAfter(now) } == true) continue
+            if (data.attempts >= 5) {
+                update(record, body(data.copy(status = "failed", leaseId = null, leaseUntil = null, lastFailure = "delivery_attempts_exhausted")))
+                continue
+            }
+            return update(record, body(data.copy(attempts = data.attempts + 1,
