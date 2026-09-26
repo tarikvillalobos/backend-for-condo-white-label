@@ -117,6 +117,13 @@ location document access.
 - Work orders, request status changes, vehicle movements, and administrative
   changes retain audit/history records under the same tenant/location boundary.
 
-- [Ktor server configuration](https://ktor.io/docs/server-configuration-code.html)
-- [Ktor application testing](https://ktor.io/docs/server-testing.html)
-- [Kotlin Gradle configuration](https://kotlinlang.org/docs/gradle-configure-project.html)
+## Provider and storage boundaries
+
+Authentication email has a real SMTP adapter. In-app notifications are persisted
+independently of external push/SMS/email delivery. Camera live view/recording,
+physical locker opening, and other hardware commands require real provider
+adapters and credentials; unsupported operations return an explicit 501.
+The integration event contract accepts trusted provider events but does not
+simulate hardware or claim that a physical action occurred.
+
+Managed attachments are stored in the database with a 2 MiB decoded limit,
