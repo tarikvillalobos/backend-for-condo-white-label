@@ -18,3 +18,4 @@ fun Route.communityRoutes(db: Database) {
         cameraRoutes(db)
     }
     notificationRoutes(db)
+}
