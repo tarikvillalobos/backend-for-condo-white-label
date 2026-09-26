@@ -10,6 +10,7 @@ import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.log
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.CannotTransformContentToTypeException
+import io.ktor.server.plugins.PayloadTooLargeException
 import io.ktor.server.plugins.UnsupportedMediaTypeException
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callId
