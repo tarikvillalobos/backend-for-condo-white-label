@@ -270,11 +270,10 @@ Use the returned `accessToken` as `Authorization: Bearer <accessToken>`. Tokens
 are opaque session credentials, not JWTs. Access expires after 15 minutes;
 refresh rotates both tokens and revokes the previous access token.
 
-| Environment variable | Default | Purpose |
-| --- | --- | --- |
-| `HOST` | `127.0.0.1` | Interface used by the HTTP server. |
-| `PORT` | `8080` | HTTP port. |
-| `APP_ENV` | `development` | `development`, `test`, or `production`; production disables Ktor development mode. |
+Use the administrator session to create locations, units, memberships, and
+invitations. Domain routes use `/api/v1/locations/{locationId}`. Creation of
+packages, reservations, account invitations, and visitor invitations requires
+an `Idempotency-Key`; consult each module's retry semantics.
 
 `.env.example` lists these variables for reference. The application reads the process environment; it does not load `.env` files automatically.
 
