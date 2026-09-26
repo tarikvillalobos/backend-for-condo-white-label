@@ -72,7 +72,7 @@ after SMTP acceptance may repeat an email, so delivery is at least once.
 Provider errors are reduced to safe status information. Pending delivery records
 contain short-lived secrets and require protected storage and backup access.
 
-## Runtime behavior
+See [Identity API](identity.md) for refresh, credential, recovery, and SMTP details.
 
 `/health/live` confirms that HTTP requests can be handled. `/health/ready` currently
 confirms that the foundation initialized; it has no external dependencies to
