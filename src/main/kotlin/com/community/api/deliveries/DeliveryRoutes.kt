@@ -78,3 +78,23 @@ fun Route.deliveryRoutes(db: Database) {
             put("/{id}") {
                 val request = call.receive<LockerData>()
                 call.respond(db.query { tx -> service.saveLocker(tx, call.deliveryContext(tx, "lockers.manage"), request, call.deliveryId()) })
+            }
+            post("/{id}/open") {
+                db.query { tx ->
+                    val ctx = call.deliveryContext(tx, "lockers.manage")
+                    tx.requireRecord("locker", call.deliveryId(), ctx.tenantId, ctx.locationId)
+                    throw ApiException(501, "provider_unavailable", "No locker hardware provider is configured")
+                }
+            }
+        }
+    }
+}
+
+private fun ApplicationCall.deliveryId(): String = parameters["id"] ?: badRequest("Package or locker ID is required")
+
+private fun ApplicationCall.deliveryContext(tx: Tx, permission: String? = null): Context {
+    val locationId = parameters["locationId"] ?: badRequest("Location is required")
+    val actor = actor(tx)
+    return if (permission == null) tx.authorizeAny(actor, locationId,
+        setOf("packages.read.own", "packages.read.all"), "packages")
+    else tx.authorize(actor, locationId, permission, "packages")
