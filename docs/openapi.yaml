@@ -3109,6 +3109,26 @@ paths:
       parameters:
         -
           name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RequestEscalationRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/shift-notes":
   "/api/v1/locations/{locationId}/requests/{id}/status":
     post:
       tags: ["Requests"]
