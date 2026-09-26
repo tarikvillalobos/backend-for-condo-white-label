@@ -58,3 +58,23 @@ private fun Route.clientRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), null, "brands.manage")
                 val record = tx.requireRecord("brand", call.parameters["id"]!!, ctx.tenantId)
+                tx.update(record, body(input)).also { tx.audit(ctx, "brand.updated", it.id) }
+            })
+        }
+        get("/roles") {
+            call.respond(db.query { tx ->
+                val actor = call.actor(tx)
+                tx.authorize(actor, null, "roles.manage")
+                roleTemplates.map { RoleDefinition(it.key, it.value) } + tx.list("role", actor.tenantId).map { it.decode<RoleDefinition>() }
+            })
+        }
+        post("/roles") {
+            val input = call.receive<RoleDefinition>()
+            input.name.validText("role name", 80)
+            if (input.permissions.size > 100 || input.permissions.any { it.length > 80 }) badRequest("Invalid permissions")
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), null, "roles.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                if (input.permissions.any { !ctx.can(it) }) forbidden()
+                if (input.name in roleTemplates || tx.list("role", ctx.tenantId).any { it.decode<RoleDefinition>().name == input.name }) conflict("Role name already exists")
+                tx.create("role", ctx.tenantId, data = body(input)).also { tx.audit(ctx, "role.created", it.id) }
