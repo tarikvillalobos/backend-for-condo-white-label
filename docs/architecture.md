@@ -58,3 +58,23 @@ condominium or unit. Household relationships do not grant permission to collect
 another person's package. Integration accounts and visitor credentials require
 separate authentication and narrowly scoped permissions.
 
+## Consistency requirements
+
+Use durable transactions and database constraints for concurrent reservations,
+single-use credentials, and idempotent operations. Provider events need a stable
+deduplication key and validated state transitions for delayed or out-of-order
+delivery. User-reported pickup and trusted collection confirmation are distinct
+events. Notification delivery and read acknowledgment are also distinct.
+
+## Runtime behavior
+
+`/health/live` confirms that HTTP requests can be handled. `/health/ready` currently
+confirms that the foundation initialized; it has no external dependencies to
+probe. Add bounded dependency checks and return HTTP 503 on failure when storage
+or other required dependencies are introduced.
+
+HTTP logs contain method, status, and a generated request ID. Handled errors
+(400, 404, 415, and 500) contain a stable code, safe message, and the same request ID. Unexpected error
+logs omit exception messages, which may contain credentials or personal data.
+Add an appropriately redacted diagnostics sink when implementing business flows.
+
