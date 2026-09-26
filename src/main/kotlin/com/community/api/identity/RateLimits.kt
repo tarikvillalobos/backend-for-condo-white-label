@@ -18,3 +18,6 @@ private fun Tx.takeRate(operation: String, bucket: String, limit: Int): Boolean 
     val window = if (old == null || now - old.startedAt >= 900) RateWindow(now, 1)
     else old.copy(attempts = minOf(old.attempts + 1, limit + 1))
     if (existing == null) create("auth_rate", "__authentication__", data = body(window), id = id)
+    else update(existing, body(window))
+    return window.attempts <= limit
+}
