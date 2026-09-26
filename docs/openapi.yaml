@@ -4238,3 +4238,23 @@ components:
         action: {"type":"string"}
         actorId: {"type":"string"}
         at: {"type":"string"}
+      required: ["action","actorId","at"]
+    DocumentAcknowledgment:
+      type: "object"
+      additionalProperties: false
+      properties:
+        documentId: {"type":"string"}
+        revision: {"type":"integer","format":"int32"}
+      required: ["documentId","revision"]
+    DocumentAcknowledgmentRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/DocumentAcknowledgment"}
+    DocumentAcknowledgmentRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
