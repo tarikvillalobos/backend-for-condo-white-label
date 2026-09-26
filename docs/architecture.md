@@ -34,7 +34,6 @@ Records have an envelope containing `id`, `kind`, `tenantId`, `locationId`,
 The database stores the envelope in indexed columns and JSON payloads as text.
 This keeps common tenancy, ownership, audit, and migration handling consistent
 while each module uses typed domain models and explicit transitions.
-| Integrations | Provider adapters for lockers, cameras, access control, notifications |
 
 Within each module, routes translate HTTP requests, application services execute
 use cases, domain code enforces business rules, and repositories/adapters isolate
