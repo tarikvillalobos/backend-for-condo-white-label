@@ -18,3 +18,23 @@ class AttachmentTest {
     @Test
     fun `uploads validate filename media signature and decoded size`() {
         assertFailsWith<ApiException> { validateAttachment(AttachmentInput("../secret.pdf", "application/pdf", pdf)) }
+        assertFailsWith<ApiException> { validateAttachment(AttachmentInput("image.png", "image/png", pdf)) }
+        assertFailsWith<ApiException> { validateAttachment(AttachmentInput("file.pdf", "application/pdf", "?")) }
+        assertEquals(413, assertFailsWith<ApiException> { validateAttachment(AttachmentInput("file.pdf", "application/pdf", "a".repeat(2_796_205))) }.status)
+    }
+
+    @Test
+    fun `private file downloads require ownership and return attachment headers`() = testApplication {
+        val f = PlatformFixture()
+        val residentToken = f.db.tx { tx ->
+            tx.create("membership", f.tenant, f.location, f.resident, body(Membership(f.resident, f.location)))
+            tx.issueSession(tx.requireRecord("account", f.resident, f.tenant), "test").accessToken
+        }
+        application { module(f.db) }
+        val created = client.post("/api/v1/locations/${f.location}/attachments") {
+            bearerAuth(f.token); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AttachmentInput("example.pdf", "application/pdf", pdf)))
+        }
+        assertEquals(HttpStatusCode.Created, created.status)
+        val path = json.parseToJsonElement(created.bodyAsText()).jsonObject.getValue("downloadPath").jsonPrimitive.content
+        val denied = client.get(path) { bearerAuth(residentToken) }
