@@ -58,3 +58,23 @@ with tempfile.TemporaryDirectory(prefix="community-smoke-") as temporary:
             content = response.read()
             return json.loads(content) if content else None
 
+    def start(log):
+        process = subprocess.Popen([str(command)], env=env, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+        try:
+            for _ in range(150):
+                if process.poll() is not None:
+                    raise RuntimeError("Server exited before becoming ready")
+                try:
+                    if request("GET", "/health/ready")["status"] == "UP":
+                        return process
+                except (urllib.error.URLError, TimeoutError):
+                    time.sleep(0.1)
+            raise RuntimeError("Server startup timed out")
+        except BaseException:
+            process.terminate()
+            process.wait(timeout=15)
+            raise
+
+    def stop(process):
+        process.terminate()
+        try:
