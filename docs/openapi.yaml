@@ -838,3 +838,23 @@ paths:
         "200":
           description: "Successful operation."
           content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/UnitDataRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/audit":
+    get:
+      tags: ["Platform"]
+      summary: "List audit events"
+      operationId: "get_api_v1_audit"
+      description: "Required permission: audit.read."
+      parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/audit":
