@@ -2718,3 +2718,23 @@ paths:
           schema: {"type":"string"}
           description: "Selected location ID."
       requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/CameraInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CameraInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/cameras/{id}":
+    put:
+      tags: ["Cameras"]
+      summary: "Update cameras"
+      operationId: "put_api_v1_locations_locationId_cameras_id"
+      description: "Required permission: cameras.manage. The client and location must enable the cameras feature."
+      parameters:
+        -
+          name: "locationId"
