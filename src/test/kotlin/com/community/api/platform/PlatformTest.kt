@@ -138,3 +138,9 @@ internal class PlatformFixture {
             val resident = tx.create("account", tenant, data = body(Account("resident@example.com", "Resident", "unused")))
             tx.create("membership", tenant, ownerId = admin.id, data = body(Membership(admin.id, role = "client_admin")))
             val location = tx.create("location", tenant, data = body(Location("Location")))
+            listOf(admin.id, resident.id, location.id, tx.issueSession(admin, "Test").accessToken)
+        }
+        admin = setup[0]; resident = setup[1]; location = setup[2]; token = setup[3]
+        actor = Actor(admin, tenant, token.split('.')[1])
+    }
+}
