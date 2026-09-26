@@ -38,3 +38,10 @@ class AttachmentTest {
         assertEquals(HttpStatusCode.Created, created.status)
         val path = json.parseToJsonElement(created.bodyAsText()).jsonObject.getValue("downloadPath").jsonPrimitive.content
         val denied = client.get(path) { bearerAuth(residentToken) }
+        assertEquals(HttpStatusCode.NotFound, denied.status)
+        val allowed = client.get(path) { bearerAuth(f.token) }
+        assertEquals(HttpStatusCode.OK, allowed.status)
+        assertEquals("nosniff", allowed.headers["X-Content-Type-Options"])
+        assertTrue(allowed.headers[HttpHeaders.ContentDisposition]!!.startsWith("attachment;"))
+    }
+}
