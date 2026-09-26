@@ -698,3 +698,23 @@ paths:
         - {"$ref":"#/components/parameters/Limit"}
       responses:
         "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LocationRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Platform"]
+      summary: "Create a condominium or standalone location"
+      operationId: "post_api_v1_locations"
+      description: "Required permission: locations.manage."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Location"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
