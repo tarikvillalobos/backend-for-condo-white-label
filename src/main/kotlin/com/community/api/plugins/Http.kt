@@ -47,6 +47,12 @@ fun Application.configureHttp() {
         format { call -> "${call.request.httpMethod.value} ${call.response.status()?.value} requestId=${call.callId}" }
     }
     install(StatusPages) {
+        exception<PayloadTooLargeException> { call, _ ->
+            call.respond(HttpStatusCode.PayloadTooLarge, ApiError("payload_too_large", "Request exceeds 3 MiB", call.callId))
+        }
+        exception<ApiException> { call, cause ->
+            call.respond(HttpStatusCode.fromValue(cause.status), ApiError(cause.code, cause.message, call.callId))
+        }
         exception<BadRequestException> { call, _ ->
             call.respond(HttpStatusCode.BadRequest, ApiError("bad_request", "Invalid request", call.callId))
         }
