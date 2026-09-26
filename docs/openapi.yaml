@@ -778,3 +778,23 @@ paths:
           schema: {"type":"string"}
           description: "Selected location ID."
         - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/UnitDataRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Platform"]
+      summary: "Create a condominium unit"
+      operationId: "post_api_v1_locations_locationId_units"
+      description: "Required permission: units.manage."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
