@@ -2698,3 +2698,23 @@ paths:
           description: "Selected location ID."
         - {"$ref":"#/components/parameters/Offset"}
         - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CameraInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Cameras"]
+      summary: "Create cameras"
+      operationId: "post_api_v1_locations_locationId_cameras"
+      description: "Required permission: cameras.manage. The client and location must enable the cameras feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
