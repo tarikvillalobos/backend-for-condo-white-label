@@ -59,6 +59,9 @@ Permissions: `pets.read.own`, `pets.read.all`, `pets.create`, `pets.manage.own`,
 - `POST /requests/{id}/assign`: `{userId,dueAt?}`; assignee must be an active
   member with scoped request-management access.
 - `POST /requests/{id}/status`: `{status,reason}`.
+- `POST /requests/{id}/escalate`: `{reason,priority,userId?,dueAt?}`; staff may
+  increase or retain priority, optionally reassign, and set a deadline.
+- `GET /requests/{id}/escalations`: staff-only escalation reasons and change history.
 - `GET /requests/{id}/comments`, `POST /requests/{id}/comments`:
   `{message,internal:false,attachments:[]}`.
 
