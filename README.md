@@ -20,7 +20,16 @@ provider-dependent features and optional workflows are identified separately.
 
 ## Implemented capabilities
 
-## Technology Stack
+| Module | Working behavior | Boundary or extension |
+| --- | --- | --- |
+| Identity | Invitations/activation, password and OTP login, recovery, verified contact changes, profile, rotating sessions, revocation, rate limits | SMTP must be configured for email verification/recovery; SMS login is not integrated |
+| Client and location administration | Clients, brands, feature flags, locations, units, memberships, scoped roles, account activation, invitations | Cross-client onboarding/state changes use explicit operator CLI commands |
+| Deliveries and lockers | Receipt, compartment allocation, history, deadlines, reminders, single-use pickup credentials, delegation, confirmed collection, provider-event deduplication | Physical locker opening needs a vendor adapter and returns 501 |
+| Facilities and reservations | Operating hours, local time zones, capacity, availability, maintenance blocks, approval, cancellation, concurrency protection | Waitlists, recurring bookings, and payments are extensions |
+| Announcements and events | Scheduled/expiring announcements, unit audiences, attachments, receipts, events, attendance capacity, cancellation | Event/facility linking and notification campaigns are extensions |
+| Pets | Private pet/unit records, photos, vaccination references, public lost notices, resolution | Property-specific vaccination enforcement is not automated |
+| Requests and incidents | Categories/priorities, ownership, staff-only notes, assignment, deadlines, status history, reopen/resolve flows | Automatic escalation and SLA jobs are extensions |
+| Visitors | Unit-scoped invitations, admission credentials, expiry, revocation, single-use rules, staff check-in/out | Gate hardware commands and shift-management workflows require further implementation |
 
 - Kotlin/JVM 2.4.20 with Java 21.
 - Ktor 3.6.0 with the Netty server engine.
