@@ -18,3 +18,13 @@ internal fun Route.shiftRoutes(db: Database) {
                 tx.list("shift_note", ctx.tenantId, ctx.locationId).sortedByDescending { it.createdAt }
             })
         }
+        post {
+            val input = call.receive<ShiftNoteInput>()
+            val note = input.copy(message = text(input.message, "message", 10000))
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "concierge.notes", "visitors")
+                tx.saved(ctx, "shift_note", body(note))
+            })
+        }
+    }
+}
