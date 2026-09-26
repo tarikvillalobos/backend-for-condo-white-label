@@ -18,3 +18,23 @@ object Passwords {
         if (password.length !in 12..256) badRequest("Password must contain 12 to 256 characters")
     }
 
+    fun hash(password: String): String {
+        validate(password)
+        val salt = ByteArray(16).also(random::nextBytes)
+        return "pbkdf2-sha256:$ITERATIONS:${encoder.encodeToString(salt)}:${encoder.encodeToString(derive(password, salt, ITERATIONS))}"
+    }
+
+    fun verify(password: String, encoded: String?): Boolean {
+        if (password.length > 256) return false
+        val value = encoded?.takeIf { it.isNotEmpty() } ?: dummy
+        val matched = runCatching {
+            val parts = value.split(':')
+            require(parts.size == 4 && parts[0] == "pbkdf2-sha256")
+            val iterations = parts[1].toInt().also { require(it in ITERATIONS..1_200_000) }
+            MessageDigest.isEqual(decoder.decode(parts[3]), derive(password, decoder.decode(parts[2]), iterations))
+        }.getOrDefault(false)
+        return !encoded.isNullOrEmpty() && matched
+    }
+
+    private fun derive(password: String, salt: ByteArray, iterations: Int): ByteArray {
+        val spec = PBEKeySpec(password.toCharArray(), salt, iterations, 256)
