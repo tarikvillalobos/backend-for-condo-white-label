@@ -18,3 +18,6 @@ internal fun Database.seedIdentity(otp: Boolean = false): Record = tx { tx ->
     })
     tx.create("account", tenantA, data = body(Account(testEmail, "Resident", testPasswordHash)))
 }
+
+internal fun Database.signIn(tenantId: String = tenantA): Tokens =
+    tx { it.login(LoginRequest(tenantId, testEmail, testPassword), "test-host") }.unwrap()
