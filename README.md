@@ -264,7 +264,11 @@ operator action for creating another isolated client.
 ./gradlew run
 ```
 
-By default, the server listens at `http://127.0.0.1:8080`.
+The default listener is `http://127.0.0.1:8080`. Log in with
+`POST /api/v1/auth/login` and JSON fields `tenantId`, `email`, and `password`.
+Use the returned `accessToken` as `Authorization: Bearer <accessToken>`. Tokens
+are opaque session credentials, not JWTs. Access expires after 15 minutes;
+refresh rotates both tokens and revokes the previous access token.
 
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
