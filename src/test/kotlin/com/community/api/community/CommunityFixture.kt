@@ -18,3 +18,23 @@ internal class CommunityFixture : AutoCloseable {
     val otherUnit = UUID.randomUUID().toString()
     init {
         db.tx { tx ->
+            tx.create("client", tenant, data = buildJsonObject { put("active", true); put("features", json.encodeToJsonElement(allFeatures)) }, id = tenant)
+            tx.create("location", tenant, data = buildJsonObject {
+                put("name", "Community"); put("active", true); put("features", json.encodeToJsonElement(allFeatures)); put("timeZone", "America/Sao_Paulo")
+            }, id = location)
+            tx.create("unit", tenant, location, data = buildJsonObject { put("name", "101") }, id = unit)
+            tx.create("unit", tenant, location, data = buildJsonObject { put("name", "102") }, id = otherUnit)
+        }
+    }
+    val resident = identity("resident", unit)
+    val other = identity("resident", otherUnit)
+    val manager = identity("property_manager", null)
+    private fun identity(role: String, unitId: String?): TestIdentity = db.tx { tx ->
+        val id = UUID.randomUUID().toString()
+        val account = tx.create("account", tenant, data = body(Account("$id@example.test", role, "unused")), id = id)
+        tx.create("membership", tenant, location, id, body(Membership(id, location, unitId, role)))
+        TestIdentity(id, tx.issueSession(account, "test").accessToken)
+    }
+    fun install(builder: ApplicationTestBuilder) = builder.application {
+        configureHttp()
+        routing { communityRoutes(db) }
