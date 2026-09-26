@@ -238,3 +238,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
     }
 
     fun saveLocker(tx: Tx, ctx: Context, request: LockerData, id: String? = null): LockerView {
+        ctx.allow("lockers.manage")
+        if (request.name.isBlank() || request.name.length > 200) badRequest("Locker name must contain 1 to 200 characters")
+        if (request.compartments.isEmpty() || request.compartments.size > 500) badRequest("Locker must have 1 to 500 compartments")
+        if (request.compartments.any { it.id.isBlank() || it.label.isBlank() } ||
+            request.compartments.map { it.id }.distinct().size != request.compartments.size) badRequest("Compartment IDs must be unique and non-empty")
+        val existing = id?.let { tx.requireRecord("locker", it, ctx.tenantId, ctx.location()) }
+        request.integrationId?.let {
+            val integration = tx.requireRecord("integration", it, ctx.tenantId, ctx.location())
+            if (integration.data["type"]?.jsonPrimitive?.content != "locker" ||
+                integration.data["active"]?.jsonPrimitive?.content != "true") badRequest("Active locker integration is required")
+        }
+        val previous = existing?.decode<LockerData>()?.compartments.orEmpty().associateBy { it.id }
+        if (previous.values.any { it.packageId != null && request.compartments.none { next -> next.id == it.id } }) {
+            conflict("Occupied compartments cannot be removed")
+        }
+        if (request.compartments.any { it.packageId != null && it.packageId != previous[it.id]?.packageId }) {
+            badRequest("Compartment occupancy is managed by package operations")
+        }
+        val data = request.copy(compartments = request.compartments.map { it.copy(packageId = previous[it.id]?.packageId) })
+        val saved = if (existing == null) tx.create("locker", ctx.tenantId, ctx.location(), data = body(data))
