@@ -5038,3 +5038,23 @@ components:
       required: ["status","reason"]
     ReservationData:
       type: "object"
+      additionalProperties: false
+      properties:
+        request: {"$ref":"#/components/schemas/CreateReservation"}
+        status:
+          type: "string"
+          enum: ["PENDING","CONFIRMED","MAINTENANCE","CANCELLED","REJECTED"]
+        history:
+          type: "array"
+          items: {"$ref":"#/components/schemas/ReservationEvent"}
+      required: ["request","status","history"]
+    ReservationEvent:
+      type: "object"
+      additionalProperties: false
+      properties:
+        action: {"type":"string"}
+        actorId: {"type":"string"}
+        at: {"type":"string"}
+      required: ["action","actorId","at"]
+    ReservationView:
+      type: "object"
