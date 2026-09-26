@@ -20,6 +20,9 @@ fun Location.validate() {
     if (runCatching { ZoneId.of(timeZone) }.isFailure) badRequest("Invalid time zone")
     if (!allFeatures.containsAll(features)) badRequest("Unknown feature")
     if (address != null && address.length > 1000) badRequest("Address is too long")
+    if (operatingRules != null && operatingRules.length > 5000) badRequest("Operating rules are too long")
+    if (petRules.maxPetsPerUnit != null && petRules.maxPetsPerUnit !in 1..100) badRequest("Invalid pet limit")
+    if (petRules.allowedSpecies.size > 30 || petRules.allowedSpecies.any { it.isBlank() || it.length > 60 }) badRequest("Invalid species policy")
 }
 
 fun Brand.validate() {
