@@ -18,3 +18,4 @@ internal fun Tx.verifyIdentity(actor: Actor, password: String, host: String): Au
     val session = get("session", actor.sessionId, actor.tenantId) ?: return AuthResult()
     update(session, body(session.decode<SessionData>().copy(verifiedAt = Instant.now().toString())))
     return AuthResult(Accepted())
+}
