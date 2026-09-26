@@ -58,3 +58,23 @@ internal fun Route.eventRoutes(db: Database) {
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.attend", "events")
                 val row = tx.record(ctx, "event", call.resourceId())
                 val event = row.decode<CommunityEvent>()
+                if (event.cancelled || !instant(event.content.startsAt, "startsAt").isAfter(Instant.now())) conflict("Registration is closed")
+                val attendees = tx.list("attendance", ctx.tenantId, ctx.locationId).filter { it.decode<Attendance>().eventId == row.id }
+                attendees.firstOrNull { it.ownerId == ctx.userId } ?: run {
+                    if (attendees.size >= event.content.capacity) conflict("Event has reached capacity")
+                    tx.saved(ctx, "attendance", body(Attendance(row.id)))
+                }
+            })
+        }
+        delete("/{id}/attendance") {
+            db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.attend", "events")
+                tx.record(ctx, "event", call.resourceId())
+                tx.list("attendance", ctx.tenantId, ctx.locationId, ctx.userId)
+                    .filter { it.decode<Attendance>().eventId == call.resourceId() }.forEach { tx.delete(it) }
+                tx.audit(ctx, "event.attendance.cancelled", call.resourceId())
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+        get("/{id}/attendance") {
+            call.respondPage(db.query { tx ->
