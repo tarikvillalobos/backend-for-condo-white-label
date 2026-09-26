@@ -70,7 +70,7 @@ class ApplicationTest {
     @Test
     fun `unexpected failures do not disclose exception details`() = testApplication {
         application {
-            module()
+            module(Database.memory())
             routing {
                 get("/test/failure") { error("database-password=do-not-disclose") }
             }
