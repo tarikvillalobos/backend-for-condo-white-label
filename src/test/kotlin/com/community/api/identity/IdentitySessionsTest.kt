@@ -58,3 +58,22 @@ class IdentitySessionsTest {
             val session = tx.get("session", actor.sessionId, tenantA)!!
             tx.update(session, body(session.decode<SessionData>().copy(accessExpiresAt = Instant.now().minusSeconds(1).toString())))
         }
+        assertFailsWith<ApiException> { db.tx { it.authenticate(token.accessToken) } }
+        val fresh = db.signIn()
+        db.tx { tx ->
+            tx.update(tx.get("client", tenantA, tenantA)!!, buildJsonObject { put("active", false) })
+        }
+        assertFailsWith<ApiException> { db.tx { it.authenticate(fresh.accessToken) } }
+    }
+
+    @Test
+    fun `failed login attempts persist and return rate limit`() = Database.memory().use { db ->
+        db.seedIdentity()
+        repeat(10) {
+            val result = db.tx { it.login(LoginRequest(tenantA, testEmail, "x".repeat(257)), "attempt-host") }
+            assertEquals(401, assertFailsWith<ApiException> { result.unwrap() }.status)
+        }
+        val result = db.tx { it.login(LoginRequest(tenantA, testEmail, testPassword), "attempt-host") }
+        assertEquals(429, assertFailsWith<ApiException> { result.unwrap() }.status)
+    }
+}
