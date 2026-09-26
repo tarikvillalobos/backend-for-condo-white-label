@@ -4858,3 +4858,23 @@ components:
       required: ["name","species"]
     PetInputRecord:
       allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/PetInput"}
+    PetInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/PetInputRecord"}
+    PickupCredential:
+      type: "object"
+      additionalProperties: false
+      properties:
+        credential: {"type":"string"}
+        expiresAt: {"type":"string","format":"date-time"}
