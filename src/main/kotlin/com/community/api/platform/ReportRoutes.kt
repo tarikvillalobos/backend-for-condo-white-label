@@ -38,3 +38,23 @@ fun Route.reportRoutes(db: Database) {
                 tx.requireRecentAuthentication(actor)
                 val rows = tx.list(kind, ctx.tenantId, ctx.locationId)
                 tx.audit(ctx, "report.exported.$kind", ctx.locationId!!)
+                buildString {
+                    append("id,status,created_at,updated_at\n")
+                    rows.forEach { append(listOf(it.id, it.data["status"]?.jsonPrimitive?.content.orEmpty(), it.createdAt, it.updatedAt).joinToString(",", transform = ::csvCell)); append('\n') }
+                }
+            }
+            call.response.headers.append(HttpHeaders.ContentDisposition, "attachment; filename=\"$kind.csv\"")
+            call.respondText(csv, ContentType.parse("text/csv"))
+        }
+    }
+    get("/api/v1/audit") {
+        call.respondPage(db.query { tx ->
+            val ctx = tx.authorize(call.actor(tx), null, "audit.read")
+            tx.list("audit", ctx.tenantId)
+        })
+    }
+}
+
+private val reportKinds = mapOf(
+    "package" to ("packages.read.all" to "packages"),
+    "reservation" to ("reservations.read.all" to "reservations"),
