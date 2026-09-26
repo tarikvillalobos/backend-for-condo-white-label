@@ -78,3 +78,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
             })))
         }
         val data = PackageData(request, history = listOf(event(ctx, "received")))
+        val record = tx.create("package", ctx.tenantId, ctx.location(), request.recipientId, body(data), id)
+        tx.create("package_receipt_key", ctx.tenantId, ctx.location(), ctx.userId, body(ReceiptKey(fingerprint, id)), keyId)
+        tx.audit(ctx, "package.received", id)
+        tx.notify(ctx.tenantId, ctx.location(), request.recipientId, "Package received", "A delivery is ready for collection.")
+        return view(record)
+    }
+
+    fun credential(tx: Tx, ctx: Context, id: String, minutes: Int): PickupCredential {
+        if (minutes !in 1..1440) badRequest("Credential validity must be between 1 and 1440 minutes")
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        requireRecipient(ctx, data)
+        requireOutstanding(data)
+        val secret = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32).also { SecureRandom().nextBytes(it) })
+        val expiresAt = clock.instant().plusSeconds(minutes * 60L).toString()
+        tx.update(record, body(data.copy(credentialHash = digest(secret), credentialExpiresAt = expiresAt,
+            history = data.history + event(ctx, "credential_issued"))))
+        tx.audit(ctx, "package.credential_issued", id)
+        return PickupCredential(secret, expiresAt)
+    }
