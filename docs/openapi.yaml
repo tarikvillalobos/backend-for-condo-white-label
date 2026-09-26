@@ -3438,3 +3438,23 @@ paths:
         "201":
           description: "Created."
           content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityDocumentRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    get:
+      tags: ["Documents"]
+      summary: "List authorized document versions"
+      operationId: "get_api_v1_locations_locationId_documents_id_versions"
+      description: "Required permission: documents.read. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
