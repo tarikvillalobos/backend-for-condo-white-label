@@ -78,3 +78,22 @@ HTTP logs contain method, status, and a generated request ID. Handled errors
 logs omit exception messages, which may contain credentials or personal data.
 Add an appropriately redacted diagnostics sink when implementing business flows.
 
+The default listener is local (`127.0.0.1`). Configure `HOST` explicitly for a
+container or server. This foundation has no authentication or business data;
+production deployment requires the authorization, persistence, integration,
+retention, monitoring, and recovery work described in the README.
+
+## Delivery order
+
+1. Trusted identity, revocable sessions, client/location context, and permission checks.
+2. Persistent client, location, membership, and package records with audit trails.
+3. Package receipt and authorized collection shared by both apps, then provider adapters.
+4. Condominium modules, each with its access rules, transaction guarantees, and tests.
+
+The full planned product scope remains in [README.md](../README.md).
+
+## Framework references
+
+- [Ktor server configuration](https://ktor.io/docs/server-configuration-code.html)
+- [Ktor application testing](https://ktor.io/docs/server-testing.html)
+- [Kotlin Gradle configuration](https://kotlinlang.org/docs/gradle-configure-project.html)
