@@ -58,3 +58,12 @@ class IdentityChallengesTest {
     fun `expired invitation cannot activate account`() = Database.memory().use { db ->
         db.seedIdentity()
         val invitation = db.tx { it.issueInvitation(tenantA, "new@example.com", "New resident") }
+        db.tx { tx ->
+            val challenge = tx.get("auth_challenge", invitation.token.split('.')[1], tenantA)!!
+            tx.update(challenge, body(challenge.decode<ChallengeData>().copy(expiresAt = Instant.now().minusSeconds(1).toString())))
+        }
+        assertFailsWith<ApiException> {
+            db.tx { it.activate(ActivationRequest(invitation.token, testPassword), "test-host", "activation") }.unwrap()
+        }
+    }
+}
