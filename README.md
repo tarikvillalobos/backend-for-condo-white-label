@@ -138,3 +138,23 @@ Include operational reports for packages, reservations, requests, visits, and ma
 
 Record relevant administrative actions, permission changes, and sensitive operations with their actor and context, without logging passwords, authentication codes, or pickup credentials.
 
+## Roles and Permissions
+
+Roles are configurable collections of permissions, not unrestricted access to every enabled feature. A user may have different roles in different clients or properties.
+
+Suggested initial role templates:
+
+| Role | Intended responsibilities |
+| --- | --- |
+| Platform administrator | Platform configuration and client onboarding. Any cross-client support access must be explicitly authorized and audited. |
+| Client administrator | Manage the client's brands, properties, staff, settings, and permitted role assignments. |
+| Property manager | Manage assigned condominium operations, residents, facilities, announcements, requests, and reports. |
+| Concierge | Handle permitted deliveries, visitors, entry/exit records, resident contact, and shift operations. |
+| Operational staff | Handle assigned maintenance, inspections, requests, and other explicitly permitted duties. |
+| Resident | Access authorized personal and household resources, packages, reservations, pets, visitors, notices, and requests. |
+| Auditor or read-only operator | Inspect explicitly permitted records and reports without modifying operational data. |
+
+Visitor credentials and integration accounts are separate from human administrative roles. A visitor invitation must not grant general platform access, and a hardware account must not inherit a resident or administrator session.
+
+Permissions must distinguish actions such as viewing one's own packages, registering a delivery, confirming collection, viewing a camera, managing a reservation, publishing a notice, checking in a visitor, and assigning a role.
+
