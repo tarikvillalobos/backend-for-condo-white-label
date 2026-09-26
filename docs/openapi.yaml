@@ -2378,3 +2378,23 @@ paths:
         content:
           "application/json":
             schema: {"$ref":"#/components/schemas/ContractorInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ContractorInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/contractors/{id}":
+    put:
+      tags: ["Maintenance"]
+      summary: "Update contractors"
+      operationId: "put_api_v1_locations_locationId_contractors_id"
+      description: "Required permission: maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
