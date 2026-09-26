@@ -277,7 +277,16 @@ an `Idempotency-Key`; consult each module's retry semantics.
 
 ### Runtime configuration
 
-For example:
+| Variable | Default or requirement |
+| --- | --- |
+| `HOST` | `127.0.0.1`; use `0.0.0.0` inside containers |
+| `PORT` | `8080` |
+| `APP_ENV` | `development`; also accepts `test` or `production` |
+| `DATABASE_URL` | `jdbc:h2:file:./data/community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE` |
+| `DATABASE_USER` | `sa` for local H2; configure a PostgreSQL application user in production |
+| `DATABASE_PASSWORD` | Empty for local H2; required in production |
+| `SMTP_HOST`, `SMTP_FROM` | Configure authentication email delivery |
+| `SMTP_PORT` | `587` |
 
 ```sh
 HOST=0.0.0.0 PORT=8080 APP_ENV=development ./gradlew run
