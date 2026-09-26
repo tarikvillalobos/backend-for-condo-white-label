@@ -3318,3 +3318,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/VehicleMovementInput"}
       responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VehicleMovementRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    get:
+      tags: ["Vehicles"]
+      summary: "Read a vehicle movement history"
+      operationId: "get_api_v1_locations_locationId_vehicles_id_movements"
+      description: "Required permission: vehicles.read.own or vehicles.read.all. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
