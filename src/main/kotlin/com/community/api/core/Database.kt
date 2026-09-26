@@ -78,3 +78,23 @@ class Tx internal constructor(private val connection: Connection) {
             it.setString(2, id)
             if (tenantId != null) it.setString(3, tenantId)
             it.executeQuery().use { rows -> if (rows.next()) rows.record() else null }
+        }
+    }
+
+    fun list(kind: String, tenantId: String, locationId: String? = null, ownerId: String? = null): List<Record> {
+        val values = mutableListOf(kind, tenantId)
+        val sql = buildString {
+            append("SELECT * FROM app_records WHERE kind = ? AND tenant_id = ?")
+            if (locationId != null) { append(" AND location_id = ?"); values += locationId }
+            if (ownerId != null) { append(" AND owner_id = ?"); values += ownerId }
+            append(" ORDER BY created_at, id")
+        }
+        return connection.prepareStatement(sql).use {
+            values.forEachIndexed { index, value -> it.setString(index + 1, value) }
+            it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.record()) } }
+        }
+    }
+
+    fun create(
+        kind: String,
+        tenantId: String,
