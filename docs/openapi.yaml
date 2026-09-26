@@ -818,3 +818,23 @@ paths:
       description: "Required permission: units.manage."
       parameters:
         -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/UnitData"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
