@@ -30,6 +30,13 @@ provider-dependent features and optional workflows are identified separately.
 | Pets | Private pet/unit records, photos, vaccination references, public lost notices, resolution | Property-specific vaccination enforcement is not automated |
 | Requests and incidents | Categories/priorities, ownership, staff-only notes, assignment, deadlines, status history, reopen/resolve flows | Automatic escalation and SLA jobs are extensions |
 | Visitors | Unit-scoped invitations, admission credentials, expiry, revocation, single-use rules, staff check-in/out | Gate hardware commands and shift-management workflows require further implementation |
+| Vehicles and parking | Private vehicle records, temporary authorization, space allocation, staff entry/exit history | Physical vehicle-access providers and complex parking policies are separate integrations |
+| Staff and maintenance | Staff responsibilities, approved contractor records, equipment, assignments, work orders, status history, evidence | Recurring inspection scheduling is not automated |
+| Documents and contacts | Versioned document metadata, audience checks, acknowledgments, published useful contacts | External document providers enforce access to their own URLs |
+| Attachments | Authorized PNG/JPEG/PDF upload/download/delete, 2 MiB limit, signatures, ownership and location visibility | Database-backed storage; antivirus and object storage adapters are not included |
+| Notifications | Private inbox, unread count, read status, communication preferences | Push, SMS, and community email delivery need provider adapters; authentication email uses SMTP |
+| Cameras | Camera metadata, enabled state, unit audience, separate live/recording permissions | Live sessions and recordings return 501 until a real provider is configured |
+| Reporting and audit | Permission-filtered counts, statuses, CSV exports, recent-authentication checks, audit records | External analytics pipelines and automated retention are operational extensions |
 
 - Kotlin/JVM 2.4.20 with Java 21.
 - Ktor 3.6.0 with the Netty server engine.
