@@ -318,3 +318,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/configuration":
+    get:
+      tags: ["Platform"]
+      summary: "Read client, brand, and active membership configuration"
+      operationId: "get_api_v1_configuration"
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Configuration"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/client":
+    put:
+      tags: ["Platform"]
+      summary: "Update client configuration"
