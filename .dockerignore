@@ -1,0 +1,10 @@
+.git
+.gradle
+.kotlin
+build
+data
+.idea
+.env
+.env.*
+*.log
+__pycache__
