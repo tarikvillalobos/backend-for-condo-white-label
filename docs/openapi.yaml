@@ -4298,3 +4298,23 @@ components:
           properties:
             data: {"$ref":"#/components/schemas/DocumentVersion"}
     DocumentVersionRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/DocumentVersionRecord"}
+    EmailRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        tenantId: {"type":"string"}
+        email: {"type":"string","format":"email","maxLength":254}
+      required: ["tenantId","email"]
+    EquipmentInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
