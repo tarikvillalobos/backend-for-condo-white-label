@@ -18,3 +18,23 @@ data class DocumentVersion(val documentId: String, val revision: Int, val conten
 data class DocumentAcknowledgment(val documentId: String, val revision: Int)
 
 private fun DocumentInput.validated(): DocumentInput {
+    if (mediaType !in setOf("application/pdf", "image/jpeg", "image/png", "text/plain",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document")) badRequest("Unsupported document media type")
+    return copy(title = text(title, "title", 160), description = text(description, "description", 2000), url = url(url))
+}
+internal fun Route.documentRoutes(db: Database) {
+    route("/documents") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.read", "documents")
+                tx.list("document", ctx.tenantId, ctx.locationId).filter {
+                    val item = it.decode<CommunityDocument>()
+                    (ctx.can("documents.manage") || !item.archived) && tx.audience(ctx, item.content.unitId, "documents.manage")
+                }
+            })
+        }
+        post {
+            val input = call.receive<DocumentInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.manage", "documents")
+                tx.requireUnit(ctx, input.unitId, "documents.manage")
