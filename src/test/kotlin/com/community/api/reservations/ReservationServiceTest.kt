@@ -98,3 +98,23 @@ class ReservationServiceTest {
         assertEquals(listOf("created", "approve", "cancel"), cancelled.details.history.map { it.action })
         assertEquals("PENDING", db.tx { service.create(it, other, request, "after-cancel") }.details.status)
     }
+
+    @Test
+    fun `maintenance blocks require management permission and block the period`() = database().use { db ->
+        val request = request(facility(db))
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { service.create(it, resident, request, "maintenance", true) } }.status)
+        val block = db.tx { service.create(it, manager, request, "maintenance", true) }
+        assertEquals("MAINTENANCE", block.details.status)
+        assertEquals(409, assertFailsWith<ApiException> { db.tx { service.create(it, resident, request, "overlap") } }.status)
+        db.tx { service.transition(it, manager, block.id, "cancel") }
+        assertEquals("CONFIRMED", db.tx { service.create(it, resident, request, "available") }.details.status)
+    }
+
+    @Test
+    fun `disabled weekdays duration and per-member limits reject invalid bookings`() = database().use { db ->
+        val facility = db.tx { service.saveFacility(it, manager, FacilityData("Gym", capacity = 10, weekdays = setOf(3), maxDurationMinutes = 60, maxActivePerMember = 1)).id }
+        val request = request(facility)
+        assertEquals(400, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(startsAt = "2030-01-03T12:00:00Z", endsAt = "2030-01-03T13:00:00Z"), "weekday") }
+        }.status)
+        assertEquals(400, assertFailsWith<ApiException> {
