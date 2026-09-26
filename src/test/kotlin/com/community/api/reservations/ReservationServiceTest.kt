@@ -38,3 +38,23 @@ class ReservationServiceTest {
         val request = request(facility(db))
         val booking = db.tx { service.create(it, resident, request, "booking") }
         assertEquals(booking.id, db.tx { service.create(it, resident, request, "booking") }.id)
+        assertEquals(1, db.tx { it.list("reservation", "tenant").size })
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(attendees = 4), "booking") }
+        }.status)
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { service.get(it, other, booking.id) } }.status)
+        assertTrue(db.tx { service.list(it, other) }.isEmpty())
+        assertEquals(404, assertFailsWith<ApiException> {
+            db.tx { service.get(it, manager.copy(locationId = "elsewhere"), booking.id) }
+        }.status)
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { service.transition(it, other, booking.id, "cancel") }
+        }.status)
+    }
+
+    @Test
+    fun `simultaneous overlapping requests result in one reservation`() = database().use { db ->
+        val request = request(facility(db))
+        val gate = CountDownLatch(1)
+        val executor = Executors.newFixedThreadPool(2)
+        try {
