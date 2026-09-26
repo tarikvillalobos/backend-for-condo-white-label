@@ -3898,3 +3898,23 @@ components:
       allOf:
         - {"$ref":"#/components/schemas/Page"}
         -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/AttendanceRecord"}
+    AvailabilitySlot:
+      type: "object"
+      additionalProperties: false
+      properties:
+        startsAt: {"type":"string","format":"date-time"}
+        endsAt: {"type":"string","format":"date-time"}
+      required: ["startsAt","endsAt"]
+    Brand:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        application:
+          type: "string"
+          enum: ["smartlocker","condo"]
