@@ -78,3 +78,5 @@ class MailDeliveryTest {
             assertEquals(MailBatchResult(0, 0), result)
             assertTrue(db.tx { it.list("auth_delivery", tenantA).isEmpty() })
         }
+    }
+}
