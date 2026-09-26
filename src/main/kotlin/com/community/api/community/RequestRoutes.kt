@@ -58,3 +58,23 @@ internal fun Route.requestRoutes(db: Database) {
                 tx.changed(ctx, row, body(value.copy(status = input.status)), "request.status.changed")
             })
         }
+        get("/{id}/comments") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("requests.read.own", "requests.read.all"), "requests")
+                val row = tx.record(ctx, "request", call.resourceId())
+                tx.own(ctx, row, "requests.read.all")
+                tx.list("request_comment", ctx.tenantId, ctx.locationId).filter {
+                    val comment = it.decode<RequestComment>()
+                    comment.requestId == row.id && (!comment.internal || ctx.can("requests.manage"))
+                }
+            })
+        }
+        post("/{id}/comments") {
+            val input = call.receive<RequestCommentInput>()
+            val message = text(input.message, "message", 10000)
+            if (input.attachments.size > 10) badRequest("At most 10 attachments are allowed")
+            val attachments = input.attachments.map(::url)
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("requests.comment", "requests.manage"), "requests")
+                val row = tx.record(ctx, "request", call.resourceId())
+                tx.own(ctx, row, "requests.manage")
