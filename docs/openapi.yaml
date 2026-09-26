@@ -4815,6 +4815,11 @@ components:
           type: ["string","null"]
           default: null
           format: "date-time"
+        relationship:
+          type: ["string","null"]
+          default: null
+          enum: ["owner","tenant","dependent","household",null]
+          description: "Optional household relationship. Requires a unit and grants no additional permissions."
       required: ["userId"]
     MembershipRecord:
       allOf:
