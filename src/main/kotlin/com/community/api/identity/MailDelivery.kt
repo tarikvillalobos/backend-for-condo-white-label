@@ -18,3 +18,23 @@ suspend fun deliverAuthMailBatch(db: Database, config: MailConfig, sender: MailS
         }
         if (!current) return@repeat
         try {
+            sender.send(config, data.asMessage(claimed.id))
+            db.query { tx ->
+                val record = tx.get("auth_delivery", claimed.id, claimed.tenantId)
+                if (record != null && record.decode<AuthDelivery>().leaseId == data.leaseId) tx.delete(record)
+            }
+            sent++
+        } catch (failure: Exception) {
+            if (failure is CancellationException) throw failure
+            db.query { tx ->
+                val record = tx.get("auth_delivery", claimed.id, claimed.tenantId)
+                if (record != null && record.decode<AuthDelivery>().leaseId == data.leaseId) {
+                    val exhausted = data.attempts >= 5
+                    tx.update(record, body(data.copy(leaseId = null, leaseUntil = null,
+                        status = if (exhausted) "failed" else "pending", lastFailure = "smtp_delivery_failed",
+                        nextAttemptAt = Instant.now().plusSeconds(minOf(300L, 30L shl (data.attempts - 1))).toString())))
+                }
+            }
+            failed++
+        }
+    }
