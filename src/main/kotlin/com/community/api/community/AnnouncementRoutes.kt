@@ -38,3 +38,23 @@ internal fun Route.announcementRoutes(db: Database) {
                     (ctx.can("announcements.manage") || item.visibleAt()) && tx.audience(ctx, item.content.unitId)
                 }.sortedByDescending { it.decode<Announcement>().content.pinned }
             }
+            call.respondPage(rows)
+        }
+        post {
+            val input = call.receive<AnnouncementInput>().validated()
+            val row = db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.manage", "announcements")
+                tx.requireUnit(ctx, input.unitId, "announcements.manage")
+                tx.saved(ctx, "announcement", body(Announcement(input)))
+            }
+            call.respond(HttpStatusCode.Created, row)
+        }
+        put("/{id}") {
+            val input = call.receive<AnnouncementInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.manage", "announcements")
+                tx.requireUnit(ctx, input.unitId, "announcements.manage")
+                tx.changed(ctx, tx.record(ctx, "announcement", call.resourceId()), body(Announcement(input)), "announcement.updated")
+            })
+        }
+        post("/{id}/archive") {
