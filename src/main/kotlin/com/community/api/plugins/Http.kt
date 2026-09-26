@@ -18,3 +18,23 @@ import io.ktor.server.response.respond
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import java.util.UUID
+
+@Serializable
+data class ApiError(val code: String, val message: String, val requestId: String?)
+
+fun Application.configureHttp() {
+    install(ContentNegotiation) { json() }
+    install(CallId) {
+        generate { UUID.randomUUID().toString() }
+        replyToHeader("X-Request-ID")
+    }
+    install(CallLogging) {
+        // Never include request bodies, query parameters, credentials, or personal data.
+        format { call -> "${call.request.httpMethod.value} ${call.response.status()?.value} requestId=${call.callId}" }
+    }
+    install(StatusPages) {
+        exception<BadRequestException> { call, _ ->
+            call.respond(HttpStatusCode.BadRequest, ApiError("bad_request", "Invalid request", call.callId))
+        }
+        exception<UnsupportedMediaTypeException> { call, _ ->
+            call.respond(HttpStatusCode.UnsupportedMediaType, ApiError("unsupported_media_type", "Unsupported content type", call.callId))
