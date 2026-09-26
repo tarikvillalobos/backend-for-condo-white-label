@@ -38,3 +38,23 @@ private val residentPermissions = setOf(
     "announcements.read", "events.read", "events.attend", "pets.read.own", "pets.create", "pets.manage.own",
     "requests.create", "requests.read.own", "requests.comment", "visitors.create", "visitors.read.own",
     "vehicles.read.own", "vehicles.create", "vehicles.manage.own", "documents.read", "contacts.read",
+    "notifications.read", "notifications.manage", "cameras.view",
+)
+
+private val conciergePermissions = setOf(
+    "packages.read.all", "packages.receive", "packages.collect", "lockers.read", "visitors.read.all",
+    "visitors.checkin", "visitors.manage", "vehicles.read.all", "contacts.read", "announcements.read",
+)
+
+private val managerPermissions = residentPermissions + conciergePermissions + setOf(
+    "locations.read", "locations.manage", "units.manage", "memberships.read", "memberships.manage",
+    "packages.manage", "lockers.manage", "reservations.read.all", "reservations.manage", "facilities.manage",
+    "announcements.manage", "events.manage", "pets.read.all", "pets.manage", "requests.read.all",
+    "requests.manage", "vehicles.manage", "maintenance.read", "maintenance.manage", "documents.manage",
+    "contacts.manage", "cameras.manage", "reports.read", "audit.read", "staff.manage", "parking.manage", "maintenance.work", "attachments.read.all",
+)
+
+val roleTemplates = mapOf(
+    "client_admin" to setOf("*"),
+    "property_manager" to managerPermissions,
+    "concierge" to conciergePermissions,
