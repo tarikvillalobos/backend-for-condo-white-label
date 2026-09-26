@@ -2638,3 +2638,23 @@ paths:
       operationId: "put_api_v1_locations_locationId_contacts_id"
       description: "Required permission: contacts.manage. The client and location must enable the contacts feature."
       parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ContactInput"}
+      responses:
+        "200":
+          description: "Successful operation."
