@@ -58,3 +58,23 @@ fun Tx.saveMembership(context: Context, membership: Membership, existing: Record
     if (existing != null && (existing.tenantId != context.tenantId || existing.locationId != context.locationId || existing.ownerId != membership.userId)) forbidden()
     val duplicates = list("membership", context.tenantId, ownerId = membership.userId)
         .filter { it.id != existing?.id && it.locationId == membership.locationId && it.decode<Membership>().unitId == membership.unitId }
+    if (duplicates.isNotEmpty()) conflict("Membership already exists")
+    if (existing != null) protectLastAdministrator(existing, membership)
+    val result = if (existing == null) create("membership", context.tenantId, membership.locationId, membership.userId, body(membership))
+        else update(existing, body(membership))
+    audit(context, if (existing == null) "membership.created" else "membership.updated", result.id)
+    return result
+}
+
+private fun Tx.protectLastAdministrator(existing: Record, next: Membership) {
+    val current = existing.decode<Membership>()
+    if (current.role != "client_admin" || (next.role == "client_admin" && next.current())) return
+    val alternatives = list("membership", existing.tenantId).any {
+        val membership = it.decode<Membership>()
+        it.id != existing.id && membership.role == "client_admin" && membership.current() &&
+            get("account", membership.userId, existing.tenantId)?.decode<Account>()?.active == true
+    }
+    if (!alternatives) conflict("The client must retain an active administrator")
+}
+
+fun Tx.invite(context: Context, request: InvitationRequest): InvitationIssue {
