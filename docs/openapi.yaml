@@ -3118,3 +3118,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RequestCommentRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Requests"]
+      summary: "Add a resident-visible or internal comment"
+      operationId: "post_api_v1_locations_locationId_requests_id_comments"
+      description: "Required permission: requests.comment (owner) or requests.manage. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
