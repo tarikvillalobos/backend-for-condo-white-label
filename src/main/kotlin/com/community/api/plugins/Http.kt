@@ -38,3 +38,18 @@ fun Application.configureHttp() {
         }
         exception<UnsupportedMediaTypeException> { call, _ ->
             call.respond(HttpStatusCode.UnsupportedMediaType, ApiError("unsupported_media_type", "Unsupported content type", call.callId))
+        }
+        exception<CannotTransformContentToTypeException> { call, _ ->
+            call.respond(HttpStatusCode.UnsupportedMediaType, ApiError("unsupported_media_type", "Unsupported content type", call.callId))
+        }
+        exception<Exception> { call, cause ->
+            if (cause is CancellationException) throw cause
+            // Exception messages may contain secrets; correlate by request ID instead.
+            this@configureHttp.log.error("Unhandled {} requestId={}", cause.javaClass.simpleName, call.callId)
+            call.respond(HttpStatusCode.InternalServerError, ApiError("internal_error", "An unexpected error occurred", call.callId))
+        }
+        status(HttpStatusCode.NotFound) { call, status ->
+            call.respond(status, ApiError("not_found", "Resource not found", call.callId))
+        }
+    }
+}
