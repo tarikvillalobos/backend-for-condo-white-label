@@ -38,3 +38,23 @@ fun Tx.validateMembership(context: Context, membership: Membership, allowInactiv
     if (membership.expiresAt != null) {
         val expires = runCatching { Instant.parse(membership.expiresAt) }.getOrElse { badRequest("Invalid expiration") }
         if (!expires.isAfter(Instant.now())) badRequest("Expiration must be in the future")
+    }
+    if (membership.role !in roleTemplates && list("role", context.tenantId).none { it.decode<RoleDefinition>().name == membership.role }) {
+        badRequest("Unknown role")
+    }
+    val granted = memberPermissions(context.tenantId, membership)
+    if (granted.any { !context.can(it) }) forbidden()
+    val account = requireRecord("account", membership.userId, context.tenantId).decode<Account>()
+    if (!allowInactiveAccount && !account.active) badRequest("Account is inactive")
+    if (membership.locationId != null) requireRecord("location", membership.locationId, context.tenantId)
+    if (membership.unitId != null) {
+        val locationId = membership.locationId ?: badRequest("Unit requires a location")
+        requireRecord("unit", membership.unitId, context.tenantId, locationId)
+    }
+}
+
+fun Tx.saveMembership(context: Context, membership: Membership, existing: Record? = null, allowInactive: Boolean = false): Record {
+    validateMembership(context, membership, allowInactive)
+    if (existing != null && (existing.tenantId != context.tenantId || existing.locationId != context.locationId || existing.ownerId != membership.userId)) forbidden()
+    val duplicates = list("membership", context.tenantId, ownerId = membership.userId)
+        .filter { it.id != existing?.id && it.locationId == membership.locationId && it.decode<Membership>().unitId == membership.unitId }
