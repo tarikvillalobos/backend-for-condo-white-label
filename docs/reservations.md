@@ -78,3 +78,9 @@ and rejection release the interval while retaining history. Approval and rejecti
 require management permissions. Owners may cancel their own future or ongoing
 bookings; already ended or closed bookings cannot transition again.
 
+Maintenance intervals use the booking body and can span closed hours or multiple
+days, but must start in the future and cannot overlap an active reservation.
+Availability accepts at most a 93-day range and exposes busy times without
+resident names, notes, or booking IDs. Lists are paginated with `offset` and
+`limit`. Waitlists, payments, and recurring bookings are optional extensions and
+are not included in this API contract.
