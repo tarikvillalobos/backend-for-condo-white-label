@@ -398,3 +398,23 @@ paths:
           schema: {"type":"string"}
           description: "Resource identifier."
       requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Brand"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/BrandRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/roles":
+    get:
+      tags: ["Platform"]
+      summary: "List role templates and custom roles"
+      operationId: "get_api_v1_roles"
+      description: "Required permission: roles.manage."
+      responses:
+        "200":
+          description: "Successful operation."
