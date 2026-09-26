@@ -1718,3 +1718,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/reservations/maintenance":
     post:
+      tags: ["Reservations"]
+      summary: "Block a facility interval for maintenance"
+      operationId: "post_api_v1_locations_locationId_reservations_maintenance"
+      description: "Required permission: reservations.manage. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/IdempotencyKey"}
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/CreateReservation"}
+      responses:
+        "201":
+          description: "Created."
