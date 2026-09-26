@@ -5325,6 +5325,26 @@ components:
         expiresAt: {"type":"string","format":"date-time"}
         current: {"type":"boolean"}
       required: ["id","device","createdAt","expiresAt","current"]
+    ShiftNoteInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        message: {"type":"string","minLength":1,"maxLength":10000}
+        incident: {"type":"boolean","default":false}
+      required: ["message"]
+    ShiftNoteInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ShiftNoteInput"}
+    ShiftNoteInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
     StaffProfile:
       type: "object"
       additionalProperties: false
