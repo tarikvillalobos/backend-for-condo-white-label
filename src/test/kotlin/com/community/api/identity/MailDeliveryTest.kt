@@ -58,3 +58,23 @@ class MailDeliveryTest {
             val calls = AtomicInteger()
             val sender = MailSender { _, _ -> delay(50); calls.incrementAndGet() }
             val results = coroutineScope {
+                listOf(async { deliverAuthMailBatch(db, config, sender) }, async { deliverAuthMailBatch(db, config, sender) }).awaitAll()
+            }
+            assertEquals(1, calls.get())
+            assertEquals(1, results.sumOf { it.sent })
+        }
+    }
+
+    @Test
+    fun `expired credentials are discarded without attempting delivery`() = runBlocking {
+        Database.memory().use { db ->
+            db.seedIdentity()
+            db.tx { it.requestRecovery(EmailRequest(tenantA, testEmail), "test-host", false) }.unwrap()
+            db.tx { tx ->
+                val record = tx.list("auth_delivery", tenantA).single()
+                tx.update(record, body(record.decode<AuthDelivery>().copy(expiresAt = Instant.now().minusSeconds(1).toString())))
+            }
+            val result = deliverAuthMailBatch(db, config, MailSender { _, _ -> fail("Expired credential sent") })
+            assertEquals(MailBatchResult(0, 0), result)
+            assertTrue(db.tx { it.list("auth_delivery", tenantA).isEmpty() })
+        }
