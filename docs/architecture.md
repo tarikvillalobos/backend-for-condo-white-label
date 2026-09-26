@@ -18,3 +18,23 @@ src/main/kotlin/com/community/api/
   config/              # Environment configuration
   health/              # Liveness and readiness routes
   plugins/             # JSON, errors, request IDs, HTTP logging
+src/main/resources/     # Runtime logging configuration
+src/test/kotlin/        # HTTP and configuration tests
+```
+
+## Planned business boundaries
+
+Add packages for each capability as its first use case is implemented:
+
+| Module | Responsibilities |
+| --- | --- |
+| Identity and access | Accounts, sessions, invitations, scoped permission grants |
+| Clients and brands | Client ownership, branding, app and feature configuration |
+| Locations and memberships | Condominiums, standalone locations, units, user relationships |
+| Deliveries and lockers | Shared package records, pickup authorization, locker operations |
+| Community | Pets, facilities, reservations, calendar, announcements |
+| Operations | Requests, visitors, vehicles, parking, staff, maintenance |
+| Content and communication | Documents, contacts, inbox, delivery preferences |
+| Administration | Onboarding, reports, exports, audit records |
+| Integrations | Provider adapters for lockers, cameras, access control, notifications |
+
