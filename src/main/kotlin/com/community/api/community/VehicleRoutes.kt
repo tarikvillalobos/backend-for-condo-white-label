@@ -58,3 +58,23 @@ internal fun Route.vehicleRoutes(db: Database) {
                 tx.own(ctx, row, "vehicles.manage")
                 if (tx.list("parking", ctx.tenantId, ctx.locationId).any { it.decode<ParkingInput>().vehicleId == row.id }) conflict("Release the parking space before deleting this vehicle")
                 tx.delete(row)
+                tx.audit(ctx, "vehicle.deleted", row.id)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+        post("/{id}/movements") {
+            val input = call.receive<VehicleMovementInput>()
+            if (input.direction !in setOf("entry", "exit")) badRequest("Direction must be entry or exit")
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "vehicles.manage", "vehicles")
+                val row = tx.record(ctx, "vehicle", call.resourceId())
+                val vehicle = row.decode<VehicleInput>()
+                if (input.direction == "entry") tx.requireMember(ctx.tenantId, call.locationId(), row.ownerId ?: notFound())
+                if (input.direction == "entry" && vehicle.validUntil?.let { !instant(it, "validUntil").isAfter(Instant.now()) } == true) conflict("Vehicle authorization has expired")
+                val previous = tx.list("vehicle_movement", ctx.tenantId, ctx.locationId)
+                    .filter { it.decode<VehicleMovement>().vehicleId == row.id }.maxByOrNull { it.createdAt }
+                if (previous?.decode<VehicleMovement>()?.direction == input.direction || (previous == null && input.direction == "exit")) conflict("Invalid movement sequence")
+                tx.saved(ctx, "vehicle_movement", body(VehicleMovement(row.id, input.direction)), row.ownerId)
+            })
+        }
+        get("/{id}/movements") {
