@@ -38,3 +38,23 @@ internal fun Tx.login(request: LoginRequest, host: String): AuthResult<Tokens> {
     val valid = Passwords.verify(request.password, data?.passwordHash)
     if (!valid || data?.active != true || !tenantAvailable(request.tenantId) ||
         !loginEnabled(request.tenantId, "passwordLogin", true)) return AuthResult()
+    return AuthResult(issueSession(account ?: return AuthResult(), request.device))
+}
+
+internal fun Tx.refresh(token: String, host: String): AuthResult<Tokens> {
+    val parts = parseToken(token) ?: return AuthResult()
+    if (!allowAttempt("refresh", parts[0], parts[1], host)) return AuthResult(status = 429, code = "rate_limited")
+    val record = get("session", parts[1], parts[0]) ?: return AuthResult()
+    val session = record.decode<SessionData>()
+    val suppliedHash = digest(token)
+    if (session.usedRefreshHashes.any { sameSecret(it, suppliedHash) }) {
+        update(record, body(session.copy(revoked = true)))
+        identityAudit(record.tenantId, record.ownerId, "session.refresh_replay")
+        return AuthResult()
+    }
+    val account = record.ownerId?.let { get("account", it, record.tenantId) }
+    if (session.revoked || expired(session.expiresAt) || !sameSecret(session.refreshHash, suppliedHash) ||
+        account?.decode<Account>()?.active != true || !tenantAvailable(record.tenantId)) return AuthResult()
+    if (session.usedRefreshHashes.size >= 1024) {
+        update(record, body(session.copy(revoked = true)))
+        return AuthResult()
