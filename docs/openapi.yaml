@@ -4078,3 +4078,23 @@ components:
         - {"$ref":"#/components/schemas/Page"}
         -
           type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/CommunityDocumentRecord"}
+    CommunityEvent:
+      type: "object"
+      additionalProperties: false
+      properties:
+        content: {"$ref":"#/components/schemas/EventInput"}
+        cancelled: {"type":"boolean","default":false}
+      required: ["content"]
+    CommunityEventRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/CommunityEvent"}
+    CommunityEventRecordPage:
+      allOf:
