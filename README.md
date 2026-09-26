@@ -34,7 +34,7 @@ provider-dependent features and optional workflows are identified separately.
 | Staff and maintenance | Staff responsibilities, approved contractor records, equipment, assignments, work orders, status history, evidence | Recurring inspection scheduling is not automated |
 | Documents and contacts | Versioned document metadata, audience checks, acknowledgments, published useful contacts | External document providers enforce access to their own URLs |
 | Attachments | Authorized PNG/JPEG/PDF upload/download/delete, 2 MiB limit, signatures, ownership and location visibility | Database-backed storage; antivirus and object storage adapters are not included |
-| Notifications | Private inbox, unread count, read status, communication preferences | Push, SMS, and community email delivery need provider adapters; authentication email uses SMTP |
+| Notifications | Private inbox, unread count, read status, preferences, generic SMTP email, delivery status and retries | Push and SMS need provider adapters; SMTP acceptance does not confirm reading |
 | Cameras | Camera metadata, enabled state, unit audience, separate live/recording permissions | Live sessions and recordings return 501 until a real provider is configured |
 | Reporting and audit | Permission-filtered counts, statuses, CSV exports, recent-authentication checks, audit records | External analytics pipelines and automated retention are operational extensions |
 
