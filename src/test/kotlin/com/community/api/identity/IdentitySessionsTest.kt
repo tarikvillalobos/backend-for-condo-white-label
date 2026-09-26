@@ -38,3 +38,23 @@ class IdentitySessionsTest {
         assertFailsWith<ApiException> { db.tx { it.refresh(first.refreshToken, "test-host") }.unwrap() }
         assertFailsWith<ApiException> { db.tx { it.authenticate(second.accessToken) } }
         assertFailsWith<ApiException> { db.tx { it.refresh(second.refreshToken, "test-host") }.unwrap() }
+    }
+
+    @Test
+    fun `random refresh secret cannot revoke a known session`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val token = db.signIn()
+        val forged = token.refreshToken.substringBeforeLast('.') + "." + secretToken()
+        assertFailsWith<ApiException> { db.tx { it.refresh(forged, "test-host") }.unwrap() }
+        db.tx { it.authenticate(token.accessToken) }
+    }
+
+    @Test
+    fun `expired session and deactivated client are rejected immediately`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val token = db.signIn()
+        db.tx { tx ->
+            val actor = tx.authenticate(token.accessToken)
+            val session = tx.get("session", actor.sessionId, tenantA)!!
+            tx.update(session, body(session.decode<SessionData>().copy(accessExpiresAt = Instant.now().minusSeconds(1).toString())))
+        }
