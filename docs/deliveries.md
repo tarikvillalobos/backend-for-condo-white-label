@@ -38,3 +38,23 @@ Example receipt body:
   "description": "Small parcel",
   "carrier": "Carrier name",
   "trackingNumber": "TRACK123",
+  "lockerId": "locker-id",
+  "compartmentId": "A1",
+  "collectionDeadline": "2030-01-04T20:00:00Z"
+}
+```
+
+Omit both locker fields for reception desk storage. The deadline is an
+informational collection target. A reminder is an explicit staff action.
+Reusing an idempotency key with the same body returns the original receipt;
+reusing it with a different body returns `409`. Receipt creation, compartment
+allocation, audit, and recipient notification commit in one transaction.
+
+Issue a credential with `{"validForMinutes":30}`; validity can be 1 to 1440
+minutes. The response contains `credential` and `expiresAt` with `Cache-Control:
+no-store`. Only a SHA-256 digest is persisted. A new credential revokes its
+predecessor. Delegation changes revoke the current credential, so the recipient
+must explicitly issue and share a replacement with the intended collector.
+
+Delegate with `{"userId":"delegate-account-id"}`. Household or unit membership
+alone never grants delivery visibility or collection permission. Delegates can
