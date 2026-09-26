@@ -58,3 +58,23 @@ fun Route.integrationRoutes(db: Database) {
                     val data = record.decode<IntegrationData>()
                     IntegrationView(record.id, data.provider, data.type, data.active)
                 }
+            })
+        }
+        post {
+            val input = call.receive<IntegrationRequest>()
+            input.provider.validText("provider", 100)
+            if (input.type != "locker") badRequest("Only locker event integrations are supported")
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "integrations.manage", "packages")
+                tx.requireRecentAuthentication(ctx.actor)
+                val id = UUID.randomUUID().toString()
+                val token = "${ctx.tenantId}.$id.${secret()}"
+                tx.create("integration", ctx.tenantId, ctx.locationId, data = body(IntegrationData(input.provider, ctx.locationId!!, digest(token))), id = id)
+                tx.audit(ctx, "integration.created", id)
+                IntegrationIssued(id, token)
+            })
+        }
+        post("/{id}/rotate") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "integrations.manage")
+                tx.requireRecentAuthentication(ctx.actor)
