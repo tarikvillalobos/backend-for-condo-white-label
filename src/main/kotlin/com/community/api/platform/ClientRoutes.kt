@@ -38,3 +38,23 @@ private fun Route.clientRoutes(db: Database) {
                 updated
             })
         }
+        get("/brands") {
+            call.respondPage(db.query { tx ->
+                val actor = call.actor(tx)
+                if (tx.activeMemberships(actor.tenantId, actor.userId).isEmpty()) forbidden()
+                tx.list("brand", actor.tenantId)
+            })
+        }
+        post("/brands") {
+            val input = call.receive<Brand>().also { it.validate() }
+            val record = db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), null, "brands.manage")
+                tx.create("brand", ctx.tenantId, data = body(input)).also { tx.audit(ctx, "brand.created", it.id) }
+            }
+            call.respond(HttpStatusCode.Created, record)
+        }
+        put("/brands/{id}") {
+            val input = call.receive<Brand>().also { it.validate() }
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), null, "brands.manage")
+                val record = tx.requireRecord("brand", call.parameters["id"]!!, ctx.tenantId)
