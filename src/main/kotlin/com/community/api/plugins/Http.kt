@@ -1,5 +1,7 @@
 package com.community.api.plugins
 
+import com.community.api.core.ApiException
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
