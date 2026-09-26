@@ -238,3 +238,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/PasswordRequest"}
       responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me/contact/request":
+    post:
+      tags: ["Identity"]
+      summary: "Request a verified email change"
+      operationId: "post_api_v1_me_contact_request"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ContactRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
