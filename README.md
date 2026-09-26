@@ -198,3 +198,23 @@ Install a Java 21 JDK and make it available through `JAVA_HOME` or `PATH`. Use t
 `build` compiles the application, runs tests, and creates distribution archives. Use `test` to run the tests separately.
 
 ### Run Locally
+
+```sh
+./gradlew run
+```
+
+By default, the server listens at `http://127.0.0.1:8080`.
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `HOST` | `127.0.0.1` | Interface used by the HTTP server. |
+| `PORT` | `8080` | HTTP port. |
+| `APP_ENV` | `development` | `development`, `test`, or `production`; production disables Ktor development mode. |
+
+`.env.example` lists these variables for reference. The application reads the process environment; it does not load `.env` files automatically.
+
+For example:
+
+```sh
+HOST=0.0.0.0 PORT=8080 APP_ENV=development ./gradlew run
+```
