@@ -158,3 +158,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         val record = packageRecord(tx, ctx, id)
         val data = record.decode<PackageData>()
         requireOutstanding(data)
+        tx.requireMember(ctx.tenantId, ctx.location(), request.collectorId)
+        if (request.collectorId != data.receipt.recipientId && request.collectorId !in data.delegates) forbidden()
+        val expires = data.credentialExpiresAt?.let(Instant::parse)
+        val expected = data.credentialHash
+        if (expected == null || expires == null || !expires.isAfter(clock.instant()) ||
+            !MessageDigest.isEqual(expected.toByteArray(), digest(request.credential).toByteArray())) {
+            forbidden()
+        }
+        release(tx, ctx, record.id, data)
+        val updated = tx.update(record, body(data.copy(status = "COLLECTED", collectorId = request.collectorId,
+            credentialHash = null, credentialExpiresAt = null, history = data.history + event(ctx, "pickup_confirmed"))))
+        tx.audit(ctx, "package.pickup_confirmed", id)
+        tx.notify(ctx.tenantId, ctx.location(), data.receipt.recipientId, "Package collected", "Collection of your delivery was confirmed.")
+        return view(updated)
+    }
+
+    fun cancel(tx: Tx, ctx: Context, id: String): PackageView {
+        ctx.allow("packages.manage")
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
