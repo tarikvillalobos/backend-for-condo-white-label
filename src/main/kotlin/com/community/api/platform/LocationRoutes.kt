@@ -58,3 +58,23 @@ fun Route.locationRoutes(db: Database) {
             }
             post {
                 val input = call.receive<UnitData>()
+                input.validate()
+                call.respond(HttpStatusCode.Created, db.query { tx ->
+                    val locationId = call.parameters["locationId"]!!
+                    val ctx = tx.authorize(call.actor(tx), locationId, "units.manage")
+                    if (tx.requireRecord("location", locationId, ctx.tenantId).decode<Location>().kind != "condominium") badRequest("Standalone locations do not have residential units")
+                    if (tx.list("unit", ctx.tenantId, locationId).any { it.decode<UnitData>().let { unit -> unit.name == input.name && unit.building == input.building } }) conflict("Unit already exists")
+                    tx.create("unit", ctx.tenantId, locationId, data = body(input)).also { tx.audit(ctx, "unit.created", it.id) }
+                })
+            }
+            put("/{id}") {
+                val input = call.receive<UnitData>().also { it.validate() }
+                call.respond(db.query { tx ->
+                    val locationId = call.parameters["locationId"]!!
+                    val ctx = tx.authorize(call.actor(tx), locationId, "units.manage")
+                    val unit = tx.requireRecord("unit", call.parameters["id"]!!, ctx.tenantId, locationId)
+                    if (tx.list("unit", ctx.tenantId, locationId).any { it.id != unit.id && it.decode<UnitData>().let { old -> old.name == input.name && old.building == input.building } }) conflict("Unit already exists")
+                    tx.update(unit, body(input)).also { tx.audit(ctx, "unit.updated", it.id) }
+                })
+            }
+        }
