@@ -58,3 +58,15 @@ class AppConfigTest {
     fun `both valid port boundaries are accepted`() {
         listOf(1, 65535).forEach { port ->
             assertEquals(port, AppConfig.fromEnvironment(mapOf("PORT" to port.toString())).port)
+        }
+    }
+
+    @Test
+    fun `a blank host is rejected`() {
+        listOf("", " ", "\t").forEach { value ->
+            assertFailsWith<IllegalArgumentException> {
+                AppConfig.fromEnvironment(mapOf("HOST" to value))
+            }
+        }
+    }
+}
