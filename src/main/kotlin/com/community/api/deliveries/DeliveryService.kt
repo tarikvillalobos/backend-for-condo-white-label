@@ -258,3 +258,16 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         }
         val data = request.copy(compartments = request.compartments.map { it.copy(packageId = previous[it.id]?.packageId) })
         val saved = if (existing == null) tx.create("locker", ctx.tenantId, ctx.location(), data = body(data))
+            else tx.update(existing, body(data))
+        tx.audit(ctx, if (existing == null) "locker.created" else "locker.updated", saved.id)
+        return lockerView(saved)
+    }
+
+    private fun lockerView(record: Record): LockerView {
+        val data = record.decode<LockerData>()
+        return LockerView(record.id, data.name, data.maintenance, data.compartments)
+    }
+
+    private fun parseInstant(value: String): Instant = try { Instant.parse(value) }
+        catch (_: Exception) { badRequest("Timestamp must be an ISO-8601 instant") }
+}
