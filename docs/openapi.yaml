@@ -1578,3 +1578,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/facilities/{id}":
     put:
+      tags: ["Reservations"]
+      summary: "Update facility rules"
+      operationId: "put_api_v1_locations_locationId_facilities_id"
+      description: "Required permission: facilities.manage. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
