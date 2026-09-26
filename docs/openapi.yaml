@@ -178,3 +178,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me":
+    get:
+      tags: ["Identity"]
+      summary: "Read your profile"
+      operationId: "get_api_v1_me"
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Profile"}
+        default: {"$ref":"#/components/responses/Error"}
+    patch:
+      tags: ["Identity"]
+      summary: "Update your display name"
+      operationId: "patch_api_v1_me"
