@@ -4318,3 +4318,23 @@ components:
       additionalProperties: false
       properties:
         name: {"type":"string"}
+        description: {"type":"string"}
+        serialNumber:
+          type: ["string","null"]
+          default: null
+        nextInspectionAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["name","description"]
+    EquipmentInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/EquipmentInput"}
+    EquipmentInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
