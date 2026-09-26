@@ -1498,3 +1498,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/LockerData"}
       responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LockerView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/lockers/{id}/open":
+    post:
+      tags: ["Integrations"]
+      summary: "Report unavailable physical door provider"
+      operationId: "post_api_v1_locations_locationId_lockers_id_open"
+      description: "No hardware opening is simulated. A vendor adapter is required. Required permission: lockers.manage. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
