@@ -2138,3 +2138,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/VehicleInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Vehicles"]
+      summary: "Create vehicles"
+      operationId: "post_api_v1_locations_locationId_vehicles"
+      description: "Required permission: vehicles.create. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VehicleInput"}
+      responses:
