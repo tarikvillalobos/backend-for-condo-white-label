@@ -58,3 +58,23 @@ class ApplicationTest {
     @Test
     fun `unexpected failures do not disclose exception details`() = testApplication {
         application {
+            module()
+            routing {
+                get("/test/failure") { error("database-password=do-not-disclose") }
+            }
+        }
+
+        val response = client.get("/test/failure")
+
+        response.assertError(
+            HttpStatusCode.InternalServerError,
+            "internal_error",
+            "An unexpected error occurred",
+        )
+        val body = response.bodyAsText()
+        assertFalse(body.contains("database-password"))
+        assertFalse(body.contains("do-not-disclose"))
+        assertFalse(body.contains("IllegalStateException"))
+    }
+
+    @Test
