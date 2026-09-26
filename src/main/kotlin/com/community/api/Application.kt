@@ -18,3 +18,16 @@ fun main() {
         module { module() }
     }
     embeddedServer(Netty, server) {
+        connector {
+            host = config.host
+            port = config.port
+        }
+    }.start(wait = true)
+}
+
+fun Application.module() {
+    configureHttp()
+    routing {
+        healthRoutes()
+    }
+}
