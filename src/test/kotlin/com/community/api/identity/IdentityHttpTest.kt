@@ -38,3 +38,18 @@ class IdentityHttpTest {
     fun `HTTP failed recovery response matches unknown account without returning credential`() = Database.memory().use { db ->
         db.seedIdentity()
         testApplication {
+            application { configureHttp(); routing { identityRoutes(db) } }
+            val bodies = listOf(testEmail, "unknown@example.com").map { email ->
+                val response = client.post("/api/v1/auth/recovery/request") {
+                    contentType(ContentType.Application.Json)
+                    setBody("""{"tenantId":"$tenantA","email":"$email"}""")
+                }
+                assertEquals(HttpStatusCode.OK, response.status)
+                response.bodyAsText()
+            }
+            assertEquals(bodies[0], bodies[1])
+            assertFalse(bodies[0].contains("token", ignoreCase = true))
+            assertFalse(bodies[0].contains("credential", ignoreCase = true))
+        }
+    }
+}
