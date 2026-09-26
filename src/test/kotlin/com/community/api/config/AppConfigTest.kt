@@ -38,3 +38,23 @@ class AppConfigTest {
 
     @Test
     fun `unknown environment values fail instead of silently selecting development`() {
+        listOf("", "staging", "prod", "development ").forEach { value ->
+            assertFailsWith<IllegalArgumentException>("APP_ENV=$value should fail") {
+                AppConfig.fromEnvironment(mapOf("APP_ENV" to value))
+            }
+        }
+    }
+
+    @Test
+    fun `ports outside the TCP range or without a numeric value fail configuration`() {
+        listOf("", "not-a-number", "0", "-1", "65536", "2147483648").forEach { value ->
+            assertFailsWith<IllegalArgumentException>("PORT=$value should fail") {
+                AppConfig.fromEnvironment(mapOf("PORT" to value))
+            }
+        }
+    }
+
+    @Test
+    fun `both valid port boundaries are accepted`() {
+        listOf(1, 65535).forEach { port ->
+            assertEquals(port, AppConfig.fromEnvironment(mapOf("PORT" to port.toString())).port)
