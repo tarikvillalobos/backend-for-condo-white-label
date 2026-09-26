@@ -1,6 +1,6 @@
 # Architecture
 
-## Decision: Kotlin with Ktor
+## Kotlin and Ktor modular monolith
 
 Community API is a Kotlin/JVM modular monolith served by Ktor and Netty. Both
 applications use the same API and business rules. Gradle Kotlin DSL manages the
