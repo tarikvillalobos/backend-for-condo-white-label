@@ -59,6 +59,7 @@ internal fun Route.petRoutes(db: Database) {
                 val row = tx.record(ctx, "pet", call.resourceId())
                 tx.own(ctx, row, "pets.manage")
                 tx.requireUnit(ctx, input.unitId, "pets.manage")
+                tx.enforcePetRules(ctx, input, row.id)
                 tx.changed(ctx, row, body(input), "pet.updated")
             })
         }
