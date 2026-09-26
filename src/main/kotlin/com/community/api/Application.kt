@@ -7,6 +7,7 @@ import com.community.api.core.integrationRoutes
 import com.community.api.identity.identityRoutes
 import com.community.api.identity.MailConfig
 import com.community.api.identity.deliverAuthMailBatch
+import com.community.api.identity.deliverNotificationMailBatch
 import com.community.api.platform.bootstrap
 import com.community.api.platform.changeClientState
 import com.community.api.platform.platformRoutes
