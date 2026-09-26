@@ -38,3 +38,23 @@ internal fun Route.vehicleRoutes(db: Database) {
                 tx.requireUnit(ctx, input.unitId, "vehicles.manage")
                 if (tx.list("vehicle", ctx.tenantId, ctx.locationId).any { it.decode<VehicleInput>().plate == input.plate }) conflict("Vehicle is already registered")
                 tx.saved(ctx, "vehicle", body(input))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<VehicleInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("vehicles.manage.own", "vehicles.manage"), "vehicles")
+                val row = tx.record(ctx, "vehicle", call.resourceId())
+                tx.own(ctx, row, "vehicles.manage")
+                tx.requireUnit(ctx, input.unitId, "vehicles.manage")
+                if (tx.list("vehicle", ctx.tenantId, ctx.locationId).any { it.id != row.id && it.decode<VehicleInput>().plate == input.plate }) conflict("Vehicle is already registered")
+                tx.changed(ctx, row, body(input), "vehicle.updated")
+            })
+        }
+        delete("/{id}") {
+            db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("vehicles.manage.own", "vehicles.manage"), "vehicles")
+                val row = tx.record(ctx, "vehicle", call.resourceId())
+                tx.own(ctx, row, "vehicles.manage")
+                if (tx.list("parking", ctx.tenantId, ctx.locationId).any { it.decode<ParkingInput>().vehicleId == row.id }) conflict("Release the parking space before deleting this vehicle")
+                tx.delete(row)
