@@ -38,3 +38,23 @@ fun Route.membershipRoutes(db: Database) {
                 tx.audit(ctx, "account.state_changed", account.id)
                 val data = updated.decode<Account>()
                 AccountSummary(updated.id, data.email, data.name, data.active)
+            })
+        }
+    }
+}
+
+private fun Route.membershipScope(db: Database, path: String) {
+    route(path) {
+        get("/memberships") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"], "memberships.read")
+                tx.list("membership", ctx.tenantId, ctx.locationId)
+                    .filter { ctx.locationId != null || it.locationId == null }
+            })
+        }
+        post("/memberships") {
+            val input = call.receive<Membership>()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"], "memberships.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                tx.saveMembership(ctx, input)
