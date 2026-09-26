@@ -18,3 +18,23 @@ paths:
       operationId: "get_health_live"
       security: []
       responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/HealthResponse"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/health/ready":
+    get:
+      tags: ["Health"]
+      summary: "Check database readiness"
+      operationId: "get_health_ready"
+      security: []
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/HealthResponse"}
+        default: {"$ref":"#/components/responses/Error"}
+        "503":
