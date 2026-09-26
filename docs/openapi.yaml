@@ -4738,3 +4738,23 @@ components:
           enum: ["pt-BR","en","es"]
     OtpRequest:
       type: "object"
+      additionalProperties: false
+      properties:
+        tenantId: {"type":"string"}
+        email: {"type":"string","format":"email","maxLength":254}
+        code: {"type":"string","pattern":"^[0-9]{6}$"}
+        device: {"type":"string","default":"Unknown device"}
+      required: ["tenantId","email","code"]
+    PackageView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        recipientId: {"type":"string"}
+        description: {"type":"string"}
+        carrier: {"type":"string"}
+        trackingNumber: {"type":"string"}
+        lockerId:
+          type: ["string","null"]
+        compartmentId:
+          type: ["string","null"]
