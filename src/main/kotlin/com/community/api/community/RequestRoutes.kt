@@ -59,6 +59,21 @@ internal fun Route.requestRoutes(db: Database) {
                 }
                 val updated = current.copy(content = current.content.copy(priority = input.priority),
                     assignedTo = input.userId ?: current.assignedTo, dueAt = input.dueAt ?: current.dueAt)
+                tx.saved(ctx, "request_escalation", body(RequestEscalation(row.id, reason, current.content.priority,
+                    input.priority, current.assignedTo, updated.assignedTo, current.dueAt, updated.dueAt)))
+                setOfNotNull(row.ownerId, updated.assignedTo).forEach { recipient ->
+                    val active = tx.get("account", recipient, ctx.tenantId)?.data?.get("active") == kotlinx.serialization.json.JsonPrimitive(true)
+                    if (active && tx.activeMemberships(ctx.tenantId, recipient).any { it.locationId == null || it.locationId == ctx.locationId })
+                        tx.notify(ctx.tenantId, ctx.locationId, recipient, "Request escalated", "A request you participate in was escalated")
+                }
+                tx.changed(ctx, row, body(updated), "request.escalated")
+            })
+        }
+        get("/{id}/escalations") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "requests.manage", "requests")
+                val row = tx.record(ctx, "request", call.resourceId())
+                tx.list("request_escalation", ctx.tenantId, ctx.locationId).filter { it.decode<RequestEscalation>().requestId == row.id }
             })
         }
         post("/{id}/status") {
