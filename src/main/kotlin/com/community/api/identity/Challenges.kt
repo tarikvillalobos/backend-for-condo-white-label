@@ -58,3 +58,7 @@ internal fun Tx.activate(request: ActivationRequest, host: String, type: String)
     if (type == "recovery" && !data.active || type == "activation" && data.active) return AuthResult()
     update(account, body(data.copy(passwordHash = Passwords.hash(request.password), active = true)))
     consumeChallenge(challenge)
+    revokeAccountCredentials(account.tenantId, account.id)
+    identityAudit(account.tenantId, account.id, "account.$type")
+    return AuthResult(Accepted())
+}
