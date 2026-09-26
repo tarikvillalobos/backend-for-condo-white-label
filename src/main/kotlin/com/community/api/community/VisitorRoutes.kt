@@ -38,3 +38,23 @@ internal fun Route.visitorRoutes(db: Database) {
                 val invite = row.decode<VisitorInvite>()
                 if (invite.status == "checked_in") conflict("Check out the visitor before revoking the invitation")
                 tx.changed(ctx, row, body(invite.copy(status = "revoked")), "visitor.revoked").visitorView()
+            })
+        }
+        post("/{id}/check-in") {
+            val input = call.receive<VisitorCheckIn>()
+            if (input.admissionCode.length !in 20..100) badRequest("Invalid admission code")
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "visitors.checkin", "visitors")
+                val row = tx.record(ctx, "visitor", call.resourceId())
+                tx.requireMember(ctx.tenantId, call.locationId(), row.ownerId ?: notFound())
+                val entered = row.decode<VisitorInvite>().checkIn(input.admissionCode)
+                tx.changed(ctx, row, body(entered), "visitor.checked_in").visitorView()
+            })
+        }
+        post("/{id}/check-out") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "visitors.checkin", "visitors")
+                val row = tx.record(ctx, "visitor", call.resourceId())
+                val invite = row.decode<VisitorInvite>()
+                if (invite.status != "checked_in") conflict("Visitor is not checked in")
+                tx.changed(ctx, row, body(invite.copy(status = "checked_out", checkedOutAt = Instant.now().toString())), "visitor.checked_out").visitorView()
