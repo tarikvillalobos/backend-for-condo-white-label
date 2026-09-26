@@ -118,3 +118,7 @@ class NotificationMailTest {
 
     private fun Tx.setEmailPreference(userId: String, enabled: Boolean) {
         val existing = list("notification_preferences", tenantA, ownerId = userId).firstOrNull()
+        val data = body(NotificationPreferences(email = enabled))
+        if (existing == null) create("notification_preferences", tenantA, ownerId = userId, data = data) else update(existing, data)
+    }
+}
