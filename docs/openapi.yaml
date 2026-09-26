@@ -5198,3 +5198,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        unread: {"type":"integer","format":"int32"}
+      required: ["unread"]
+    VehicleInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        plate: {"type":"string"}
+        model: {"type":"string"}
+        color: {"type":"string"}
+        unitId:
+          type: ["string","null"]
+          default: null
+        validUntil:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["plate","model","color"]
+    VehicleInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
