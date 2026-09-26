@@ -25,7 +25,9 @@ src/test/kotlin/                   # Domain, HTTP, isolation, concurrency tests
 
 ## Persistence and transaction boundaries
 
-Add packages for each capability as its first use case is implemented:
+PostgreSQL is the production store. Development defaults to a persistent H2 file;
+tests use isolated in-memory H2 databases in PostgreSQL compatibility mode.
+HikariCP owns connections, and Flyway applies the migration history.
 
 | Module | Responsibilities |
 | --- | --- |
