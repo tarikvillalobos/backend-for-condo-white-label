@@ -58,3 +58,23 @@ class EventReservationTest {
     fun `reservation links are confined to tenant and location`() = database().use { db ->
         db.tx { tx ->
             val data = tx.requireRecord("reservation", "booking", "tenant").data
+            tx.create("reservation", "other-tenant", "location", "owner", data, "foreign-tenant")
+            tx.create("reservation", "tenant", "other-location", "owner", data, "foreign-location")
+        }
+        listOf("foreign-tenant", "foreign-location", "missing").forEach { id ->
+            assertEquals(404, assertFailsWith<ApiException> {
+                db.tx { tx -> tx.validateEventReservation(tx.context("manager"), event.copy(reservationId = id)) }
+            }.status)
+        }
+    }
+
+    @Test
+    fun `closed bookings and maintenance cannot back a community event`() = database().use { db ->
+        listOf("CANCELLED", "REJECTED", "MAINTENANCE").forEach { state ->
+            db.tx { tx ->
+                val booking = tx.requireRecord("reservation", "booking", "tenant")
+                tx.update(booking, body(booking.decode<ReservationData>().copy(status = state)))
+            }
+            assertEquals(409, assertFailsWith<ApiException> {
+                db.tx { tx -> tx.validateEventReservation(tx.context(), event) }
+            }.status)
