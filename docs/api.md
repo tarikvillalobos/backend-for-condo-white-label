@@ -160,6 +160,24 @@ The booking is `CONFIRMED` by default, or `PENDING` when the facility requires
 approval. Both states block overlapping reservations, including concurrent
 requests. A matching idempotent retry returns the same booking.
 
+## 5. Publish an event linked to that reservation
+
+The administrator can link another member's reservation because the role has
+`reservations.manage`. A publisher without that permission can link only their
+own booking. The event must fit the booking interval, and a booking can back
+only one active event.
+
+```bash
+BOOKING_ID=$(printf '%s' "$BOOKING" | jq -er .id)
+jq -nc --arg reservationId "$BOOKING_ID" \
+  --arg startsAt "$START_AT" --arg endsAt "$END_AT" \
+  '{title:"Community meeting",description:"Walkthrough event",capacity:3,reservationId:$reservationId,startsAt:$startsAt,endsAt:$endsAt}' |
+  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/events"
+```
+
+Links do not approve a pending booking or synchronize cancellations. Cancelling
+an event and cancelling its reservation are separate operations.
+
 ## Response conventions
 
 - Most administration and community resources use a `Record` envelope with
