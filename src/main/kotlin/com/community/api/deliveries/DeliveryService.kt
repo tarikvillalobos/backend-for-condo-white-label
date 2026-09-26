@@ -198,3 +198,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         tx.get("locker_event", keyId, ctx.tenantId)?.let {
             val previous = it.decode<StoredLockerEvent>()
             if (previous.fingerprint != fingerprint) conflict("Event ID has already been used with a different payload")
+            return previous.result
+        }
+        val record = packageRecord(tx, ctx, request.packageId)
+        val data = record.decode<PackageData>()
+        val lockerId = data.receipt.lockerId ?: badRequest("Package is not stored in a locker")
+        val locker = tx.requireRecord("locker", lockerId, ctx.tenantId, ctx.location()).decode<LockerData>()
+        if (locker.integrationId != integrationId || data.receipt.compartmentId != request.compartmentId) forbidden()
+        val occurredAt = parseInstant(request.occurredAt)
+        if (occurredAt.isAfter(clock.instant().plusSeconds(300))) badRequest("Event timestamp is in the future")
+        val stale = occurredAt.isBefore(Instant.parse(record.createdAt)) || data.status in setOf("COLLECTED", "CANCELLED")
+        val result = LockerEventResult(request.eventId, if (stale) "ignored" else "applied")
+        if (!stale) {
+            tx.requireMember(ctx.tenantId, ctx.location(), request.collectorId)
+            if (request.collectorId != data.receipt.recipientId && request.collectorId !in data.delegates) forbidden()
+            release(tx, ctx, record.id, data)
+            tx.update(record, body(data.copy(status = "COLLECTED", collectorId = request.collectorId,
+                credentialHash = null, credentialExpiresAt = null, history = data.history + event(ctx, "trusted_pickup_confirmed"))))
+            tx.notify(ctx.tenantId, ctx.location(), data.receipt.recipientId, "Package collected", "Collection was confirmed by the locker provider.")
+        }
+        tx.create("locker_event", ctx.tenantId, ctx.location(), data = body(StoredLockerEvent(fingerprint, result)), id = keyId)
