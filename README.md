@@ -218,3 +218,23 @@ For example:
 ```sh
 HOST=0.0.0.0 PORT=8080 APP_ENV=development ./gradlew run
 ```
+
+### Health Endpoints
+
+| Method | Path | Current behavior |
+| --- | --- | --- |
+| `GET` | `/health/live` | Returns HTTP 200 with `{"status":"UP"}` when the application can handle requests. |
+| `GET` | `/health/ready` | Returns HTTP 200 with `{"status":"UP"}` after application startup. |
+
+```sh
+curl http://127.0.0.1:8080/health/live
+curl http://127.0.0.1:8080/health/ready
+```
+
+Readiness currently covers application startup only. There is no database or external integration to check; dependency checks must be added when those components are introduced.
+
+## Commit Guidelines
+
+All contributions must follow these rules:
+
+- Each commit must change exactly one file.
