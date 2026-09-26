@@ -336,7 +336,9 @@ curl http://127.0.0.1:8080/health/live
 curl http://127.0.0.1:8080/health/ready
 ```
 
-Readiness currently covers application startup only. There is no database or external integration to check; dependency checks must be added when those components are introduced.
+Readiness covers the database, not SMTP acceptance or external hardware. Serve
+production HTTP behind TLS and configure backups, restore drills, retention,
+and monitoring according to the deployment's requirements.
 
 ## Commit Guidelines
 
