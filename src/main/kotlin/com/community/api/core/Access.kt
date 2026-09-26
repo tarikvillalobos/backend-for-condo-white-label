@@ -138,3 +138,8 @@ fun Tx.notify(tenantId: String, locationId: String?, recipientId: String, title:
 }
 
 suspend inline fun <reified T> ApplicationCall.respondPage(items: List<T>) {
+    val offset = request.queryParameters["offset"]?.let { it.toIntOrNull() ?: badRequest("Invalid offset") } ?: 0
+    val limit = request.queryParameters["limit"]?.let { it.toIntOrNull() ?: badRequest("Invalid limit") } ?: 50
+    if (offset < 0 || limit !in 1..200) badRequest("Invalid pagination")
+    respond(Page(items.drop(offset).take(limit), items.size, offset, limit))
+}
