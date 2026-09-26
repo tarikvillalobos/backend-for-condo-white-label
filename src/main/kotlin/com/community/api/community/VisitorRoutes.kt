@@ -58,3 +58,7 @@ internal fun Route.visitorRoutes(db: Database) {
                 val invite = row.decode<VisitorInvite>()
                 if (invite.status != "checked_in") conflict("Visitor is not checked in")
                 tx.changed(ctx, row, body(invite.copy(status = "checked_out", checkedOutAt = Instant.now().toString())), "visitor.checked_out").visitorView()
+            })
+        }
+    }
+}
