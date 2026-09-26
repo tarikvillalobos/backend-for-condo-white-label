@@ -58,3 +58,8 @@ class IdentityChangesTest {
         db.seedIdentity()
         val invite = db.tx { it.issueInvitation(tenantA, "disabled@example.com", "Disabled") }
         db.tx { it.revokeAccountCredentials(tenantA, invite.userId) }
+        assertFailsWith<ApiException> {
+            db.tx { it.activate(ActivationRequest(invite.token, testPassword), "test-host", "activation") }.unwrap()
+        }
+    }
+}
