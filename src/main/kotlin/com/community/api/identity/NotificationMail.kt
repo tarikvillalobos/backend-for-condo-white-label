@@ -78,3 +78,23 @@ internal fun Tx.claimNotificationDelivery(): Record? {
             if (status == "pending") return row
         }
     }
+    return null
+}
+
+internal fun Tx.recheckNotificationDelivery(claim: Record): String? {
+    val row = get("notification_delivery", claim.id, claim.tenantId) ?: return null
+    val state = row.decode<NotificationEmailDelivery>()
+    if (state.leaseId != claim.decode<NotificationEmailDelivery>().leaseId || state.status != "pending") return null
+    val notification = get("notification", claim.id.removePrefix("notification-mail:"), claim.tenantId)
+    val email = notification?.let { notificationEmail(it) }
+    if (email == null) update(row, body(state.copy(status = "suppressed", leaseId = null, leaseUntil = null)))
+    return email
+}
+
+private fun Tx.finishNotificationDelivery(claim: Record, success: Boolean) {
+    val row = get("notification_delivery", claim.id, claim.tenantId) ?: return
+    val state = row.decode<NotificationEmailDelivery>()
+    if (state.leaseId != claim.decode<NotificationEmailDelivery>().leaseId) return
+    val now = Instant.now()
+    val updated = if (success) state.copy(status = "accepted", acceptedAt = now.toString(), leaseId = null, leaseUntil = null, lastFailure = null)
+    else state.copy(status = if (state.attempts >= 5) "failed" else "pending", leaseId = null, leaseUntil = null,
