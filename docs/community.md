@@ -158,3 +158,23 @@ contact method is required. Contacts are deliberately published by managers.
 Permissions: `documents.read`, `documents.manage`, `contacts.read`, `contacts.manage`.
 
 ## Notification inbox and preferences
+
+Paths here start with `/api/v1/notifications`:
+
+- `GET /`, `GET /unread-count`, `POST /{id}/read`.
+- `GET /preferences`, `PUT /preferences`: `{push,email,sms,language}`; languages
+  are `pt-BR`, `en`, and `es`.
+
+Each user can access only their own inbox. Removed memberships and disabled
+location features hide related messages immediately. Marking a message read is
+idempotent. Preferences persist independently of external channel availability.
+Push/SMS delivery requires provider setup; an inbox entry is not proof of external
+delivery. Permissions: `notifications.read`, `notifications.manage`.
+
+## Cameras and provider boundaries
+
+- `GET /cameras`, `POST /cameras`, `PUT /cameras/{id}`:
+  `{name,area,enabled,unitId?}`.
+- `POST /cameras/{id}/sessions` requires `cameras.view` and the camera audience.
+- `GET /cameras/{id}/recordings` separately requires `cameras.recordings`.
+
