@@ -5098,3 +5098,23 @@ components:
           properties:
             data: {"$ref":"#/components/schemas/ResidentRequest"}
     ResidentRequestRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ResidentRequestRecord"}
+    RoleDefinition:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        permissions:
+          type: "array"
+          items: {"type":"string"}
+          uniqueItems: true
+      required: ["name","permissions"]
+    RoleDefinitionRecord:
+      allOf:
