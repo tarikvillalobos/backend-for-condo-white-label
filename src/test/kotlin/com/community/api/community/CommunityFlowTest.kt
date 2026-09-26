@@ -18,3 +18,23 @@ class CommunityFlowTest {
             f.install(this)
             val now = Instant.now()
             val response = client.post(f.path("visitors")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                header("Idempotency-Key", "visitor-request-001")
+                setBody(json.encodeToString(VisitorInput("Guest", "Visit", now.minusSeconds(60).toString(), now.plusSeconds(3600).toString(), f.unit)))
+            }
+            assertEquals(HttpStatusCode.Created, response.status)
+            val invitation = json.decodeFromString<VisitorCreated>(response.bodyAsText())
+            val id = invitation.invitation.id
+            val code = invitation.admissionCode
+            assertEquals(HttpStatusCode.Conflict, client.post(f.path("visitors")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                header("Idempotency-Key", "visitor-request-001")
+                setBody(json.encodeToString(VisitorInput("Guest", "Visit", now.minusSeconds(60).toString(), now.plusSeconds(3600).toString(), f.unit)))
+            }.status)
+            assertEquals(1, f.db.tx { it.list("visitor", f.tenant, f.location).size })
+            val list = client.get(f.path("visitors")) { bearerAuth(f.resident.token) }.bodyAsText()
+            assertFalse(list.contains(code))
+            assertFalse(list.contains("credentialHash"))
+            assertEquals(HttpStatusCode.Forbidden, client.post(f.path("visitors/$id/check-in")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(VisitorCheckIn(code)))
