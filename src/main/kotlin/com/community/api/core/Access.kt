@@ -43,6 +43,7 @@ private val residentPermissions = setOf(
 )
 
 private val conciergePermissions = setOf(
+    "concierge.notes",
     "packages.read.all", "packages.receive", "packages.collect", "lockers.read", "visitors.read.all",
     "visitors.checkin", "visitors.manage", "vehicles.read.all", "contacts.read", "announcements.read",
 )
