@@ -65,11 +65,12 @@ single-use challenges. Sensitive administration requires recent password
 verification. Rate limits are durable and scoped to account and connection
 source; forwarding headers are not trusted as authentication or network identity.
 
-Use durable transactions and database constraints for concurrent reservations,
-single-use credentials, and idempotent operations. Provider events need a stable
-deduplication key and validated state transitions for delayed or out-of-order
-delivery. User-reported pickup and trusted collection confirmation are distinct
-events. Notification delivery and read acknowledgment are also distinct.
+Authentication email uses a transactional private outbox and SMTP worker.
+The worker claims deliveries under a lease and releases the database transaction
+before network I/O. SMTP acceptance and user receipt remain distinct. A crash
+after SMTP acceptance may repeat an email, so delivery is at least once.
+Provider errors are reduced to safe status information. Pending delivery records
+contain short-lived secrets and require protected storage and backup access.
 
 ## Runtime behavior
 
