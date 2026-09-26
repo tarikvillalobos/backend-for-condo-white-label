@@ -21,6 +21,8 @@ data class Location(
     val features: Set<String> = allFeatures,
     val active: Boolean = true,
     val address: String? = null,
+    val operatingRules: String? = null,
+    val petRules: PetRules = PetRules(),
 )
 
 @Serializable
