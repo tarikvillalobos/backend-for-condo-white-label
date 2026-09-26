@@ -58,3 +58,23 @@ def commit_file(path):
                 before[start:start] = after[new_start:min(new_end, new_start + 20)]
             else:
                 before[start:min(end, start + 10)] = after[new_start:min(new_end, new_start + 10)]
+            part += 1
+            stage_and_commit(path, b"".join(before), mode, part)
+            break
+    staged_mode = git("ls-files", "--stage", "--", path).split(b" ", 1)[0].decode()
+    if staged_mode and staged_mode != mode:
+        stage_and_commit(path, target, mode, part + 1)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("paths", nargs="+")
+    parser.add_argument("--push", action="store_true")
+    args = parser.parse_args()
+    root = git("rev-parse", "--show-toplevel").decode().strip()
+    os.chdir(root)
+    if git("branch", "--show-current").decode().strip() != "main":
+        raise RuntimeError("This workflow requires main")
+    if git("diff", "--cached", "--name-only").strip():
+        raise RuntimeError("Commit or unstage existing staged changes first")
+    for path in args.paths:
