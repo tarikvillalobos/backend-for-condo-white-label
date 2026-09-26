@@ -42,7 +42,14 @@ single-use credentials, idempotency guards, booking overlap checks, authorizatio
 and audit changes commit or roll back together. Version comparisons add stale
 record protection when updating or deleting records.
 
-## Authorization requirements for the first business endpoint
+This deliberately favors simple consistency over throughput. A busy deployment
+must replace the global lock with tested location/resource locks and appropriate
+database constraints before expecting high write concurrency. The current JSON
+store also loads records before pagination and domain filtering; large datasets
+need dedicated indexes, SQL queries, and possibly per-module relational tables.
+There are no database foreign keys between JSON payload references. Domain
+services validate these references inside the transaction; direct database writes
+must not bypass those rules.
 
 Resolve the authenticated actor and active grants from trusted server-side state.
 Validate client, authorized location, enabled feature, action permission, and
