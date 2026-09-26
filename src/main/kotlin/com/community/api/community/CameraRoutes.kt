@@ -18,3 +18,23 @@ internal fun Route.cameraRoutes(db: Database) {
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "cameras.view", "cameras")
                 tx.list("camera", ctx.tenantId, ctx.locationId).filter {
                     val camera = it.decode<CameraInput>()
+                    (camera.enabled || ctx.can("cameras.manage")) && tx.audience(ctx, camera.unitId, "cameras.manage")
+                }
+            })
+        }
+        post {
+            val input = call.receive<CameraInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "cameras.manage", "cameras")
+                tx.requireUnit(ctx, input.unitId, "cameras.manage")
+                tx.saved(ctx, "camera", body(input))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<CameraInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "cameras.manage", "cameras")
+                tx.requireUnit(ctx, input.unitId, "cameras.manage")
+                tx.changed(ctx, tx.record(ctx, "camera", call.resourceId()), body(input), "camera.updated")
+            })
+        }
