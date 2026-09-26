@@ -78,3 +78,23 @@ class ReservationServiceTest {
         }.status)
         assertEquals(400, assertFailsWith<ApiException> {
             db.tx { service.create(it, resident, request.copy(attendees = 11), "crowded") }
+        }.status)
+        db.tx { service.create(it, resident, request, "first") }
+        db.tx { service.create(it, other, request.copy(startsAt = request.endsAt, endsAt = "2030-01-02T14:00:00Z"), "adjacent") }
+        val availability = db.tx { service.availability(it, resident, facility, "2030-01-02T00:00:00Z", "2030-01-03T00:00:00Z") }
+        assertEquals(2, availability.busy.size)
+        assertFalse(body(availability).toString().contains("ownerId"))
+    }
+
+    @Test
+    fun `approval and cancellation preserve history and release the reserved period`() = database().use { db ->
+        val request = request(facility(db, approval = true))
+        val booking = db.tx { service.create(it, resident, request, "first") }
+        assertEquals("PENDING", booking.details.status)
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { service.transition(it, resident, booking.id, "approve") } }.status)
+        assertEquals(409, assertFailsWith<ApiException> { db.tx { service.create(it, other, request, "overlap") } }.status)
+        assertEquals("CONFIRMED", db.tx { service.transition(it, manager, booking.id, "approve") }.details.status)
+        val cancelled = db.tx { service.transition(it, resident, booking.id, "cancel") }
+        assertEquals(listOf("created", "approve", "cancel"), cancelled.details.history.map { it.action })
+        assertEquals("PENDING", db.tx { service.create(it, other, request, "after-cancel") }.details.status)
+    }
