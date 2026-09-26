@@ -218,3 +218,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
             tx.notify(ctx.tenantId, ctx.location(), data.receipt.recipientId, "Package collected", "Collection was confirmed by the locker provider.")
         }
         tx.create("locker_event", ctx.tenantId, ctx.location(), data = body(StoredLockerEvent(fingerprint, result)), id = keyId)
+        tx.audit(ctx, "locker.event_${result.status}", record.id)
+        return result
+    }
+
+    private fun release(tx: Tx, ctx: Context, id: String, data: PackageData) {
+        data.receipt.lockerId?.let { lockerId ->
+            val record = tx.requireRecord("locker", lockerId, ctx.tenantId, ctx.location())
+            val locker = record.decode<LockerData>()
+            tx.update(record, body(locker.copy(compartments = locker.compartments.map {
+                if (it.packageId == id) it.copy(packageId = null) else it
+            })))
+        }
+    }
+
+    fun lockers(tx: Tx, ctx: Context): List<LockerView> {
+        if (!ctx.can("lockers.read") && !ctx.can("lockers.manage")) forbidden()
+        return tx.list("locker", ctx.tenantId, ctx.location()).map { lockerView(it) }
+    }
+
+    fun saveLocker(tx: Tx, ctx: Context, request: LockerData, id: String? = null): LockerView {
