@@ -25,6 +25,7 @@ data class Membership(
     val permissions: Set<String> = emptySet(),
     val active: Boolean = true,
     val expiresAt: String? = null,
+    val relationship: String? = null,
 ) {
     fun current(): Boolean = active && (expiresAt == null || Instant.parse(expiresAt).isAfter(Instant.now()))
 }
