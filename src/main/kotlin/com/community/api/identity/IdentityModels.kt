@@ -38,3 +38,7 @@ internal data class AuthDelivery(
 )
 
 @Serializable
+internal data class RateWindow(val startedAt: Long, val attempts: Int)
+
+@Serializable
+data class Accepted(val accepted: Boolean = true)
