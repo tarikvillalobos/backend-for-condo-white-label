@@ -38,3 +38,23 @@ class ApplicationTest {
         responses.forEach { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+            assertEquals("UP", response.jsonBody()["status"]?.jsonPrimitive?.content)
+            assertNotEquals("caller-provided-id", response.requestId())
+        }
+        assertNotEquals(responses[0].requestId(), responses[1].requestId())
+    }
+
+    @Test
+    fun `missing routes return a correlated JSON error`() = testApplication {
+        application { module() }
+
+        client.get("/resource-that-does-not-exist").assertError(
+            HttpStatusCode.NotFound,
+            "not_found",
+            "Resource not found",
+        )
+    }
+
+    @Test
+    fun `unexpected failures do not disclose exception details`() = testApplication {
+        application {
