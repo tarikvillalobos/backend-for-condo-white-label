@@ -3638,3 +3638,23 @@ paths:
       parameters:
         -
           name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/NotificationDeliveryStatus"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/notifications/{id}/read":
+    post:
+      tags: ["Notifications"]
+      summary: "Mark your notification as read"
+      operationId: "post_api_v1_notifications_id_read"
+      description: "Required permission: notifications.manage. The client and location must enable the notifications feature."
+      parameters:
+        -
+          name: "id"
