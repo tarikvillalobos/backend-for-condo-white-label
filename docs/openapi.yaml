@@ -3198,3 +3198,23 @@ paths:
           required: true
           schema: {"type":"string","minLength":8,"maxLength":128,"pattern":"^[A-Za-z0-9_.:-]{8,128}$"}
           description: "One stable key per invitation, scoped to the caller and location. Repeated keys return 409 without issuing another invitation or code."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VisitorInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VisitorCreated"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/visitors/{id}/revoke":
+    post:
+      tags: ["Visitors"]
+      summary: "Revoke a visitor invitation"
+      operationId: "post_api_v1_locations_locationId_visitors_id_revoke"
+      description: "Required permission: visitors.create (owner) or visitors.manage. The client and location must enable the visitors feature."
+      parameters:
+        -
