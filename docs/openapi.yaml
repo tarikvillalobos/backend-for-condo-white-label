@@ -4618,3 +4618,23 @@ components:
         compartments:
           type: "array"
           items: {"$ref":"#/components/schemas/Compartment"}
+      required: ["id","name","maintenance","compartments"]
+    LockerViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/LockerView"}
+    LoginRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        tenantId: {"type":"string"}
+        email: {"type":"string","format":"email","maxLength":254}
+        password: {"type":"string","format":"password","writeOnly":true}
+        device: {"type":"string","default":"Unknown device"}
+      required: ["tenantId","email","password"]
+    LostPet:
