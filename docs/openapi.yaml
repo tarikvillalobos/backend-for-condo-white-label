@@ -358,3 +358,23 @@ paths:
       summary: "List client brands"
       operationId: "get_api_v1_brands"
       parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/BrandRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Platform"]
+      summary: "Create a white-label brand"
+      operationId: "post_api_v1_brands"
+      description: "Required permission: brands.manage."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Brand"}
+      responses:
