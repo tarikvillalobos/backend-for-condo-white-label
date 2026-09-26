@@ -478,3 +478,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AccountSummaryPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/accounts/{id}/state":
+    put:
+      tags: ["Platform"]
+      summary: "Activate or deactivate an account"
+      operationId: "put_api_v1_accounts_id_state"
+      description: "Required permission: accounts.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      parameters:
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
