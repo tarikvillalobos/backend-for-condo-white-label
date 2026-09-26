@@ -298,3 +298,23 @@ paths:
       operationId: "delete_api_v1_me_sessions"
       responses:
         "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me/sessions/{id}":
+    delete:
+      tags: ["Identity"]
+      summary: "Revoke one of your sessions"
+      operationId: "delete_api_v1_me_sessions_id"
+      parameters:
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
