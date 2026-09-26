@@ -38,3 +38,23 @@ suspend fun deliverNotificationMailBatch(db: Database, config: MailConfig, sende
             db.query { it.finishNotificationDelivery(claim, false) }
             failed++
         }
+    }
+    return MailBatchResult(sent, failed)
+}
+
+internal fun notificationDeliveryId(id: String): String = "notification-mail:$id"
+
+internal fun Tx.notificationEmail(notification: Record): String? {
+    val userId = notification.ownerId ?: return null
+    val account = get("account", userId, notification.tenantId)?.decode<Account>() ?: return null
+    if (!account.active) return null
+    val preferences = list("notification_preferences", notification.tenantId, ownerId = userId)
+        .firstOrNull()?.decode<NotificationPreferences>() ?: NotificationPreferences()
+    if (!preferences.email) return null
+    try { notificationContext(Actor(userId, notification.tenantId, "mail-worker"), notification.locationId, "notifications.read") }
+    catch (failure: ApiException) { if (failure.status in setOf(403, 404)) return null else throw failure }
+    return account.email
+}
+
+internal fun Tx.claimNotificationDelivery(): Record? {
+    val now = Instant.now()
