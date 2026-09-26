@@ -3658,3 +3658,23 @@ paths:
       parameters:
         -
           name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/InboxNotificationRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/notifications/preferences":
+    get:
+      tags: ["Notifications"]
+      summary: "Read your communication preferences"
+      operationId: "get_api_v1_notifications_preferences"
+      description: "Required permission: notifications.read. The client and location must enable the notifications feature."
+      responses:
+        "200":
+          description: "Successful operation."
