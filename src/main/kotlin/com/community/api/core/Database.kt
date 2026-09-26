@@ -118,3 +118,23 @@ class Tx internal constructor(private val connection: Connection) {
             it.executeUpdate()
         }
         return record
+    }
+
+    fun update(record: Record, data: kotlinx.serialization.json.JsonObject): Record {
+        val updated = record.copy(data = data, updatedAt = Instant.now().toString(), version = record.version + 1)
+        connection.prepareStatement("UPDATE app_records SET payload=?, updated_at=?, version=? WHERE id=? AND tenant_id=? AND version=?").use {
+            it.setString(1, json.encodeToString(data))
+            it.setString(2, updated.updatedAt)
+            it.setInt(3, updated.version)
+            it.setString(4, record.id)
+            it.setString(5, record.tenantId)
+            it.setInt(6, record.version)
+            if (it.executeUpdate() != 1) conflict("Resource changed; reload before retrying")
+        }
+        return updated
+    }
+
+    fun delete(record: Record) {
+        connection.prepareStatement("DELETE FROM app_records WHERE id=? AND tenant_id=? AND version=?").use {
+            it.setString(1, record.id)
+            it.setString(2, record.tenantId)
