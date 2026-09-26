@@ -118,3 +118,23 @@ class PlatformTest {
         val second = issue()
         assertEquals(HttpStatusCode.Conflict, second.status)
         assertFalse(second.bodyAsText().contains(json.parseToJsonElement(first.bodyAsText()).jsonObject.getValue("token").jsonPrimitive.content))
+        assertEquals(1, f.db.tx { it.list("auth_challenge", f.tenant).size })
+    }
+}
+
+internal class PlatformFixture {
+    val db = Database.memory()
+    val tenant = "tenant-platform"
+    val admin: String
+    val resident: String
+    val location: String
+    val token: String
+    val actor: Actor
+
+    init {
+        val setup = db.tx { tx ->
+            tx.create("client", tenant, data = body(ClientSettings("Client")), id = tenant)
+            val admin = tx.create("account", tenant, data = body(Account("admin@example.com", "Admin", "unused")))
+            val resident = tx.create("account", tenant, data = body(Account("resident@example.com", "Resident", "unused")))
+            tx.create("membership", tenant, ownerId = admin.id, data = body(Membership(admin.id, role = "client_admin")))
+            val location = tx.create("location", tenant, data = body(Location("Location")))
