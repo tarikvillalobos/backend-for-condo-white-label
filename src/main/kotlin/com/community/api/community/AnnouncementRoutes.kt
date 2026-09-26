@@ -78,3 +78,10 @@ internal fun Route.announcementRoutes(db: Database) {
         get("/{id}/receipts") {
             val rows = db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.manage", "announcements")
+                val row = tx.record(ctx, "announcement", call.resourceId())
+                tx.list("announcement_read", ctx.tenantId, ctx.locationId).filter { it.decode<Acknowledgment>().resourceId == row.id }
+            }
+            call.respondPage(rows)
+        }
+    }
+}
