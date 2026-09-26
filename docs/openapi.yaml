@@ -338,3 +338,23 @@ paths:
     put:
       tags: ["Platform"]
       summary: "Update client configuration"
+      operationId: "put_api_v1_client"
+      description: "Required permission: client.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ClientSettings"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ClientSettingsRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/brands":
+    get:
+      tags: ["Platform"]
+      summary: "List client brands"
+      operationId: "get_api_v1_brands"
+      parameters:
