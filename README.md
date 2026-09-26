@@ -55,6 +55,8 @@ provider-dependent features and optional workflows are identified separately.
 - [Packages and smart lockers](docs/deliveries.md)
 - [Facilities and reservations](docs/reservations.md)
 - [Community and operations endpoints](docs/community.md)
+- [API walkthrough](docs/api.md)
+- [Deployment, recovery, and verification](docs/operations.md)
 
 ## Product scope
 
