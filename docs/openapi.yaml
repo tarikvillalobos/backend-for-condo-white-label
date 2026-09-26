@@ -3838,3 +3838,23 @@ components:
     AnnouncementRecordPage:
       allOf:
         - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/AnnouncementRecord"}
+    ApiError:
+      type: "object"
+      properties:
+        code: {"type":"string"}
+        message: {"type":"string"}
+        requestId:
+          type: ["string","null"]
+      required: ["code","message","requestId"]
+    AttachmentInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        filename: {"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._ -]{0,119}$"}
+        contentType:
