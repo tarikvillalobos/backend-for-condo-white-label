@@ -38,3 +38,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
                     booking.request.facilityId == id && booking.status in blocking && instant(booking.request.endsAt).isAfter(clock.instant())
                 } }) conflict("Cancel future reservations before placing the facility in maintenance")
         }
+        val record = if (existing == null) tx.create("facility", ctx.tenantId, ctx.location(), data = body(request))
+            else tx.update(existing, body(request))
+        tx.audit(ctx, if (existing == null) "facility.created" else "facility.updated", record.id)
+        return FacilityView(record.id, request)
+    }
+
+    private fun validateRules(rules: FacilityData) {
+        if (rules.name.isBlank() || rules.name.length > 200) badRequest("Facility name must contain 1 to 200 characters")
+        try { ZoneId.of(rules.timeZone) } catch (_: Exception) { badRequest("Unknown facility time zone") }
+        val opens = try { LocalTime.parse(rules.opensAt) } catch (_: Exception) { badRequest("Invalid opening time") }
+        val closes = try { LocalTime.parse(rules.closesAt) } catch (_: Exception) { badRequest("Invalid closing time") }
+        if (!opens.isBefore(closes)) badRequest("Opening time must precede closing time on the same day")
+        if (rules.weekdays.isEmpty() || rules.weekdays.any { it !in 1..7 }) badRequest("Weekdays use ISO values 1 through 7")
+        if (rules.capacity !in 1..100000 || rules.maxDurationMinutes !in 1..1440 || rules.minNoticeMinutes !in 0..525600 ||
+            rules.maxDaysAhead !in 1..730 || rules.maxActivePerMember !in 1..1000) badRequest("Invalid facility booking limits")
+    }
+
+    fun list(tx: Tx, ctx: Context): List<ReservationView> {
+        if (!ctx.can("reservations.read.all") && !ctx.can("reservations.read.own")) forbidden()
+        return records(tx, ctx).filter { ctx.can("reservations.read.all") || it.ownerId == ctx.userId }.map(::view)
