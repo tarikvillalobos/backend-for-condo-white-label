@@ -38,3 +38,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         ctx.allow("packages.read.own")
         if (data.receipt.recipientId != ctx.userId) forbidden()
     }
+
+    private fun requireOutstanding(data: PackageData) {
+        if (data.status !in setOf("RECEIVED", "PICKUP_REPORTED")) conflict("Package is no longer available for collection")
+    }
+
+    fun list(tx: Tx, ctx: Context): List<PackageView> =
+        tx.list("package", ctx.tenantId, ctx.location()).filter { canRead(ctx, it.decode()) }.map(::view)
+
+    fun get(tx: Tx, ctx: Context, id: String): PackageView {
+        val record = packageRecord(tx, ctx, id)
+        if (!canRead(ctx, record.decode())) forbidden()
+        return view(record)
+    }
+
+    fun receive(tx: Tx, ctx: Context, request: ReceivePackage, key: String): PackageView {
+        ctx.allow("packages.receive")
+        if (key.isBlank() || key.length > 128) badRequest("Idempotency-Key must contain 1 to 128 characters")
+        if (request.description.isBlank() || request.description.length > 1000) badRequest("Description must contain 1 to 1000 characters")
+        if (request.carrier.length > 200 || request.trackingNumber.length > 200) badRequest("Carrier or tracking number is too long")
+        if ((request.lockerId == null) != (request.compartmentId == null)) badRequest("Locker and compartment must be supplied together")
