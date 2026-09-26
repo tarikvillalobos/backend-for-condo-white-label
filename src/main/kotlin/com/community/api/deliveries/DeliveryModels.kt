@@ -38,3 +38,23 @@ data class PackageView(
     val lockerId: String?,
     val compartmentId: String?,
     val collectionDeadline: String?,
+    val status: String,
+    val delegates: Set<String>,
+    val collectorId: String?,
+    val history: List<DeliveryEvent>,
+)
+
+@Serializable
+data class Compartment(
+    val id: String,
+    val label: String,
+    val maintenance: Boolean = false,
+    val packageId: String? = null,
+)
+
+@Serializable
+data class LockerData(
+    val name: String,
+    val compartments: List<Compartment>,
+    val maintenance: Boolean = false,
+    val integrationId: String? = null,
