@@ -38,3 +38,14 @@ class NotificationDeliveryHttpTest {
             val response = client.get(path) { bearerAuth(ownerToken) }
             assertEquals(HttpStatusCode.OK, response.status)
             val status = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+            assertEquals("accepted", status["status"]!!.jsonPrimitive.content)
+            assertEquals(setOf("status", "attempts", "acceptedAt", "failure"), status.keys)
+            assertEquals(HttpStatusCode.NotFound, client.get(path) { bearerAuth(otherToken) }.status)
+            db.tx { tx ->
+                val membership = tx.list("membership", tenantA, ownerId = owner.id).single()
+                tx.update(membership, body(membership.decode<Membership>().copy(active = false)))
+            }
+            assertEquals(HttpStatusCode.Forbidden, client.get(path) { bearerAuth(ownerToken) }.status)
+        }
+    }
+}
