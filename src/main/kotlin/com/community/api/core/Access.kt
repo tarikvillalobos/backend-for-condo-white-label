@@ -118,3 +118,23 @@ fun Tx.authorize(actor: Actor, locationId: String?, permission: String, feature:
 
 fun Tx.authorizeAny(actor: Actor, locationId: String?, permissions: Set<String>, feature: String? = null): Context =
     context(actor, locationId, feature).also { ctx -> if (permissions.none(ctx::can)) forbidden() }
+
+fun Tx.audit(context: Context, action: String, resourceId: String) {
+    create("audit", context.tenantId, context.locationId, context.userId, buildJsonObject {
+        put("action", action)
+        put("resourceId", resourceId)
+        put("actorId", context.userId)
+    })
+}
+
+fun Tx.notify(tenantId: String, locationId: String?, recipientId: String, title: String, message: String) {
+    if (get("account", recipientId, tenantId)?.data?.get("active")?.jsonPrimitive?.booleanOrNull != true) return
+    if (locationId != null && activeMemberships(tenantId, recipientId).none { it.locationId == null || it.locationId == locationId }) return
+    create("notification", tenantId, locationId, recipientId, buildJsonObject {
+        put("title", title)
+        put("message", message)
+        put("readAt", null as String?)
+    })
+}
+
+suspend inline fun <reified T> ApplicationCall.respondPage(items: List<T>) {
