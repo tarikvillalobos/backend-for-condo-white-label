@@ -58,3 +58,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         if (request.description.isBlank() || request.description.length > 1000) badRequest("Description must contain 1 to 1000 characters")
         if (request.carrier.length > 200 || request.trackingNumber.length > 200) badRequest("Carrier or tracking number is too long")
         if ((request.lockerId == null) != (request.compartmentId == null)) badRequest("Locker and compartment must be supplied together")
+        request.collectionDeadline?.let { parseInstant(it) }
+        val fingerprint = digest(body(request).toString())
+        val keyId = digest("${ctx.tenantId}:${ctx.location()}:$key")
+        tx.get("package_receipt_key", keyId, ctx.tenantId)?.let {
+            val previous = it.decode<ReceiptKey>()
+            if (previous.fingerprint != fingerprint) conflict("Idempotency-Key was already used for a different receipt")
+            return view(packageRecord(tx, ctx, previous.packageId))
+        }
+        tx.requireMember(ctx.tenantId, ctx.location(), request.recipientId)
+        val id = UUID.randomUUID().toString()
+        request.lockerId?.let { lockerId ->
+            val locker = tx.requireRecord("locker", lockerId, ctx.tenantId, ctx.location())
+            val data = locker.decode<LockerData>()
+            val compartment = data.compartments.find { it.id == request.compartmentId } ?: notFound()
+            if (data.maintenance || compartment.maintenance || compartment.packageId != null) conflict("Locker compartment is unavailable")
+            tx.update(locker, body(data.copy(compartments = data.compartments.map {
+                if (it.id == compartment.id) it.copy(packageId = id) else it
+            })))
+        }
+        val data = PackageData(request, history = listOf(event(ctx, "received")))
