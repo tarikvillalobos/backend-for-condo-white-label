@@ -101,7 +101,16 @@ location document access.
 
 ## Domain consistency
 
-## Framework references
+- Package reports do not confirm physical pickup. Authorized staff or validated
+  integration events must confirm collection and consume the pickup credential.
+- Package receipt, reservations, account invitations, and visitor invitations
+  require idempotency keys. Read the module contracts for return/replay semantics;
+  one-time invitation credentials are never reissued on a duplicate request.
+- Locker provider events have dedicated credentials, binding to configured
+  integrations, event deduplication, timestamp checks, and state validation.
+- Reservations use facility time zones, operating rules, and half-open intervals.
+  Pending approvals reserve capacity, preventing approval-time overbooking.
+- Event attendance, document acknowledgments, notice receipts, and inbox read
 
 - [Ktor server configuration](https://ktor.io/docs/server-configuration-code.html)
 - [Ktor application testing](https://ktor.io/docs/server-testing.html)
