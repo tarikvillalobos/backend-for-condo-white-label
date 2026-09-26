@@ -3878,3 +3878,23 @@ components:
         filename: {"type":"string"}
         contentType: {"type":"string"}
         size: {"type":"integer","format":"int32"}
+        sha256: {"type":"string"}
+        downloadPath: {"type":"string"}
+      required: ["id","filename","contentType","size","sha256","downloadPath"]
+    Attendance:
+      type: "object"
+      additionalProperties: false
+      properties:
+        eventId: {"type":"string"}
+      required: ["eventId"]
+    AttendanceRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/Attendance"}
+    AttendanceRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
