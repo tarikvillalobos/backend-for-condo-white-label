@@ -35,7 +35,9 @@ private val responseHeaders = createApplicationPlugin("PrivateApiHeaders") {
 }
 
 fun Application.configureHttp() {
-    install(ContentNegotiation) { json() }
+    install(responseHeaders)
+    install(RequestBodyLimit) { bodyLimit { 3L * 1024 * 1024 } }
+    install(ContentNegotiation) { json(com.community.api.core.json) }
     install(CallId) {
         generate { UUID.randomUUID().toString() }
         replyToHeader("X-Request-ID")
