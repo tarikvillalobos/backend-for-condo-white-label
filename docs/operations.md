@@ -58,3 +58,23 @@ Flyway applies versioned SQL migrations on startup. Data uses indexed,
 tenant-scoped relational envelopes with typed JSON payloads. A database row lock
 serializes transactions across processes, preserving pickup and reservation
 invariants. This deliberately limits throughput; measure load before increasing
+scale and replace it with narrower locks and constraints alongside regression
+tests. H2 is for local development/tests. The CI PostgreSQL service checks actual
+migrations, persistence, rollback, and concurrent updates.
+
+## Backups and recovery
+
+Use scheduled PostgreSQL backups and point-in-time recovery appropriate to the
+deployment. Back up all application tables, including Flyway history. Attachments
+are stored in the database, so they are included in the same backup. Encrypt
+backups and limit access: the private mail queue temporarily contains credentials.
+
+Test restoration into an isolated PostgreSQL instance before relying on backups.
+Point the API at the restored instance, start it, and verify `/health/ready`, an
+authorized login, and representative records. Never run tests against production.
+For H2 local backups, stop the process before copying `data/community.mv.db`.
+
+## Retention and files
+
+Authentication delivery entries are deleted after delivery or credential use;
+the mail worker removes expired deliveries. Audit and business records are kept
