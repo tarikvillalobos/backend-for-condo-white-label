@@ -1,7 +1,7 @@
 # API walkthrough
 
 The complete request and response contract is [openapi.yaml](openapi.yaml).
-It describes 157 implemented operations, including the public authentication
+It describes 161 implemented operations, including the public authentication
 routes and the separate credential required for locker provider events.
 
 This walkthrough uses a local development client created with the `bootstrap`
