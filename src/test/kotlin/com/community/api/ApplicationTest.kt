@@ -29,6 +29,17 @@ import kotlin.test.assertNotNull
 
 class ApplicationTest {
     @Test
+    fun `oversized payloads are rejected before JSON deserialization`() = testApplication {
+        application { module(Database.memory()) }
+        val response = client.post("/api/v1/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("a".repeat(3 * 1024 * 1024 + 1))
+        }
+        assertEquals(HttpStatusCode.PayloadTooLarge, response.status)
+        assertEquals("no-store", response.headers["Cache-Control"])
+    }
+
+    @Test
     fun `health endpoints return JSON and a distinct generated request ID`() = testApplication {
         application { module() }
 
