@@ -78,3 +78,10 @@ internal fun Route.eventRoutes(db: Database) {
         }
         get("/{id}/attendance") {
             call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.read", "events")
+                tx.record(ctx, "event", call.resourceId())
+                tx.visible(ctx, "attendance", "events.manage").filter { it.decode<Attendance>().eventId == call.resourceId() }
+            })
+        }
+    }
+}
