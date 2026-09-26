@@ -18,3 +18,23 @@ configured. The password is read from the terminal without echoing it.
 export API_BASE=http://localhost:8080
 export TENANT_ID=replace-with-bootstrap-client-id
 export ADMIN_EMAIL=admin@example.test
+read -r -s -p 'Administrator password: ' ADMIN_PASSWORD; printf '\n'
+
+ADMIN_SESSION=$(jq -nc \
+  --arg tenantId "$TENANT_ID" --arg email "$ADMIN_EMAIL" \
+  --arg password "$ADMIN_PASSWORD" \
+  '{tenantId:$tenantId,email:$email,password:$password,device:"API walkthrough"}' |
+  curl -fsS "$API_BASE/api/v1/auth/login" \
+    -H 'Content-Type: application/json' --data-binary @-)
+ADMIN_TOKEN=$(printf '%s' "$ADMIN_SESSION" | jq -er .accessToken)
+```
+
+For the following calls, define a helper that sends JSON from standard input:
+
+```bash
+api_json() {
+  local method="$1" token="$2" path="$3"
+  shift 3
+  curl -fsS -X "$method" "$API_BASE$path" \
+    -H "Authorization: Bearer $token" \
+    -H 'Content-Type: application/json' "$@" --data-binary @-
