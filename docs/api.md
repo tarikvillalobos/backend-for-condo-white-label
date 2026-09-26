@@ -158,3 +158,22 @@ printf '%s' "$BOOKING" | jq '{id,status:.details.status}'
 
 The booking is `CONFIRMED` by default, or `PENDING` when the facility requires
 approval. Both states block overlapping reservations, including concurrent
+requests. A matching idempotent retry returns the same booking.
+
+## Response conventions
+
+- Most administration and community resources use a `Record` envelope with
+  `id`, `kind`, `tenantId`, `locationId`, `ownerId`, `data`, timestamps, and version.
+- Packages, lockers, reservations, visitors, and attachments use dedicated safe
+  view objects. Their fields are defined in the OpenAPI response schemas.
+- Paginated lists use `items`, `total`, `offset`, and `limit`. The default limit
+  is 50 and the maximum is 200. Session and role lists are plain arrays.
+- Errors include `code`, `message`, and `requestId`. Preserve the response's
+  `X-Request-ID` when reporting an error.
+- Readiness is available without authentication at `GET /health/ready`.
+- Locker opening and camera viewing/recordings return `501` until a supported
+  hardware provider is integrated. They do not simulate physical actions.
+
+Only replay requests when their endpoint documents retry behavior. Package and
+reservation keys return the original result; account and visitor invitation
+keys return a conflict after the first successful issuance.
