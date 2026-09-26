@@ -26,10 +26,10 @@ provider-dependent features and optional workflows are identified separately.
 | Client and location administration | Clients, brands, feature flags, locations, units, owner/tenant/household relationships, scoped roles, account activation, invitations | Cross-client onboarding/state changes use explicit operator CLI commands |
 | Deliveries and lockers | Receipt, compartment allocation, history, deadlines, reminders, single-use pickup credentials, delegation, confirmed collection, provider-event deduplication | Physical locker opening needs a vendor adapter and returns 501 |
 | Facilities and reservations | Operating hours, local time zones, capacity, availability, maintenance blocks, approval, cancellation, concurrency protection | Waitlists, recurring bookings, and payments are extensions |
-| Announcements and events | Scheduled/expiring announcements, unit audiences, attachments, receipts, events, attendance capacity, cancellation | Event/facility linking and notification campaigns are extensions |
-| Pets | Private pet/unit records, photos, vaccination references, public lost notices, resolution | Property-specific vaccination enforcement is not automated |
-| Requests and incidents | Categories/priorities, ownership, staff-only notes, assignment, deadlines, status history, reopen/resolve flows | Automatic escalation and SLA jobs are extensions |
-| Visitors | Unit-scoped invitations, admission credentials, expiry, revocation, single-use rules, staff check-in/out | Gate hardware commands and shift-management workflows require further implementation |
+| Announcements and events | Scheduled/expiring announcements, unit audiences, attachments, receipts, events linked to reservations, attendance capacity, cancellation | Notification campaigns are an extension |
+| Pets | Private pet/unit records, photos, vaccination requirements, species and unit limits, lost notices, resolution | Vaccination document authenticity needs administrative review |
+| Requests and incidents | Categories/priorities, ownership, staff-only notes, assignment, deadlines, escalation history, reopen/resolve flows | Automatic escalation and SLA jobs are extensions |
+| Visitors and concierge | Unit-scoped invitations, admission credentials, expiry, revocation, single-use rules, staff check-in/out, shift notes | Gate hardware commands require a supported integration |
 | Vehicles and parking | Private vehicle records, temporary authorization, space allocation, staff entry/exit history | Physical vehicle-access providers and complex parking policies are separate integrations |
 | Staff and maintenance | Staff responsibilities, approved contractor records, equipment, assignments, work orders, status history, evidence | Recurring inspection scheduling is not automated |
 | Documents and contacts | Versioned document metadata, audience checks, acknowledgments, published useful contacts | External document providers enforce access to their own URLs |
