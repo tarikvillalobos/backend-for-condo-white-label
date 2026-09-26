@@ -313,7 +313,12 @@ docker compose run --rm \
   api bootstrap
 ```
 
-### Health Endpoints
+The bootstrap environment variables must be set in the calling shell. The API
+is exposed on loopback port 8080, PostgreSQL on 5432, and Mailpit's development
+inbox at `http://127.0.0.1:8025`. This Compose setup uses development mode and
+local mail capture. Production requires authenticated STARTTLS SMTP and a
+deployment-specific TLS/proxy setup. Persist the PostgreSQL volume and keep
+database backups outside the application container.
 
 | Method | Path | Current behavior |
 | --- | --- | --- |
