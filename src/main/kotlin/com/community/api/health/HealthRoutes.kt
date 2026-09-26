@@ -17,7 +17,9 @@ data class HealthResponse(val status: String)
 fun Route.healthRoutes(database: Database) {
     route("/health") {
         get("/live") { call.respond(HealthResponse("UP")) }
-        // No external dependencies exist yet. Add their checks before introducing them.
-        get("/ready") { call.respond(HealthResponse("UP")) }
+        get("/ready") {
+            val healthy = withContext(Dispatchers.IO) { database.healthy() }
+            call.respond(if (healthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable, HealthResponse(if (healthy) "UP" else "DOWN"))
+        }
     }
 }
