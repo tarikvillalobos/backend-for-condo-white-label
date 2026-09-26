@@ -3058,3 +3058,23 @@ paths:
           schema: {"type":"string"}
           description: "Resource identifier."
       requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/RequestAssignment"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests/{id}/status":
+    post:
+      tags: ["Requests"]
+      summary: "Transition a request with an explanation"
+      operationId: "post_api_v1_locations_locationId_requests_id_status"
+      description: "Required permission: requests.create (owner) or requests.manage. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
