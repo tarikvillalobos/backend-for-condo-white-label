@@ -18,3 +18,9 @@ data class WorkOrderUpdate(val status: String, val notes: String, val evidence: 
 data class WorkOrderHistory(val orderId: String, val status: String, val notes: String, val evidence: List<String>)
 @Serializable
 data class EquipmentInput(val name: String, val description: String, val serialNumber: String? = null, val nextInspectionAt: String? = null)
+
+internal fun validateWorkOrderTransition(previous: String, next: String) {
+    val allowed = mapOf("scheduled" to setOf("in_progress", "cancelled"), "in_progress" to setOf("completed", "cancelled"),
+        "completed" to setOf("scheduled"), "cancelled" to emptySet())
+    if (next !in allowed.getOrDefault(previous, emptySet())) conflict("Invalid work order status transition")
+}
