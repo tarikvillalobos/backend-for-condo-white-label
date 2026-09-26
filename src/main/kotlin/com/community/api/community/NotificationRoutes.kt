@@ -36,6 +36,15 @@ internal fun Route.notificationRoutes(db: Database) {
         get("/unread-count") {
             call.respond(db.query { tx -> UnreadNotifications(tx.inbox(call.actor(tx)).count { it.decode<InboxNotification>().readAt == null }) })
         }
+        get("/{id}/delivery") {
+            call.respond(db.query { tx ->
+                val actor = call.actor(tx)
+                val row = tx.requireRecord("notification", call.resourceId(), actor.tenantId)
+                if (row.ownerId != actor.userId) notFound()
+                tx.notificationContext(actor, row.locationId, "notifications.read")
+                tx.notificationMailStatus(row) ?: NotificationDeliveryStatus("not_scheduled", 0, null, null)
+            })
+        }
         post("/{id}/read") {
             call.respond(db.query { tx ->
                 val actor = call.actor(tx)
