@@ -858,3 +858,23 @@ paths:
               schema: {"$ref":"#/components/schemas/RecordPage"}
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/audit":
+    get:
+      tags: ["Platform"]
+      summary: "List audit events"
+      operationId: "get_api_v1_locations_locationId_audit"
+      description: "Required permission: audit.read."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/RecordPage"}
