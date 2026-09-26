@@ -4038,3 +4038,23 @@ components:
             - "events"
             - "pets"
             - "requests"
+            - "visitors"
+            - "vehicles"
+            - "maintenance"
+            - "documents"
+            - "cameras"
+            - "notifications"
+            - "contacts"
+        supportEmail:
+          type: ["string","null"]
+          default: null
+        passwordLogin: {"type":"boolean","default":true}
+        otpLogin: {"type":"boolean","default":false}
+      required: ["name"]
+    ClientSettingsRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ClientSettings"}
