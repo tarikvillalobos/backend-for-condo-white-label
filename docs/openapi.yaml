@@ -2098,3 +2098,23 @@ paths:
       tags: ["Requests"]
       summary: "Create requests"
       operationId: "post_api_v1_locations_locationId_requests"
+      description: "Required permission: requests.create. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/RequestInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
+        default: {"$ref":"#/components/responses/Error"}
