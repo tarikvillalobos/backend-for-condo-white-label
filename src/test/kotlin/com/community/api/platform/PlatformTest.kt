@@ -78,3 +78,23 @@ class PlatformTest {
         f.db.tx { tx ->
             val location = tx.requireRecord("location", f.location, f.tenant)
             tx.update(location, body(location.decode<Location>().copy(features = allFeatures - "packages")))
+        }
+        application { module(f.db) }
+        val report = client.get("/api/v1/locations/${f.location}/reports") { bearerAuth(f.token) }
+        assertEquals(HttpStatusCode.OK, report.status)
+        assertFalse("package" in json.parseToJsonElement(report.bodyAsText()).jsonObject.getValue("counts").jsonObject)
+        val export = client.get("/api/v1/locations/${f.location}/reports/package/export") { bearerAuth(f.token) }
+        assertEquals(HttpStatusCode.Forbidden, export.status)
+    }
+
+    @Test
+    fun `role grants require recent verification`() = testApplication {
+        val f = PlatformFixture()
+        f.db.tx { tx ->
+            val session = tx.requireRecord("session", f.actor.sessionId, f.tenant)
+            tx.update(session, body(session.decode<SessionData>().copy(verifiedAt = Instant.now().minusSeconds(601).toString())))
+        }
+        application { module(f.db) }
+        val response = client.post("/api/v1/roles") {
+            bearerAuth(f.token); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RoleDefinition("custom", setOf("packages.read.own"))))
