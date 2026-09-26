@@ -58,3 +58,23 @@ Permissions: `pets.read.own`, `pets.read.all`, `pets.create`, `pets.manage.own`,
 - `GET /requests`, `POST /requests`, `GET /requests/{id}`.
 - `POST /requests/{id}/assign`: `{userId,dueAt?}`; assignee must be an active
   member with scoped request-management access.
+- `POST /requests/{id}/status`: `{status,reason}`.
+- `GET /requests/{id}/comments`, `POST /requests/{id}/comments`:
+  `{message,internal:false,attachments:[]}`.
+
+`RequestInput`: `title`, `description`, `category` (`request`, `complaint`,
+`incident`, `maintenance`, `support`), `priority` (`normal`, `high`, `urgent`),
+and optional `attachments`.
+
+Transitions: `open → in_progress/cancelled`; `in_progress → resolved/open/cancelled`;
+`resolved → closed/open`; `closed → open`. Cancelled requests are terminal.
+Owners may cancel open requests or reopen resolved/closed requests. Staff control
+the remaining transitions. Staff-only comments require management permission and
+are excluded from resident and read-only audit responses. Closed/cancelled
+requests reject new comments. Assignment and status changes create inbox updates.
+
+Permissions: `requests.create`, `requests.read.own`, `requests.read.all`,
+`requests.comment`, `requests.manage`.
+
+## Visitors
+
