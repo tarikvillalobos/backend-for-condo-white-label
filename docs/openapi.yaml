@@ -4718,3 +4718,23 @@ components:
       additionalProperties: false
       properties:
         status: {"type":"string"}
+        attempts: {"type":"integer","format":"int32"}
+        acceptedAt:
+          type: ["string","null"]
+          format: "date-time"
+        failure:
+          type: ["string","null"]
+      required: ["status","attempts","acceptedAt","failure"]
+    NotificationPreferences:
+      type: "object"
+      additionalProperties: false
+      properties:
+        push: {"type":"boolean","default":true}
+        email: {"type":"boolean","default":true}
+        sms: {"type":"boolean","default":false}
+        language:
+          type: "string"
+          default: "pt-BR"
+          enum: ["pt-BR","en","es"]
+    OtpRequest:
+      type: "object"
