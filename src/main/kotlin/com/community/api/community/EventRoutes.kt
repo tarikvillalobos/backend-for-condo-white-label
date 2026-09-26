@@ -38,3 +38,23 @@ internal fun Route.eventRoutes(db: Database) {
         put("/{id}") {
             val input = call.receive<EventInput>().validated()
             call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.manage", "events")
+                val row = tx.record(ctx, "event", call.resourceId())
+                if (row.decode<CommunityEvent>().cancelled) conflict("Cancelled events cannot be edited")
+                val attendees = tx.list("attendance", ctx.tenantId, ctx.locationId).count { it.decode<Attendance>().eventId == row.id }
+                if (input.capacity < attendees) conflict("Capacity cannot be lower than confirmed attendance")
+                tx.changed(ctx, row, body(CommunityEvent(input)), "event.updated")
+            })
+        }
+        post("/{id}/cancel") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.manage", "events")
+                val row = tx.record(ctx, "event", call.resourceId())
+                tx.changed(ctx, row, body(row.decode<CommunityEvent>().copy(cancelled = true)), "event.cancelled")
+            })
+        }
+        post("/{id}/attendance") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.attend", "events")
+                val row = tx.record(ctx, "event", call.resourceId())
+                val event = row.decode<CommunityEvent>()
