@@ -38,3 +38,11 @@ for path, verbs in spec["paths"].items():
     for method, operation in verbs.items():
         if method not in methods:
             continue
+        assert operation["operationId"] not in seen
+        seen.add(operation["operationId"])
+        parameters = {p["name"] for p in operation.get("parameters", []) if p.get("in") == "path"}
+        assert parameters == set(re.findall(r"\{(.*?)\}", path)), path
+        for status, response in operation["responses"].items():
+            if status == "204":
+                assert "content" not in response
+print(f"OpenAPI validated: {len(actual)} operations with matching Ktor routes.")
