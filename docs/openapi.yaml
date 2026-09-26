@@ -518,3 +518,23 @@ paths:
         - {"$ref":"#/components/parameters/Limit"}
       responses:
         "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/MembershipRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Platform"]
+      summary: "Create an authorized membership"
+      operationId: "post_api_v1_memberships"
+      description: "Required permission: memberships.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Membership"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
