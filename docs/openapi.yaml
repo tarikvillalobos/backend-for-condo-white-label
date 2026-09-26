@@ -2758,3 +2758,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/CameraInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/announcements/{id}/archive":
+    post:
+      tags: ["Announcements"]
+      summary: "Archive an announcement"
+      operationId: "post_api_v1_locations_locationId_announcements_id_archive"
+      description: "Required permission: announcements.manage. The client and location must enable the announcements feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
