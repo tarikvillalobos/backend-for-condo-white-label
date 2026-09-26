@@ -38,3 +38,23 @@ fun ApplicationCall.integration(tx: Tx, locationId: String, type: String = "lock
     if (parts.size != 3) unauthorized()
     val record = tx.get("integration", parts[1], parts[0]) ?: unauthorized()
     val data = record.decode<IntegrationData>()
+    if (!data.active || data.type != type || data.locationId != locationId || record.locationId != locationId) unauthorized()
+    if (!MessageDigest.isEqual(data.tokenHash.toByteArray(), digest(token).toByteArray())) unauthorized()
+    val client = tx.requireRecord("client", record.tenantId, record.tenantId)
+    val location = tx.requireRecord("location", locationId, record.tenantId)
+    for (resource in listOf(client, location)) {
+        if (resource.data["active"]?.jsonPrimitive?.booleanOrNull != true) forbidden()
+        if ("packages" !in json.decodeFromJsonElement<Set<String>>(resource.data["features"] ?: forbidden())) forbidden()
+    }
+    return Context(Actor("integration:${record.id}", record.tenantId, record.id), locationId, setOf("packages.collect"))
+}
+
+fun Route.integrationRoutes(db: Database) {
+    route("/api/v1/locations/{locationId}/integrations") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "integrations.manage")
+                tx.list("integration", ctx.tenantId, ctx.locationId).map { record ->
+                    val data = record.decode<IntegrationData>()
+                    IntegrationView(record.id, data.provider, data.type, data.active)
+                }
