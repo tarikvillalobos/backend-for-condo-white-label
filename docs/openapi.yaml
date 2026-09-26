@@ -4498,3 +4498,23 @@ components:
           type: ["string","null"]
           default: null
         unitId:
+          type: ["string","null"]
+          default: null
+        role: {"type":"string","default":"resident"}
+        expiresAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["email","name"]
+    Location:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        kind:
+          type: "string"
+          default: "condominium"
+          enum: ["condominium","standalone"]
+        timeZone: {"type":"string","default":"America/Sao_Paulo"}
+        features:
+          type: "array"
