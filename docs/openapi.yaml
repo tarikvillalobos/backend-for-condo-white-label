@@ -3918,3 +3918,23 @@ components:
         application:
           type: "string"
           enum: ["smartlocker","condo"]
+        primaryColor: {"type":"string","default":"#2563EB","pattern":"^#[0-9A-Fa-f]{6}$"}
+        logoUrl:
+          type: ["string","null"]
+          default: null
+        supportEmail:
+          type: ["string","null"]
+          default: null
+        features:
+          type: "array"
+          items:
+            type: "string"
+            enum:
+              - "packages"
+              - "reservations"
+              - "announcements"
+              - "events"
+              - "pets"
+              - "requests"
+              - "visitors"
+              - "vehicles"
