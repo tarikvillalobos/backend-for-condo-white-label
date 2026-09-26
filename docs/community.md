@@ -118,3 +118,23 @@ Permissions: `vehicles.read.own`, `vehicles.read.all`, `vehicles.create`,
 ## Staff, contractors, equipment, and work orders
 
 - `GET /staff`, `POST /staff`: upsert `{userId,responsibility,active}`. A staff
+  profile describes duties; it does not grant roles or access permissions.
+- `GET /contractors`, `POST /contractors`, `PUT /contractors/{id}`:
+  `{name,service,contact,approved}`.
+- `GET /equipment`, `POST /equipment`, `PUT /equipment/{id}`:
+  `{name,description,serialNumber?,nextInspectionAt?}`.
+- `GET /work-orders`, `POST /work-orders`:
+  `{title,description,assignedTo,scheduledAt,contractorId?,equipmentId?}`.
+- `POST /work-orders/{id}/status`: `{status,notes,evidence:[]}`.
+- `GET /work-orders/{id}/history`: retained status notes and completion evidence.
+
+An assignee must be active and have scoped maintenance access; referenced
+contractors must be approved. Workers see assigned work only. Managers see all
+work in their location. Statuses follow `scheduled → in_progress → completed`;
+managers may cancel active work or reopen completed work as scheduled. Notes
+and evidence are stored with the current order, and each transition is audited.
+Contractor registration does not issue gate credentials; visitor invitations
+handle temporary admission separately.
+
+Permissions: `staff.manage`, `maintenance.read`, `maintenance.work`, `maintenance.manage`.
+
