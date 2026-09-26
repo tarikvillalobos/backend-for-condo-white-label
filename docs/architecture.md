@@ -35,11 +35,12 @@ The database stores the envelope in indexed columns and JSON payloads as text.
 This keeps common tenancy, ownership, audit, and migration handling consistent
 while each module uses typed domain models and explicit transitions.
 
-Within each module, routes translate HTTP requests, application services execute
-use cases, domain code enforces business rules, and repositories/adapters isolate
-storage and providers. Keep cross-module interactions explicit through services.
-Introduce infrastructure when a use case needs it; no database or simulated
-hardware is connected in this foundation.
+`Database.query` runs blocking JDBC work on the IO dispatcher. Every transaction
+takes a database row lock on `app_mutex`. It serializes reads and writes across
+API instances, so capacity checks and writes cannot race. Package allocation,
+single-use credentials, idempotency guards, booking overlap checks, authorization,
+and audit changes commit or roll back together. Version comparisons add stale
+record protection when updating or deleting records.
 
 ## Authorization requirements for the first business endpoint
 
