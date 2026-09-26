@@ -1638,3 +1638,23 @@ paths:
           schema: {"type":"string","format":"date-time"}
       responses:
         "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/FacilityAvailability"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/reservations":
+    get:
+      tags: ["Reservations"]
+      summary: "List authorized reservations"
+      operationId: "get_api_v1_locations_locationId_reservations"
+      description: "Required permission: reservations.read.own or reservations.read.all. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
