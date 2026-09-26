@@ -23,7 +23,7 @@ src/main/resources/db/migration/  # Flyway schema migrations
 src/test/kotlin/                   # Domain, HTTP, isolation, concurrency tests
 ```
 
-## Planned business boundaries
+## Persistence and transaction boundaries
 
 Add packages for each capability as its first use case is implemented:
 
