@@ -2018,3 +2018,23 @@ paths:
           description: "Created."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/PetInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/pets/{id}":
+    put:
+      tags: ["Pets"]
+      summary: "Update pets"
+      operationId: "put_api_v1_locations_locationId_pets_id"
+      description: "Required permission: pets.manage.own or pets.manage. The client and location must enable the pets feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
