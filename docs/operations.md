@@ -101,8 +101,6 @@ still require provider contracts and credentials. Never infer a physical event
 from a command request. Optional financial, voting, waitlist, and recurrence
 features remain outside this implementation.
 
-## Commit policy
-
 ## Verification
 
 Run `./gradlew build installDist` and `python3 scripts/smoke_test.py` for local
