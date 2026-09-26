@@ -218,3 +218,23 @@ paths:
       requestBody:
         required: true
         content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VerificationRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me/password":
+    post:
+      tags: ["Identity"]
+      summary: "Change your password and revoke sessions"
+      operationId: "post_api_v1_me_password"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/PasswordRequest"}
+      responses:
