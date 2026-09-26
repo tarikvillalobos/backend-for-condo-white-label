@@ -58,3 +58,13 @@ class SmtpMailSenderTest {
                             if (content == ".") break
                             lines += content
                         }
+                        reply("250 Queued")
+                    }
+                    line == "QUIT" -> { reply("221 Bye"); break }
+                    else -> reply("250 OK")
+                }
+            }
+        }
+        return lines
+    }
+}
