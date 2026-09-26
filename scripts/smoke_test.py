@@ -78,3 +78,23 @@ with tempfile.TemporaryDirectory(prefix="community-smoke-") as temporary:
     def stop(process):
         process.terminate()
         try:
+            process.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+    with open(Path(temporary) / "server.log", "w") as log:
+        process = start(log)
+        try:
+            admin = request("POST", "/api/v1/auth/login", {"tenantId": tenant, "email": "admin@example.test", "password": password})["accessToken"]
+            location = request("POST", "/api/v1/locations", {"name": "Standalone lockers", "kind": "standalone", "timeZone": "UTC"}, admin, expected=201)["id"]
+            prefix = f"/api/v1/locations/{location}"
+            invitation = request("POST", prefix + "/invitations", {"email": "resident@example.test", "name": "Resident", "locationId": location}, admin, "smoke-invitation", 201)
+            request("POST", "/api/v1/auth/activate", {"token": invitation["token"], "password": password})
+            resident = request("POST", "/api/v1/auth/login", {"tenantId": tenant, "email": "resident@example.test", "password": password})["accessToken"]
+            receipt = {"recipientId": invitation["userId"], "description": "Smoke delivery"}
+            package = request("POST", prefix + "/packages", receipt, admin, "smoke-receipt", 201)
+            retry = request("POST", prefix + "/packages", receipt, admin, "smoke-receipt", 201)
+            assert package["id"] == retry["id"]
+            package_path = prefix + "/packages/" + package["id"]
+            credential = request("POST", package_path + "/credential", {}, resident)["credential"]
