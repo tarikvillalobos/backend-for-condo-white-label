@@ -4818,3 +4818,23 @@ components:
         - {"$ref":"#/components/schemas/Record"}
         -
           type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ParkingInput"}
+    ParkingInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ParkingInputRecord"}
+    PasswordRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        currentPassword: {"type":"string","format":"password","writeOnly":true}
+        newPassword: {"type":"string","format":"password","writeOnly":true,"minLength":12,"maxLength":256}
+      required: ["currentPassword","newPassword"]
+    PetInput:
+      type: "object"
