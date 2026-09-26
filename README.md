@@ -23,7 +23,7 @@ provider-dependent features and optional workflows are identified separately.
 | Module | Working behavior | Boundary or extension |
 | --- | --- | --- |
 | Identity | Invitations/activation, password and OTP login, recovery, verified contact changes, profile, rotating sessions, revocation, rate limits | SMTP must be configured for email verification/recovery; SMS login is not integrated |
-| Client and location administration | Clients, brands, feature flags, locations, units, memberships, scoped roles, account activation, invitations | Cross-client onboarding/state changes use explicit operator CLI commands |
+| Client and location administration | Clients, brands, feature flags, locations, units, owner/tenant/household relationships, scoped roles, account activation, invitations | Cross-client onboarding/state changes use explicit operator CLI commands |
 | Deliveries and lockers | Receipt, compartment allocation, history, deadlines, reminders, single-use pickup credentials, delegation, confirmed collection, provider-event deduplication | Physical locker opening needs a vendor adapter and returns 501 |
 | Facilities and reservations | Operating hours, local time zones, capacity, availability, maintenance blocks, approval, cancellation, concurrency protection | Waitlists, recurring bookings, and payments are extensions |
 | Announcements and events | Scheduled/expiring announcements, unit audiences, attachments, receipts, events, attendance capacity, cancellation | Event/facility linking and notification campaigns are extensions |
