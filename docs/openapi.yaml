@@ -3238,3 +3238,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/visitors/{id}/check-in":
     post:
+      tags: ["Visitors"]
+      summary: "Check in a visitor invitation"
+      operationId: "post_api_v1_locations_locationId_visitors_id_check_in"
+      description: "Required permission: visitors.checkin. The client and location must enable the visitors feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
