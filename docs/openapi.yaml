@@ -4996,6 +4996,23 @@ components:
             items:
               type: "array"
               items: {"$ref":"#/components/schemas/PetInputRecord"}
+    PetRules:
+      type: "object"
+      additionalProperties: false
+      properties:
+        vaccinationRequired: {"type":"boolean","default":false}
+        maxPetsPerUnit:
+          type: ["integer","null"]
+          format: "int32"
+          default: null
+          minimum: 1
+          maximum: 100
+        allowedSpecies:
+          type: "array"
+          items: {"type":"string","minLength":1,"maxLength":60}
+          uniqueItems: true
+          default: []
+          maxItems: 30
     PickupCredential:
       type: "object"
       additionalProperties: false
