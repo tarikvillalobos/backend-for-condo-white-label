@@ -3258,3 +3258,23 @@ paths:
       requestBody:
         required: true
         content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VisitorCheckIn"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VisitorView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/visitors/{id}/check-out":
+    post:
+      tags: ["Visitors"]
+      summary: "Check out a visitor invitation"
+      operationId: "post_api_v1_locations_locationId_visitors_id_check_out"
+      description: "Required permission: visitors.checkin. The client and location must enable the visitors feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
