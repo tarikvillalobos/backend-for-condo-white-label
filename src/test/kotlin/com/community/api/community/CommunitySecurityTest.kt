@@ -38,3 +38,23 @@ class CommunitySecurityTest {
             assertEquals(HttpStatusCode.OK, client.post(f.path("requests/$id/status")) {
                 bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
                 setBody(json.encodeToString(RequestTransition("in_progress", "Assigned technician")))
+            }.status)
+        }
+    }
+
+    @Test
+    fun `unit association cannot be spoofed and public pet notices omit private data`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            assertEquals(HttpStatusCode.Forbidden, client.post(f.path("pets")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(PetInput("Luna", "cat", f.otherUnit)))
+            }.status)
+            val created = client.post(f.path("pets")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(PetInput("Luna", "cat", f.unit, "private-chip-id", vaccinationUrls = listOf("https://example.test/private.pdf"))))
+            }
+            val id = json.decodeFromString<Record>(created.bodyAsText()).id
+            client.post(f.path("lost-pets")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(LostPetInput(id, "Missing since morning", "Garden")))
