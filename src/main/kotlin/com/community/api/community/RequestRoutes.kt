@@ -52,7 +52,8 @@ internal fun Route.requestRoutes(db: Database) {
                 validateRequestTransition(value.status, input.status, ctx.can("requests.manage"))
                 tx.saved(ctx, "request_comment", body(RequestComment(row.id, "${value.status} → ${input.status}: $reason", false, emptyList())))
                 row.ownerId?.let { owner ->
-                    if (tx.activeMemberships(ctx.tenantId, owner).any { it.locationId == null || it.locationId == ctx.locationId })
+                    val active = tx.get("account", owner, ctx.tenantId)?.data?.get("active") == kotlinx.serialization.json.JsonPrimitive(true)
+                    if (active && tx.activeMemberships(ctx.tenantId, owner).any { it.locationId == null || it.locationId == ctx.locationId })
                         tx.notify(ctx.tenantId, ctx.locationId, owner, "Request updated", "Your request status has changed")
                 }
                 tx.changed(ctx, row, body(value.copy(status = input.status)), "request.status.changed")
