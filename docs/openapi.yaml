@@ -5158,3 +5158,23 @@ components:
               type: "array"
               items: {"$ref":"#/components/schemas/StaffProfileRecord"}
     Tokens:
+      type: "object"
+      additionalProperties: false
+      properties:
+        accessToken: {"type":"string"}
+        refreshToken: {"type":"string"}
+        expiresIn: {"type":"integer","format":"int32","default":900}
+        tokenType: {"type":"string","default":"Bearer"}
+      required: ["accessToken","refreshToken"]
+    UnitData:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        building:
+          type: ["string","null"]
+          default: null
+        floor:
+          type: ["string","null"]
+          default: null
+      required: ["name"]
