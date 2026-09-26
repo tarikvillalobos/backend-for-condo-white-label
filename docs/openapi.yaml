@@ -4518,3 +4518,23 @@ components:
         timeZone: {"type":"string","default":"America/Sao_Paulo"}
         features:
           type: "array"
+          items:
+            type: "string"
+            enum:
+              - "packages"
+              - "reservations"
+              - "announcements"
+              - "events"
+              - "pets"
+              - "requests"
+              - "visitors"
+              - "vehicles"
+              - "maintenance"
+              - "documents"
+              - "cameras"
+              - "notifications"
+              - "contacts"
+          uniqueItems: true
+          default:
+            - "packages"
+            - "reservations"
