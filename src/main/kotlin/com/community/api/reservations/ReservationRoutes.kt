@@ -38,3 +38,23 @@ fun Route.reservationRoutes(db: Database) {
                 call.respond(HttpStatusCode.Created, db.query { tx -> service.create(tx, call.reservationContext(tx, "reservations.create"), request, key) })
             }
             post("/maintenance") {
+                val request = call.receive<CreateReservation>()
+                val key = call.reservationKey()
+                call.respond(HttpStatusCode.Created, db.query { tx -> service.create(tx, call.reservationContext(tx, "reservations.manage"), request, key, true) })
+            }
+            get("/{id}") {
+                call.respond(db.query { tx -> service.get(tx, call.reservationContext(tx), call.reservationId()) })
+            }
+            post("/{id}/cancel") {
+                val result = db.query { tx ->
+                    val actor = call.actor(tx)
+                    val ctx = tx.authorizeAny(actor, call.parameters["locationId"] ?: badRequest("Location is required"),
+                        setOf("reservations.create", "reservations.manage"), "reservations")
+                    service.transition(tx, ctx, call.reservationId(), "cancel")
+                }
+                call.respond(result)
+            }
+            post("/{id}/approve") {
+                call.respond(db.query { tx -> service.transition(tx, call.reservationContext(tx, "reservations.manage"), call.reservationId(), "approve") })
+            }
+            post("/{id}/reject") {
