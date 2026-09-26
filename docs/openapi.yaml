@@ -3758,3 +3758,23 @@ components:
         - {"$ref":"#/components/schemas/Page"}
         -
           type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/AccountSummary"}
+    Acknowledgment:
+      type: "object"
+      additionalProperties: false
+      properties:
+        resourceId: {"type":"string"}
+        acknowledgedAt: {"type":"string","format":"date-time"}
+      required: ["resourceId"]
+    AcknowledgmentRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/Acknowledgment"}
+    AcknowledgmentRecordPage:
+      allOf:
