@@ -58,3 +58,23 @@ internal fun Route.petRoutes(db: Database) {
                 tx.audit(ctx, "pet.deleted", row.id)
             }
             call.respond(HttpStatusCode.NoContent)
+        }
+    }
+    route("/lost-pets") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("pets.read.own", "pets.read.all"), "pets")
+                tx.list("lost_pet", ctx.tenantId, ctx.locationId).map { LostPetView(it.id, it.decode<LostPet>(), it.createdAt) }
+            })
+        }
+        post {
+            val input = call.receive<LostPetInput>()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "pets.create", "pets")
+                val row = tx.record(ctx, "pet", input.petId)
+                tx.own(ctx, row, "pets.manage")
+                val pet = row.decode<PetInput>()
+                val notice = LostPet(pet.name, pet.species, pet.photoUrl, text(input.message, "message", 2000), text(input.lastSeen, "lastSeen", 300))
+                val saved = tx.saved(ctx, "lost_pet", body(notice))
+                LostPetView(saved.id, notice, saved.createdAt)
+            })
