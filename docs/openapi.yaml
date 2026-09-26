@@ -3149,6 +3149,26 @@ paths:
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/ShiftNoteInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Visitors"]
+      summary: "Record a concierge shift note or incident"
+      operationId: "post_api_v1_locations_locationId_shift_notes"
+      description: "Required permission: concierge.notes. The client and location must enable the visitors feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ShiftNoteInput"}
+      responses:
+        "201":
   "/api/v1/locations/{locationId}/requests/{id}/status":
     post:
       tags: ["Requests"]
