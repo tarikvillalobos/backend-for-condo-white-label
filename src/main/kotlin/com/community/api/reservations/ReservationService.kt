@@ -78,3 +78,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
         }.map { AvailabilitySlot(it.request.startsAt, it.request.endsAt) }.sortedBy { it.startsAt }
         return FacilityAvailability(facilityId, facility, busy)
     }
+
+    fun create(tx: Tx, ctx: Context, request: CreateReservation, key: String, maintenance: Boolean = false): ReservationView {
+        ctx.allow(if (maintenance) "reservations.manage" else "reservations.create")
+        if (key.isBlank() || key.length > 128) badRequest("Idempotency-Key must contain 1 to 128 characters")
+        if (request.note.length > 2000) badRequest("Reservation note must contain at most 2000 characters")
+        val operation = if (maintenance) "maintenance" else "booking"
+        val keyId = digest("${ctx.tenantId}:${ctx.location()}:${ctx.userId}:$operation:$key")
+        val fingerprint = digest(body(request).toString())
+        tx.get("reservation_key", keyId, ctx.tenantId)?.let {
+            val previous = it.decode<ReservationKey>()
+            if (previous.fingerprint != fingerprint) conflict("Idempotency-Key was already used for a different reservation")
+            return view(tx.requireRecord("reservation", previous.reservationId, ctx.tenantId, ctx.location()))
+        }
+        val facility = tx.requireRecord("facility", request.facilityId, ctx.tenantId, ctx.location()).decode<FacilityData>()
+        val start = instant(request.startsAt)
+        val end = instant(request.endsAt)
+        if (!start.isBefore(end) || !start.isAfter(clock.instant())) badRequest("Reservation must start in the future and end after it starts")
+        if (!maintenance) validateBooking(facility, request, start, end)
+        val existing = records(tx, ctx)
+        val active = existing.filter { it.decode<ReservationData>().let { booking ->
