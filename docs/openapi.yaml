@@ -1218,3 +1218,23 @@ paths:
           required: true
           schema: {"type":"string"}
           description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/CredentialRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PickupCredential"}
+        default: {"$ref":"#/components/responses/Error"}
+    delete:
+      tags: ["Packages"]
+      summary: "Revoke the pickup credential"
+      operationId: "delete_api_v1_locations_locationId_packages_id_credential"
+      description: "Recipient ownership is required for credential and delegation changes. Delegation changes invalidate existing pickup credentials. Required permission: packages.read.own. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
