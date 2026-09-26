@@ -138,3 +138,23 @@ paths:
       tags: ["Identity"]
       summary: "Request an email sign-in code"
       operationId: "post_api_v1_auth_otp_request"
+      description: "Requests are rate limited. Recovery and code request responses do not reveal whether the account exists."
+      security: []
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/EmailRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/auth/otp/confirm":
+    post:
+      tags: ["Identity"]
+      summary: "Sign in with a one-time email code"
+      operationId: "post_api_v1_auth_otp_confirm"
+      security: []
