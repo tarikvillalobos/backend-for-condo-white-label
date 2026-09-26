@@ -2878,3 +2878,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AttendanceRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    delete:
+      tags: ["Events"]
+      summary: "Cancel your attendance"
+      operationId: "delete_api_v1_locations_locationId_events_id_attendance"
+      description: "Required permission: events.attend. The client and location must enable the events feature."
+      parameters:
