@@ -4458,3 +4458,23 @@ components:
         type:
           type: "string"
           default: "locker"
+          enum: ["locker"]
+      required: ["provider"]
+    IntegrationView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        provider: {"type":"string"}
+        type:
+          type: "string"
+          enum: ["locker"]
+        active: {"type":"boolean"}
+      required: ["id","provider","type","active"]
+    IntegrationViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
