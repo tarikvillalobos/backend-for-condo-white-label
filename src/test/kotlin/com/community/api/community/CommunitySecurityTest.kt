@@ -18,3 +18,23 @@ class CommunitySecurityTest {
                 setBody(json.encodeToString(RequestInput("Broken light", "Hallway light failed")))
             }
             assertEquals(HttpStatusCode.Created, created.status)
+            val id = json.decodeFromString<Record>(created.bodyAsText()).id
+            assertEquals(HttpStatusCode.Forbidden, client.get(f.path("requests/$id")) { bearerAuth(f.other.token) }.status)
+            val internal = client.post(f.path("requests/$id/comments")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(RequestCommentInput("Staff investigation only", internal = true)))
+            }
+            assertEquals(HttpStatusCode.Created, internal.status)
+            val notes = client.get(f.path("requests/$id/comments")) { bearerAuth(f.resident.token) }
+            assertFalse(notes.bodyAsText().contains("Staff investigation"))
+            assertEquals(HttpStatusCode.Forbidden, client.post(f.path("requests/$id/comments")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(RequestCommentInput("Private", internal = true)))
+            }.status)
+            assertEquals(HttpStatusCode.Forbidden, client.post(f.path("requests/$id/status")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(RequestTransition("in_progress", "Taking over")))
+            }.status)
+            assertEquals(HttpStatusCode.OK, client.post(f.path("requests/$id/status")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(RequestTransition("in_progress", "Assigned technician")))
