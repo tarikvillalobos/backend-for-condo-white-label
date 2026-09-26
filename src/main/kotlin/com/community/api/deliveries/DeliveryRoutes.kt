@@ -98,3 +98,4 @@ private fun ApplicationCall.deliveryContext(tx: Tx, permission: String? = null):
     return if (permission == null) tx.authorizeAny(actor, locationId,
         setOf("packages.read.own", "packages.read.all"), "packages")
     else tx.authorize(actor, locationId, permission, "packages")
+}
