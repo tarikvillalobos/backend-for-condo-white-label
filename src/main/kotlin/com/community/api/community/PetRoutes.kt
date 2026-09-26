@@ -1,6 +1,7 @@
 package com.community.api.community
 
 import com.community.api.core.*
+import com.community.api.platform.Location
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
