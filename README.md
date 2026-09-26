@@ -38,11 +38,7 @@ provider-dependent features and optional workflows are identified separately.
 | Cameras | Camera metadata, enabled state, unit audience, separate live/recording permissions | Live sessions and recordings return 501 until a real provider is configured |
 | Reporting and audit | Permission-filtered counts, statuses, CSV exports, recent-authentication checks, audit records | External analytics pipelines and automated retention are operational extensions |
 
-- Kotlin/JVM 2.4.20 with Java 21.
-- Ktor 3.6.0 with the Netty server engine.
-- Gradle 9.4.1 with Kotlin DSL and the Gradle Wrapper.
-- JSON responses through Kotlin serialization.
-- Logback 1.6.4 for logging.
+## Technology stack
 
 The backend will remain a shared monolith for both applications. Business capabilities will be organized into modules as they are implemented.
 
