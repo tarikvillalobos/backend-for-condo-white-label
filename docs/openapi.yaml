@@ -5118,3 +5118,23 @@ components:
       required: ["name","permissions"]
     RoleDefinitionRecord:
       allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/RoleDefinition"}
+    SessionView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        device: {"type":"string"}
+        createdAt: {"type":"string","format":"date-time"}
+        expiresAt: {"type":"string","format":"date-time"}
+        current: {"type":"boolean"}
+      required: ["id","device","createdAt","expiresAt","current"]
+    StaffProfile:
+      type: "object"
+      additionalProperties: false
+      properties:
+        userId: {"type":"string"}
