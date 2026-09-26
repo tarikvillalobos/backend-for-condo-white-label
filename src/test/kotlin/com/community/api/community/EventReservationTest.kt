@@ -78,3 +78,23 @@ class EventReservationTest {
             assertEquals(409, assertFailsWith<ApiException> {
                 db.tx { tx -> tx.validateEventReservation(tx.context(), event) }
             }.status)
+        }
+    }
+
+    @Test
+    fun `event must fit inside its reservation and active links are exclusive`() = database().use { db ->
+        for (invalid in listOf(event.copy(startsAt = "2030-01-02T11:59:00Z"), event.copy(endsAt = "2030-01-02T14:01:00Z"))) {
+            assertEquals(400, assertFailsWith<ApiException> {
+                db.tx { tx -> tx.validateEventReservation(tx.context(), invalid) }
+            }.status)
+        }
+        val saved = db.tx { tx ->
+            val ctx = tx.context()
+            tx.validateEventReservation(ctx, event)
+            tx.saved(ctx, "event", body(CommunityEvent(event)))
+        }
+        db.tx { tx -> tx.validateEventReservation(tx.context(), event, saved.id) }
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { tx -> tx.validateEventReservation(tx.context(), event) }
+        }.status)
+        db.tx { tx ->
