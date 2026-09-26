@@ -1038,3 +1038,23 @@ paths:
           required: true
           schema: {"type":"string"}
           description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/IntegrationRequest"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/IntegrationIssued"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/integrations/{id}/rotate":
+    post:
+      tags: ["Integrations"]
+      summary: "Rotate and reactivate a provider credential"
+      operationId: "post_api_v1_locations_locationId_integrations_id_rotate"
+      description: "Required permission: integrations.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      parameters:
+        -
