@@ -5188,6 +5188,17 @@ components:
         - {"$ref":"#/components/schemas/Record"}
         -
           type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/RequestEscalation"}
+    RequestEscalationRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/RequestEscalationRecord"}
     RequestInput:
       type: "object"
       additionalProperties: false
