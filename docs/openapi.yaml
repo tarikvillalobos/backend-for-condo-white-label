@@ -4667,6 +4667,11 @@ components:
         address:
           type: ["string","null"]
           default: null
+        operatingRules:
+          type: ["string","null"]
+          default: null
+          maxLength: 5000
+        petRules: {"$ref":"#/components/schemas/PetRules"}
       required: ["name"]
     LocationRecord:
       allOf:
