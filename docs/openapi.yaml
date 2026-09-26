@@ -4678,3 +4678,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        userId: {"type":"string"}
+        locationId:
+          type: ["string","null"]
+          default: null
+        unitId:
+          type: ["string","null"]
+          default: null
+        role: {"type":"string","default":"resident"}
+        permissions:
+          type: "array"
+          items: {"type":"string"}
+          uniqueItems: true
+          default: []
+        active: {"type":"boolean","default":true}
+        expiresAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["userId"]
+    MembershipRecord:
