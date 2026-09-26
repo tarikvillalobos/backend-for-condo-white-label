@@ -58,7 +58,7 @@ class ApplicationTest {
 
     @Test
     fun `missing routes return a correlated JSON error`() = testApplication {
-        application { module() }
+        application { module(Database.memory()) }
 
         client.get("/resource-that-does-not-exist").assertError(
             HttpStatusCode.NotFound,
