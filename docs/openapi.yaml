@@ -3498,3 +3498,23 @@ paths:
     get:
       tags: ["Documents"]
       summary: "List document acknowledgments"
+      operationId: "get_api_v1_locations_locationId_documents_id_acknowledgments"
+      description: "Required permission: documents.manage. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
