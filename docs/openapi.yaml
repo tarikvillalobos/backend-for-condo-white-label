@@ -2918,3 +2918,23 @@ paths:
       summary: "List authorized attendance records"
       operationId: "get_api_v1_locations_locationId_events_id_attendance"
       description: "Required permission: events.read. The client and location must enable the events feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
