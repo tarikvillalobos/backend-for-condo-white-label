@@ -5138,3 +5138,23 @@ components:
       additionalProperties: false
       properties:
         userId: {"type":"string"}
+        responsibility: {"type":"string"}
+        active: {"type":"boolean","default":true}
+      required: ["userId","responsibility"]
+    StaffProfileRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/StaffProfile"}
+    StaffProfileRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/StaffProfileRecord"}
+    Tokens:
