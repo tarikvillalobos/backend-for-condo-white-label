@@ -18,3 +18,21 @@ internal fun Tx.requestRecovery(request: EmailRequest, host: String, otp: Boolea
 }
 
 internal fun Tx.consumeOtp(request: OtpRequest, host: String): AuthResult<Tokens> {
+    val email = request.email.trim().lowercase(Locale.ROOT).take(254)
+    if (!allowAttempt("consume-otp", request.tenantId, email, host)) return AuthResult(status = 429, code = "rate_limited")
+    val account = findAccount(request.tenantId, email)
+    if (account?.decode<Account>()?.active != true || !tenantAvailable(request.tenantId) ||
+        !loginEnabled(request.tenantId, "otpLogin", false)) return AuthResult()
+    val record = list("auth_challenge", request.tenantId, ownerId = account.id).firstOrNull {
+        val data = it.decode<ChallengeData>()
+        data.type == "otp" && !data.consumed && !expired(data.expiresAt)
+    } ?: return AuthResult()
+    val data = record.decode<ChallengeData>()
+    if (data.attempts >= 5) return AuthResult()
+    if (!sameSecret(data.secretHash, digest("${record.id}:${request.code}"))) {
+        update(record, body(data.copy(attempts = data.attempts + 1)))
+        return AuthResult()
+    }
+    consumeChallenge(record)
+    return AuthResult(issueSession(account, request.device))
+}
