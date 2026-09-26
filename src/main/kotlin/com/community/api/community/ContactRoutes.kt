@@ -38,3 +38,16 @@ internal fun Route.contactRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "contacts.manage", "contacts")
                 tx.changed(ctx, tx.record(ctx, "contact", call.resourceId()), body(input), "contact.updated")
+            })
+        }
+        delete("/{id}") {
+            db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "contacts.manage", "contacts")
+                val row = tx.record(ctx, "contact", call.resourceId())
+                tx.delete(row)
+                tx.audit(ctx, "contact.deleted", row.id)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
