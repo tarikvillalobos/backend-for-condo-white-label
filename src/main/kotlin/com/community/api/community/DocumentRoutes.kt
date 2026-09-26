@@ -58,3 +58,23 @@ internal fun Route.documentRoutes(db: Database) {
         }
         get("/{id}/versions") {
             call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.read", "documents")
+                val doc = tx.record(ctx, "document", call.resourceId()).decode<CommunityDocument>()
+                if ((doc.archived && !ctx.can("documents.manage")) || !tx.audience(ctx, doc.content.unitId, "documents.manage")) notFound()
+                tx.list("document_version", ctx.tenantId, ctx.locationId).filter {
+                    val version = it.decode<DocumentVersion>()
+                    version.documentId == call.resourceId() && tx.audience(ctx, version.content.unitId, "documents.manage")
+                }
+            })
+        }
+        post("/{id}/acknowledge") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.read", "documents")
+                val row = tx.record(ctx, "document", call.resourceId())
+                val doc = row.decode<CommunityDocument>()
+                if (doc.archived || !tx.audience(ctx, doc.content.unitId, "documents.manage")) notFound()
+                val ack = DocumentAcknowledgment(row.id, doc.revision)
+                tx.list("document_acknowledgment", ctx.tenantId, ctx.locationId, ctx.userId)
+                    .firstOrNull { it.decode<DocumentAcknowledgment>() == ack }
+                    ?: tx.saved(ctx, "document_acknowledgment", body(ack))
+            })
