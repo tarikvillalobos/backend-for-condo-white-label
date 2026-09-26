@@ -3298,3 +3298,23 @@ paths:
       tags: ["Vehicles"]
       summary: "Record physical entry or exit observed by staff"
       operationId: "post_api_v1_locations_locationId_vehicles_id_movements"
+      description: "Required permission: vehicles.manage. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VehicleMovementInput"}
+      responses:
