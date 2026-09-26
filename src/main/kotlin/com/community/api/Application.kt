@@ -68,6 +68,12 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
         }
     }
     routing {
-        healthRoutes()
+        healthRoutes(database)
+        identityRoutes(database)
+        platformRoutes(database)
+        integrationRoutes(database)
+        deliveryRoutes(database)
+        reservationRoutes(database)
+        communityRoutes(database)
     }
 }
