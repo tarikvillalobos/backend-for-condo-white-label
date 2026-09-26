@@ -4478,3 +4478,23 @@ components:
           type: "object"
           properties:
             items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/IntegrationView"}
+    InvitationIssue:
+      type: "object"
+      additionalProperties: false
+      properties:
+        userId: {"type":"string"}
+        token: {"type":"string"}
+        expiresAt: {"type":"string","format":"date-time"}
+      required: ["userId","token","expiresAt"]
+    InvitationRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        email: {"type":"string"}
+        name: {"type":"string"}
+        locationId:
+          type: ["string","null"]
+          default: null
+        unitId:
