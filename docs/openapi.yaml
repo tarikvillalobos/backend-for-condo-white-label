@@ -1518,3 +1518,23 @@ paths:
           schema: {"type":"string"}
           description: "Selected location ID."
         -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "501":
+          description: "A compatible provider is not configured."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ApiError"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/facilities":
+    get:
+      tags: ["Reservations"]
+      summary: "List facility rules"
+      operationId: "get_api_v1_locations_locationId_facilities"
+      description: "Required permission: facilities.read. The client and location must enable the reservations feature."
+      parameters:
+        -
