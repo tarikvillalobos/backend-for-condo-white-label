@@ -53,10 +53,12 @@ must not bypass those rules.
 
 ## Identity and sessions
 
-A standalone locker location belongs to a client and does not require a
-condominium or unit. Household relationships do not grant permission to collect
-another person's package. Integration accounts and visitor credentials require
-separate authentication and narrowly scoped permissions.
+Accounts belong to one client. Authentication uses opaque access and refresh
+tokens with random secrets and stored hashes, rather than signed JWT claims.
+Every request reloads session/account/client state, so revocation takes effect
+without waiting for token expiry. Access lasts 15 minutes; refresh lasts at most
+30 days, rotates on use, and detects replay. Password hashes use PBKDF2-HMAC-SHA256
+with individual salts and 600,000 iterations.
 
 ## Consistency requirements
 
