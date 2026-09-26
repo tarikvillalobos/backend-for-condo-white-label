@@ -4098,3 +4098,23 @@ components:
             data: {"$ref":"#/components/schemas/CommunityEvent"}
     CommunityEventRecordPage:
       allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/CommunityEventRecord"}
+    Compartment:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        label: {"type":"string"}
+        maintenance: {"type":"boolean","default":false}
+        packageId:
+          type: ["string","null"]
+          default: null
+          description: "Server-managed occupancy. Omit when creating or updating a locker."
+      required: ["id","label"]
+    Configuration:
