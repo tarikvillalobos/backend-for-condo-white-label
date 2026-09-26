@@ -78,3 +78,23 @@ person. For this local walkthrough, activate the resident directly:
 
 ```bash
 read -r -s -p 'Resident password, at least 12 characters: ' RESIDENT_PASSWORD; printf '\n'
+jq -nc --arg token "$ACTIVATION_TOKEN" --arg password "$RESIDENT_PASSWORD" \
+  '{token:$token,password:$password}' |
+  curl -fsS "$API_BASE/api/v1/auth/activate" \
+    -H 'Content-Type: application/json' --data-binary @-
+
+RESIDENT_SESSION=$(jq -nc \
+  --arg tenantId "$TENANT_ID" --arg email "$RESIDENT_EMAIL" \
+  --arg password "$RESIDENT_PASSWORD" \
+  '{tenantId:$tenantId,email:$email,password:$password,device:"Resident walkthrough"}' |
+  curl -fsS "$API_BASE/api/v1/auth/login" \
+    -H 'Content-Type: application/json' --data-binary @-)
+RESIDENT_TOKEN=$(printf '%s' "$RESIDENT_SESSION" | jq -er .accessToken)
+```
+
+Activation and recovery completion return `{"accepted":true}`. Sign in
+separately to obtain session tokens. An invitation key is accepted only once;
+retrying an already successful invitation returns `409` without another token.
+
+## 3. Receive a delivery, issue a credential, and confirm pickup
+
