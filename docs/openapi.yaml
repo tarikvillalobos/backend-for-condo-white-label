@@ -4578,3 +4578,23 @@ components:
         compartments:
           type: "array"
           items: {"$ref":"#/components/schemas/Compartment"}
+          minItems: 1
+          maxItems: 500
+        maintenance: {"type":"boolean","default":false}
+        integrationId:
+          type: ["string","null"]
+          default: null
+      required: ["name","compartments"]
+    LockerEventResult:
+      type: "object"
+      additionalProperties: false
+      properties:
+        eventId: {"type":"string"}
+        status:
+          type: "string"
+          enum: ["applied","ignored"]
+      required: ["eventId","status"]
+    LockerPickupEvent:
+      type: "object"
+      additionalProperties: false
+      properties:
