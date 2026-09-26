@@ -2498,3 +2498,23 @@ paths:
           description: "Selected location ID."
       requestBody:
         required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/EquipmentInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/EquipmentInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/equipment/{id}":
+    put:
+      tags: ["Maintenance"]
+      summary: "Update equipment"
+      operationId: "put_api_v1_locations_locationId_equipment_id"
+      description: "Required permission: maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
