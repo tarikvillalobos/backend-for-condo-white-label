@@ -58,3 +58,23 @@ class DeliveryRouteTest {
         val service = DeliveryService()
         val parcel = db.tx { tx ->
             tx.create("integration", "tenant", "location", data = body(IntegrationData("Test adapter", "location", hash)), id = "hardware")
+            val locker = service.saveLocker(tx, context, LockerData("Locker", listOf(Compartment("A", "A")), integrationId = "hardware"))
+            service.receive(tx, context, ReceivePackage("recipient", "Parcel", lockerId = locker.id, compartmentId = "A"), "receipt")
+        }
+        val event = body(LockerPickupEvent("event", parcel.id, "A", "recipient", Instant.now().toString())).toString()
+        testApplication {
+            application { configureHttp(); routing { deliveryRoutes(db) } }
+            suspend fun send(location: String, token: String) = client.post("/api/v1/locations/$location/locker-events") {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody(event)
+            }
+            assertEquals(HttpStatusCode.Unauthorized, send("location", humanToken).status)
+            assertEquals(HttpStatusCode.Unauthorized, send("other-location", integrationToken).status)
+            val success = send("location", integrationToken)
+            assertEquals(HttpStatusCode.OK, success.status)
+            assertTrue(success.bodyAsText().contains("applied"))
+            assertEquals(HttpStatusCode.OK, send("location", integrationToken).status)
+            db.tx { tx ->
+                val integration = tx.requireRecord("integration", "hardware", "tenant")
+                tx.update(integration, body(integration.decode<IntegrationData>().copy(active = false)))
