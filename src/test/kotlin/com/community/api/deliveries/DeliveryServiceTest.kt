@@ -58,3 +58,23 @@ class DeliveryServiceTest {
         assertEquals(403, assertFailsWith<ApiException> {
             db.tx { service.confirmPickup(it, recipient, parcel.id, ConfirmPickup("recipient", credential.credential)) }
         }.status)
+        assertEquals("COLLECTED", db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("recipient", credential.credential)) }.status)
+        assertNull(db.tx { service.lockers(it, staff).single().compartments.single().packageId })
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("recipient", credential.credential)) }
+        }.status)
+    }
+
+    @Test
+    fun `delegation is explicit and changing delegates revokes existing credentials`() = database().use { db ->
+        val parcel = db.tx { service.receive(it, staff, ReceivePackage("recipient", "Parcel"), "receipt") }
+        val first = db.tx { service.credential(it, recipient, parcel.id, 30) }
+        db.tx { service.delegate(it, recipient, parcel.id, "delegate") }
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("delegate", first.credential)) }
+        }.status)
+        val credential = db.tx { service.credential(it, recipient, parcel.id, 30) }
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("outsider", credential.credential)) }
+        }.status)
+        val delegate = outsider.copy(actor = outsider.actor.copy(userId = "delegate"))
