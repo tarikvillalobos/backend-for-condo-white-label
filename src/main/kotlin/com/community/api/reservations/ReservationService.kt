@@ -158,3 +158,14 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
             "reject" -> {
                 if (data.status != "PENDING") conflict("Only pending reservations can be rejected")
                 "REJECTED"
+            }
+            else -> badRequest("Unsupported reservation transition")
+        }
+        val saved = tx.update(record, body(data.copy(status = status, history = data.history + event(ctx, action))))
+        tx.audit(ctx, "reservation.$action", id)
+        record.ownerId?.let { tx.notify(ctx.tenantId, ctx.location(), it, "Reservation updated", "Your reservation is ${status.lowercase()}.") }
+        return view(saved)
+    }
+
+    private fun records(tx: Tx, ctx: Context): List<Record> = tx.list("reservation", ctx.tenantId, ctx.location())
+}
