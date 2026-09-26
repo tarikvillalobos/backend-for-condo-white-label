@@ -4258,3 +4258,23 @@ components:
         - {"$ref":"#/components/schemas/Page"}
         -
           type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/DocumentAcknowledgmentRecord"}
+    DocumentInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        title: {"type":"string"}
+        description: {"type":"string"}
+        url: {"type":"string"}
+        mediaType:
+          type: "string"
+          enum:
+            - "application/pdf"
+            - "image/jpeg"
+            - "image/png"
+            - "text/plain"
+            - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        unitId:
