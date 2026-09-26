@@ -118,3 +118,9 @@ class DeliveryServiceTest {
         assertEquals("applied", db.tx { service.trustedPickup(it, integration, event) }.status)
         assertEquals("applied", db.tx { service.trustedPickup(it, integration, event) }.status)
         assertEquals("ignored", db.tx { service.trustedPickup(it, integration, event.copy(eventId = "later")) }.status)
+        assertEquals(1, db.tx { service.get(it, recipient, parcel.id) }.history.count { it.action == "trusted_pickup_confirmed" })
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { service.trustedPickup(it, integration, event.copy(collectorId = "outsider")) }
+        }.status)
+    }
+}
