@@ -4358,3 +4358,23 @@ components:
       additionalProperties: false
       properties:
         facilityId: {"type":"string"}
+        rules: {"$ref":"#/components/schemas/FacilityData"}
+        busy:
+          type: "array"
+          items: {"$ref":"#/components/schemas/AvailabilitySlot"}
+      required: ["facilityId","rules","busy"]
+    FacilityData:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        timeZone:
+          type: "string"
+          default: "America/Sao_Paulo"
+          description: "IANA time zone used for local opening hours and advance booking dates."
+        capacity: {"type":"integer","format":"int32","default":1,"minimum":1,"maximum":100000}
+        opensAt:
+          type: "string"
+          default: "08:00"
+          description: "Local ISO time. Opening and closing must be on the same day, with opening before closing."
+        closesAt:
