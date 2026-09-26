@@ -38,3 +38,23 @@ class IdentityChallengesTest {
 
     @Test
     fun `otp enforces five guesses and consumes a successful code once`() = Database.memory().use { db ->
+        db.seedIdentity(otp = true)
+        db.tx { it.requestRecovery(EmailRequest(tenantA, testEmail), "test-host", true) }.unwrap()
+        val code = db.tx { it.list("auth_delivery", tenantA).single().decode<AuthDelivery>().credential }
+        repeat(5) {
+            assertFailsWith<ApiException> {
+                db.tx { it.consumeOtp(OtpRequest(tenantA, testEmail, "invalid"), "test-host") }.unwrap()
+            }
+        }
+        assertFailsWith<ApiException> { db.tx { it.consumeOtp(OtpRequest(tenantA, testEmail, code), "test-host") }.unwrap() }
+        db.tx { it.requestRecovery(EmailRequest(tenantA, testEmail), "test-host", true) }.unwrap()
+        val next = db.tx { it.list("auth_delivery", tenantA).single().decode<AuthDelivery>().credential }
+        val session = db.tx { it.consumeOtp(OtpRequest(tenantA, testEmail, next), "test-host") }.unwrap()
+        db.tx { it.authenticate(session.accessToken) }
+        assertFailsWith<ApiException> { db.tx { it.consumeOtp(OtpRequest(tenantA, testEmail, next), "test-host") }.unwrap() }
+    }
+
+    @Test
+    fun `expired invitation cannot activate account`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val invitation = db.tx { it.issueInvitation(tenantA, "new@example.com", "New resident") }
