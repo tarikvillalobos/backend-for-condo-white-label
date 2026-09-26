@@ -58,3 +58,11 @@ fun Route.identityRoutes(db: Database) {
     }
     profileRoutes(db)
     sessionRoutes(db)
+}
+
+internal fun ApplicationCall.identityBearer(): String {
+    val header = request.headers["Authorization"].orEmpty()
+    if (!header.startsWith("Bearer ", ignoreCase = true)) throw ApiException(401, "unauthorized", "Authentication required")
+    return header.substring(7).trim().takeIf { it.isNotEmpty() }
+        ?: throw ApiException(401, "unauthorized", "Authentication required")
+}
