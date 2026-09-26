@@ -38,3 +38,23 @@ fun validateAttachment(input: AttachmentInput): ByteArray {
 }
 
 fun Route.attachmentRoutes(db: Database) {
+    route("/api/v1/locations/{locationId}/attachments") {
+        post {
+            val input = call.receive<AttachmentInput>()
+            val bytes = validateAttachment(input)
+            val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "attachments.create", "documents")
+                if (input.visibility == "location" && !ctx.can("documents.manage")) forbidden()
+                if (tx.list("attachment", ctx.tenantId, ownerId = ctx.userId).size >= 200) conflict("Attachment quota reached")
+                val record = tx.create("attachment", ctx.tenantId, ctx.locationId, ctx.userId, body(AttachmentData(input.filename, input.contentType, input.contentBase64, input.visibility, bytes.size, digest)))
+                tx.audit(ctx, "attachment.created", record.id)
+                AttachmentView(record.id, input.filename, input.contentType, bytes.size, digest, "/api/v1/locations/${ctx.locationId}/attachments/${record.id}")
+            })
+        }
+        get("/{id}") {
+            val data = db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.parameters["locationId"]!!, setOf("attachments.read.own", "attachments.read.all", "documents.read"), "documents")
+                val record = tx.requireRecord("attachment", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
+                val data = record.decode<AttachmentData>()
+                if (record.ownerId != ctx.userId && !ctx.can("attachments.read.all") && !(data.visibility == "location" && ctx.can("documents.read"))) notFound()
