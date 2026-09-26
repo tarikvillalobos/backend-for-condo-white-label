@@ -58,3 +58,23 @@ private fun Route.membershipScope(db: Database, path: String) {
                 val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"], "memberships.manage")
                 tx.requireRecentAuthentication(ctx.actor)
                 tx.saveMembership(ctx, input)
+            })
+        }
+        put("/memberships/{id}") {
+            val input = call.receive<Membership>()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"], "memberships.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                val previous = tx.requireRecord("membership", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
+                tx.saveMembership(ctx, input, previous)
+            })
+        }
+        post("/invitations") {
+            val input = call.receive<InvitationRequest>()
+            val key = call.request.headers["Idempotency-Key"]?.validText("Idempotency-Key", 128)
+                ?: badRequest("Idempotency-Key is required")
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"], "memberships.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                val scope = "invitation:${ctx.userId}:${ctx.locationId}:$key"
+                val digest = MessageDigest.getInstance("SHA-256").digest(scope.toByteArray()).joinToString("") { "%02x".format(it) }
