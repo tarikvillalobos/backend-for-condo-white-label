@@ -1138,3 +1138,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageViewPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Packages"]
+      summary: "Register a received delivery"
+      operationId: "post_api_v1_locations_locationId_packages"
+      description: "Required permission: packages.receive. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
