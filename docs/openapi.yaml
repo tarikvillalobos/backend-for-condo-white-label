@@ -1658,3 +1658,23 @@ paths:
           description: "Selected location ID."
         - {"$ref":"#/components/parameters/Offset"}
         - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ReservationViewPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Reservations"]
+      summary: "Create an exclusive facility booking"
+      operationId: "post_api_v1_locations_locationId_reservations"
+      description: "Required permission: reservations.create. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/IdempotencyKey"}
