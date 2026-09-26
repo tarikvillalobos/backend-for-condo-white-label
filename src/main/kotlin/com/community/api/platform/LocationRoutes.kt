@@ -38,3 +38,23 @@ fun Route.locationRoutes(db: Database) {
                 val id = call.parameters["locationId"]!!
                 val actor = call.actor(tx)
                 val existing = tx.requireRecord("location", id, actor.tenantId)
+                val ctx = if (existing.decode<Location>().active) tx.authorize(actor, id, "locations.manage")
+                    else tx.authorize(actor, null, "locations.manage").copy(locationId = id)
+                tx.update(existing, body(input)).also { tx.audit(ctx, "location.updated", it.id) }
+            })
+        }
+        route("/{locationId}/units") {
+            get {
+                call.respondPage(db.query { tx ->
+                    val locationId = call.parameters["locationId"]!!
+                    val actor = call.actor(tx)
+                    val ctx = tx.authorize(actor, locationId, "locations.read")
+                    val units = tx.list("unit", ctx.tenantId, locationId)
+                    if (ctx.can("units.manage")) units else {
+                        val allowed = tx.activeMemberships(ctx.tenantId, ctx.userId).mapNotNull { it.decode<Membership>().unitId }.toSet()
+                        units.filter { it.id in allowed }
+                    }
+                })
+            }
+            post {
+                val input = call.receive<UnitData>()
