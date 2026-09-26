@@ -1,0 +1,15 @@
+.gradle/
+.kotlin/
+build/
+out/
+.idea/
+*.iml
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+data/
+*.mv.db
+*.trace.db
+__pycache__/
