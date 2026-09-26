@@ -29,7 +29,16 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 
-fun main() {
+fun main(args: Array<String>) {
+    if (args.contentEquals(arrayOf("bootstrap"))) {
+        bootstrap()
+        return
+    }
+    if (args.contentEquals(arrayOf("client-state"))) {
+        changeClientState()
+        return
+    }
+    require(args.isEmpty()) { "Supported commands: bootstrap, client-state" }
     val config = AppConfig.fromEnvironment()
     val server = serverConfig {
         developmentMode = config.environment == Environment.DEVELOPMENT
