@@ -24,6 +24,17 @@ internal fun PetInput.validated(): PetInput {
         identification = identification?.let { text(it, "identification", 120) },
         photoUrl = photoUrl?.let(::url), vaccinationUrls = vaccinationUrls.map(::url))
 }
+
+internal fun Tx.enforcePetRules(ctx: Context, input: PetInput, existingId: String? = null) {
+    val rules = requireRecord("location", ctx.locationId!!, ctx.tenantId).decode<Location>().petRules
+    if (rules.vaccinationRequired && input.vaccinationUrls.isEmpty()) badRequest("Vaccination documents are required at this location")
+    if (rules.allowedSpecies.isNotEmpty() && rules.allowedSpecies.none { it.equals(input.species, ignoreCase = true) }) badRequest("Species is not permitted by this location")
+    rules.maxPetsPerUnit?.let { limit ->
+        if (input.unitId == null) badRequest("This location requires a unit for pet registration")
+        val count = list("pet", ctx.tenantId, ctx.locationId).count { it.id != existingId && it.decode<PetInput>().unitId == input.unitId }
+        if (count >= limit) conflict("The unit has reached the configured pet limit")
+    }
+}
 internal fun Route.petRoutes(db: Database) {
     route("/pets") {
         get {
