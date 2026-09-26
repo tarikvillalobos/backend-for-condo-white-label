@@ -98,3 +98,22 @@ internal fun Route.vehicleRoutes(db: Database) {
             val input = call.receive<ParkingInput>()
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "vehicles.manage", "vehicles")
+                val content = input.copy(name = text(input.name, "name", 100))
+                input.vehicleId?.let { tx.record(ctx, "vehicle", it) }
+                if (tx.list("parking", ctx.tenantId, ctx.locationId).any { it.decode<ParkingInput>().name == content.name }) conflict("Parking space already exists")
+                tx.saved(ctx, "parking", body(content))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<ParkingInput>()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "vehicles.manage", "vehicles")
+                val row = tx.record(ctx, "parking", call.resourceId())
+                input.vehicleId?.let { tx.record(ctx, "vehicle", it) }
+                val content = input.copy(name = text(input.name, "name", 100))
+                if (tx.list("parking", ctx.tenantId, ctx.locationId).any { it.id != row.id && it.decode<ParkingInput>().name == content.name }) conflict("Parking space already exists")
+                tx.changed(ctx, row, body(content), "parking.assigned")
+            })
+        }
+    }
+}
