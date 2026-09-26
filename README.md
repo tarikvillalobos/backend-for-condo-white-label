@@ -38,3 +38,23 @@ Include session expiration, renewal, logout, session revocation, device/session 
 
 ### Clients, Brands, and Feature Configuration
 
+Manage client organizations, white-label brands, app configuration, support contacts, and available features. Allow configuration by client, property, and application where appropriate.
+
+Keep brand identity separate from data ownership and access permissions. A client may manage multiple properties or standalone locker locations.
+
+### Condominiums, Locations, and Units
+
+Manage properties, buildings, blocks, floors, units, common areas, addresses, contacts, and operating rules.
+
+Support users linked to multiple authorized locations or units, with explicit context selection. Include standalone locations for smart locker deployments outside residential communities.
+
+### Residents and Memberships
+
+Manage residents, owners, tenants, dependents, authorized household members, and their unit relationships. Support invitations, approval, move-in, move-out, and membership expiration or revocation.
+
+Ownership or household membership must not automatically grant administrative privileges or access to every package addressed to that unit.
+
+### Packages and Smart Lockers
+
+Register deliveries received at reception desks or lockers, identify recipients, track status and storage location, and provide package details, history, reminders, and collection deadlines.
+
