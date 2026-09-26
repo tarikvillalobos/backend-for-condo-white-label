@@ -41,6 +41,26 @@ internal fun Route.requestRoutes(db: Database) {
                 tx.changed(ctx, row, body(value.copy(assignedTo = input.userId, dueAt = input.dueAt)), "request.assigned")
             })
         }
+        post("/{id}/escalate") {
+            val input = call.receive<RequestEscalationInput>()
+            val reason = text(input.reason, "reason", 2000)
+            val priorities = listOf("normal", "high", "urgent")
+            if (input.priority !in priorities) badRequest("Invalid priority")
+            input.dueAt?.let { instant(it, "dueAt") }
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "requests.manage", "requests")
+                val row = tx.record(ctx, "request", call.resourceId())
+                val current = row.decode<ResidentRequest>()
+                if (current.status !in setOf("open", "in_progress")) conflict("Reopen the request before escalating it")
+                if (priorities.indexOf(input.priority) < priorities.indexOf(current.content.priority)) conflict("Escalation cannot lower priority")
+                input.userId?.let { userId ->
+                    tx.requireMember(ctx.tenantId, call.locationId(), userId)
+                    tx.authorize(Actor(userId, ctx.tenantId, "assignment"), ctx.locationId, "requests.manage", "requests")
+                }
+                val updated = current.copy(content = current.content.copy(priority = input.priority),
+                    assignedTo = input.userId ?: current.assignedTo, dueAt = input.dueAt ?: current.dueAt)
+            })
+        }
         post("/{id}/status") {
             val input = call.receive<RequestTransition>()
             val reason = text(input.reason, "reason", 2000)
