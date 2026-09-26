@@ -2998,3 +2998,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LostPetView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests/{id}":
+    get:
+      tags: ["Requests"]
+      summary: "Read an authorized resident request"
+      operationId: "get_api_v1_locations_locationId_requests_id"
+      description: "Required permission: requests.read.own or requests.read.all. The client and location must enable the requests feature."
