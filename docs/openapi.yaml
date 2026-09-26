@@ -3358,3 +3358,23 @@ paths:
       operationId: "post_api_v1_locations_locationId_work_orders_id_status"
       description: "Required permission: maintenance.work (assignee) or maintenance.manage. The client and location must enable the maintenance feature."
       parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/WorkOrderUpdate"}
+      responses:
+        "200":
+          description: "Successful operation."
