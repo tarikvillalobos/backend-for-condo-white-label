@@ -5378,3 +5378,23 @@ components:
         assignedTo: {"type":"string"}
         scheduledAt: {"type":"string","format":"date-time"}
         contractorId:
+          type: ["string","null"]
+          default: null
+        equipmentId:
+          type: ["string","null"]
+          default: null
+      required: ["title","description","assignedTo","scheduledAt"]
+    WorkOrderRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/WorkOrder"}
+    WorkOrderRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
