@@ -18,3 +18,23 @@ internal fun Route.maintenanceRoutes(db: Database) {
             val input = call.receive<StaffProfile>()
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "staff.manage", "maintenance")
+                tx.requireMember(ctx.tenantId, call.locationId(), input.userId)
+                val content = input.copy(responsibility = text(input.responsibility, "responsibility", 1000))
+                val existing = tx.list("staff", ctx.tenantId, ctx.locationId).firstOrNull { it.decode<StaffProfile>().userId == input.userId }
+                if (existing == null) tx.saved(ctx, "staff", body(content), input.userId)
+                else tx.changed(ctx, existing, body(content), "staff.updated")
+            })
+        }
+    }
+    route("/contractors") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.list("contractor", ctx.tenantId, ctx.locationId)
+            })
+        }
+        post {
+            val input = call.receive<ContractorInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.saved(ctx, "contractor", body(input))
