@@ -5218,3 +5218,23 @@ components:
     VehicleInputRecord:
       allOf:
         - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/VehicleInput"}
+    VehicleInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/VehicleInputRecord"}
+    VehicleMovement:
+      type: "object"
+      additionalProperties: false
+      properties:
+        vehicleId: {"type":"string"}
+        direction:
+          type: "string"
