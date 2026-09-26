@@ -1478,3 +1478,23 @@ paths:
       tags: ["Packages"]
       summary: "Update locker compartments and maintenance"
       operationId: "put_api_v1_locations_locationId_lockers_id"
+      description: "Required permission: lockers.manage. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/LockerData"}
+      responses:
