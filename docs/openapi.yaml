@@ -1158,3 +1158,23 @@ paths:
           name: "locationId"
           in: "path"
           required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/IdempotencyKey"}
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ReceivePackage"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/packages/{id}":
+    get:
+      tags: ["Packages"]
+      summary: "Read a package and its history"
+      operationId: "get_api_v1_locations_locationId_packages_id"
