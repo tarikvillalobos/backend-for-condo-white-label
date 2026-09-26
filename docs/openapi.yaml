@@ -2078,3 +2078,23 @@ paths:
       summary: "List authorized requests"
       operationId: "get_api_v1_locations_locationId_requests"
       description: "Required permission: requests.read.own or requests.read.all. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ResidentRequestRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Requests"]
+      summary: "Create requests"
+      operationId: "post_api_v1_locations_locationId_requests"
