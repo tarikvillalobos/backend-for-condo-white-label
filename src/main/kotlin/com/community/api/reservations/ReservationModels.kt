@@ -38,3 +38,16 @@ data class ReservationData(
     val request: CreateReservation,
     val status: String,
     val history: List<ReservationEvent>,
+)
+
+@Serializable
+data class ReservationView(val id: String, val ownerId: String, val details: ReservationData)
+
+@Serializable
+data class ReservationKey(val fingerprint: String, val reservationId: String)
+
+@Serializable
+data class AvailabilitySlot(val startsAt: String, val endsAt: String)
+
+@Serializable
+data class FacilityAvailability(val facilityId: String, val rules: FacilityData, val busy: List<AvailabilitySlot>)
