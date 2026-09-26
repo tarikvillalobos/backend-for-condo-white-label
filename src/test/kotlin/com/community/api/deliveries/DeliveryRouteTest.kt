@@ -38,3 +38,23 @@ class DeliveryRouteTest {
             db.tx { tx ->
                 val location = tx.requireRecord("location", "location", "tenant")
                 tx.update(location, body(location.decode<Location>().copy(features = emptySet())))
+            }
+            assertEquals(HttpStatusCode.Forbidden, client.get(path) { bearerAuth(token) }.status)
+            db.tx { tx ->
+                val location = tx.requireRecord("location", "location", "tenant")
+                tx.update(location, body(location.decode<Location>().copy(features = allFeatures)))
+                val member = tx.list("membership", "tenant").single()
+                tx.update(member, body(member.decode<Membership>().copy(active = false)))
+            }
+            assertEquals(HttpStatusCode.Forbidden, client.get(path) { bearerAuth(token) }.status)
+        }
+    }
+
+    @Test
+    fun `locker webhook requires dedicated active location-bound credentials`() = Database.memory().use { db ->
+        val humanToken = seed(db)
+        val integrationToken = "tenant.hardware." + "s".repeat(43)
+        val hash = MessageDigest.getInstance("SHA-256").digest(integrationToken.toByteArray()).joinToString("") { "%02x".format(it) }
+        val service = DeliveryService()
+        val parcel = db.tx { tx ->
+            tx.create("integration", "tenant", "location", data = body(IntegrationData("Test adapter", "location", hash)), id = "hardware")
