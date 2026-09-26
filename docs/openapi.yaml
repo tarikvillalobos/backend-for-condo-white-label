@@ -918,3 +918,23 @@ paths:
           required: true
           schema:
             type: "string"
+            enum: ["package","reservation","request","visitor","work_order"]
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "text/csv":
+              schema: {"type":"string"}
+              example: "id,status,created_at,updated_at\n"
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/attachments":
+    post:
+      tags: ["Documents"]
+      summary: "Upload a validated attachment"
+      operationId: "post_api_v1_locations_locationId_attachments"
+      description: "Location-visible uploads also require documents.manage. At most 200 attachments per owner and client. Required permission: attachments.create. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
