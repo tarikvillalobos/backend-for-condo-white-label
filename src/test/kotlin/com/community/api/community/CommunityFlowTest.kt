@@ -58,3 +58,23 @@ class CommunityFlowTest {
             val now = Instant.now()
             val response = client.post(f.path("events")) {
                 bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(EventInput("Yoga", "Morning class", now.plusSeconds(3600).toString(), now.plusSeconds(7200).toString(), 1)))
+            }
+            val id = json.decodeFromString<Record>(response.bodyAsText()).id
+            val responses = coroutineScope {
+                listOf(f.resident, f.other).map { user -> async {
+                    client.post(f.path("events/$id/attendance")) { bearerAuth(user.token) }
+                } }.awaitAll()
+            }
+            assertEquals(listOf(200, 409), responses.map { it.status.value }.sorted())
+            assertEquals(1, f.db.tx { it.list("attendance", f.tenant, f.location).size })
+        }
+    }
+
+    @Test
+    fun `publication scheduling and visitor expiry boundaries are precise`() {
+        val now = Instant.parse("2030-01-01T12:00:00Z")
+        val notice = Announcement(AnnouncementInput("Notice", "Message", publishAt = now.toString(), expiresAt = now.plusSeconds(60).toString()))
+        assertFalse(notice.visibleAt(now.minusNanos(1)))
+        assertTrue(notice.visibleAt(now))
+        assertFalse(notice.visibleAt(now.plusSeconds(60)))
