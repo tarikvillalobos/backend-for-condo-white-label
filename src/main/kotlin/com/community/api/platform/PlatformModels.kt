@@ -26,6 +26,9 @@ data class Location(
 )
 
 @Serializable
+data class PetRules(val vaccinationRequired: Boolean = false, val maxPetsPerUnit: Int? = null, val allowedSpecies: Set<String> = emptySet())
+
+@Serializable
 data class UnitData(val name: String, val building: String? = null, val floor: String? = null)
 
 @Serializable
