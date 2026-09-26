@@ -138,3 +138,23 @@ from zoneinfo import ZoneInfo
 tomorrow = datetime.now(ZoneInfo("America/Sao_Paulo")) + timedelta(days=1)
 start = tomorrow.replace(hour=14, minute=0, second=0, microsecond=0)
 print(start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
+PY
+)
+END_AT=$(python3 - "$START_AT" <<'PY'
+import sys
+from datetime import datetime, timedelta
+start = datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00"))
+print((start + timedelta(hours=1)).isoformat().replace("+00:00", "Z"))
+PY
+)
+
+BOOKING=$(jq -nc \
+  --arg facilityId "$FACILITY_ID" --arg startsAt "$START_AT" --arg endsAt "$END_AT" \
+  '{facilityId:$facilityId,startsAt:$startsAt,endsAt:$endsAt,attendees:3}' |
+  api_json POST "$RESIDENT_TOKEN" "/api/v1/locations/$LOCATION_ID/reservations" \
+    -H "Idempotency-Key: booking-$FACILITY_ID")
+printf '%s' "$BOOKING" | jq '{id,status:.details.status}'
+```
+
+The booking is `CONFIRMED` by default, or `PENDING` when the facility requires
+approval. Both states block overlapping reservations, including concurrent
