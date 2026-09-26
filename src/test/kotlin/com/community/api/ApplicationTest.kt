@@ -78,3 +78,23 @@ class ApplicationTest {
     }
 
     @Test
+    fun `malformed JSON returns a safe bad request error`() = testApplication {
+        application {
+            module()
+            routing {
+                post("/test/json") { call.respond(call.receive<JsonObject>()) }
+            }
+        }
+
+        client.post("/test/json") {
+            contentType(ContentType.Application.Json)
+            setBody("{\"secret\": \"private-value\"")
+        }.assertError(HttpStatusCode.BadRequest, "bad_request", "Invalid request")
+    }
+
+    @Test
+    fun `unsupported request content returns a JSON media type error`() = testApplication {
+        application {
+            module()
+            routing {
+                post("/test/json") { call.respond(call.receive<JsonObject>()) }
