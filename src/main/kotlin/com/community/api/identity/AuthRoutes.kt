@@ -38,3 +38,23 @@ fun Route.identityRoutes(db: Database) {
         post("/otp/request") {
             val request = call.receive<EmailRequest>()
             val result = db.query { it.requestRecovery(request, call.request.local.remoteHost, true) }
+            call.respond(result.unwrap())
+        }
+        post("/otp/confirm") {
+            val request = call.receive<OtpRequest>()
+            val result = db.query { it.consumeOtp(request, call.request.local.remoteHost) }
+            call.respond(result.unwrap())
+        }
+        post("/logout") {
+            val token = call.identityBearer()
+            db.query { tx ->
+                val actor = tx.authenticate(token)
+                val session = tx.get("session", actor.sessionId, actor.tenantId)!!
+                tx.update(session, body(session.decode<SessionData>().copy(revoked = true)))
+                tx.identityAudit(actor.tenantId, actor.userId, "session.logged_out")
+            }
+            call.respond(Accepted())
+        }
+    }
+    profileRoutes(db)
+    sessionRoutes(db)
