@@ -58,3 +58,23 @@ class ReservationServiceTest {
         val gate = CountDownLatch(1)
         val executor = Executors.newFixedThreadPool(2)
         try {
+            val futures = listOf(resident, other).mapIndexed { index, actor -> executor.submit<Int> {
+                gate.await()
+                try { db.tx { service.create(it, actor, request, "parallel-$index") }; 201 }
+                catch (failure: ApiException) { failure.status }
+            } }
+            gate.countDown()
+            assertEquals(listOf(201, 409), futures.map { it.get(10, TimeUnit.SECONDS) }.sorted())
+            assertEquals(1, db.tx { it.list("reservation", "tenant").size })
+        } finally { executor.shutdownNow() }
+    }
+
+    @Test
+    fun `facility local hours capacity and adjacent reservations are respected`() = database().use { db ->
+        val facility = facility(db)
+        val request = request(facility)
+        assertEquals(400, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(startsAt = "2030-01-02T09:00:00Z", endsAt = "2030-01-02T10:00:00Z"), "early") }
+        }.status)
+        assertEquals(400, assertFailsWith<ApiException> {
+            db.tx { service.create(it, resident, request.copy(attendees = 11), "crowded") }
