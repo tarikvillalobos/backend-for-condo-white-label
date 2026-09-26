@@ -307,7 +307,10 @@ The Docker image runs the Java 21 distribution. Docker Compose includes `api`,
 `DATABASE_PASSWORD` before starting the development stack:
 
 ```sh
-HOST=0.0.0.0 PORT=8080 APP_ENV=development ./gradlew run
+docker compose up -d --build
+docker compose run --rm \
+  -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD \
+  api bootstrap
 ```
 
 ### Health Endpoints
