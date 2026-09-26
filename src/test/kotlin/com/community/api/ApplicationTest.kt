@@ -41,7 +41,7 @@ class ApplicationTest {
 
     @Test
     fun `health endpoints return JSON and a distinct generated request ID`() = testApplication {
-        application { module() }
+        application { module(Database.memory()) }
 
         val responses = listOf("/health/live", "/health/ready").map { path ->
             client.get(path) { header("X-Request-ID", "caller-provided-id") }
