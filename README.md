@@ -178,3 +178,23 @@ Include monitoring, backup and recovery procedures, traceable administrative act
 
 ## Optional Extensions
 
+Additional product scope may include assemblies, polls, voting workflows, financial statements and charge visibility, accounting or payment-provider integrations, utility consumption records, and community classifieds.
+
+These extensions require their own business rules and permissions. Full accounting, payment processing, video hosting, and equipment firmware are not assumed to be built into the initial backend.
+
+## Getting Started
+
+### Prerequisites
+
+Install a Java 21 JDK and make it available through `JAVA_HOME` or `PATH`. Use the included Gradle Wrapper; a separate Gradle installation is not required. The first build downloads Gradle and project dependencies and requires internet access.
+
+### Build and Test
+
+```sh
+./gradlew build
+./gradlew test
+```
+
+`build` compiles the application, runs tests, and creates distribution archives. Use `test` to run the tests separately.
+
+### Run Locally
