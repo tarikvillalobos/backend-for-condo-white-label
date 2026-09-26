@@ -4218,3 +4218,23 @@ components:
         startsAt: {"type":"string","format":"date-time"}
         endsAt: {"type":"string","format":"date-time"}
         attendees: {"type":"integer","format":"int32","default":1}
+        note: {"type":"string","default":"","maxLength":2000}
+      required: ["facilityId","startsAt","endsAt"]
+    CredentialRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        validForMinutes: {"type":"integer","format":"int32","default":30,"minimum":1,"maximum":1440}
+    DelegationRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        userId: {"type":"string"}
+      required: ["userId"]
+    DeliveryEvent:
+      type: "object"
+      additionalProperties: false
+      properties:
+        action: {"type":"string"}
+        actorId: {"type":"string"}
+        at: {"type":"string"}
