@@ -5298,3 +5298,23 @@ components:
         singleUse: {"type":"boolean","default":true}
       required: ["name","purpose","validFrom","validUntil"]
     VisitorView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        content: {"$ref":"#/components/schemas/VisitorInput"}
+        status:
+          type: "string"
+          enum: ["expected","checked_in","checked_out","revoked"]
+        checkedInAt:
+          type: ["string","null"]
+          format: "date-time"
+        checkedOutAt:
+          type: ["string","null"]
+          format: "date-time"
+        visits: {"type":"integer","format":"int32"}
+      required: ["id","content","status","checkedInAt","checkedOutAt","visits"]
+    VisitorViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
