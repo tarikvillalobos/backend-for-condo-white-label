@@ -3338,3 +3338,23 @@ paths:
           description: "Selected location ID."
         -
           name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VehicleMovementRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/work-orders/{id}/status":
+    post:
+      tags: ["Maintenance"]
+      summary: "Update a work order and retain completion evidence"
+      operationId: "post_api_v1_locations_locationId_work_orders_id_status"
+      description: "Required permission: maintenance.work (assignee) or maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
