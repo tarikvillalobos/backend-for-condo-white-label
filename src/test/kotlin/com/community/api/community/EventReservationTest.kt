@@ -118,3 +118,20 @@ class EventReservationTest {
     fun `concurrent event creation cannot share one active reservation`() = database().use { db ->
         val gate = CountDownLatch(1)
         val executor = Executors.newFixedThreadPool(2)
+        try {
+            val results = (1..2).map { executor.submit<Int> {
+                gate.await()
+                try {
+                    db.tx { tx ->
+                        val ctx = tx.context()
+                        tx.validateEventReservation(ctx, event)
+                        tx.saved(ctx, "event", body(CommunityEvent(event)))
+                    }
+                    201
+                } catch (failure: ApiException) { failure.status }
+            } }
+            gate.countDown()
+            assertEquals(listOf(201, 409), results.map { it.get(10, TimeUnit.SECONDS) }.sorted())
+        } finally { executor.shutdownNow() }
+    }
+}
