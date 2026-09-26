@@ -4758,3 +4758,23 @@ components:
           type: ["string","null"]
         compartmentId:
           type: ["string","null"]
+        collectionDeadline:
+          type: ["string","null"]
+        status:
+          type: "string"
+          enum: ["RECEIVED","PICKUP_REPORTED","COLLECTED","CANCELLED"]
+        delegates:
+          type: "array"
+          items: {"type":"string"}
+          uniqueItems: true
+        collectorId:
+          type: ["string","null"]
+        history:
+          type: "array"
+          items: {"$ref":"#/components/schemas/DeliveryEvent"}
+      required:
+        - "id"
+        - "recipientId"
+        - "description"
+        - "carrier"
+        - "trackingNumber"
