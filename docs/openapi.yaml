@@ -638,3 +638,23 @@ paths:
       operationId: "put_api_v1_locations_locationId_memberships_id"
       description: "Required permission: memberships.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
       parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/Membership"}
+      responses:
+        "200":
+          description: "Successful operation."
