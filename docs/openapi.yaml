@@ -3038,3 +3038,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests/{id}/assign":
+    post:
+      tags: ["Requests"]
+      summary: "Assign a request to an authorized staff member"
+      operationId: "post_api_v1_locations_locationId_requests_id_assign"
+      description: "Required permission: requests.manage. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
