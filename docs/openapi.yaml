@@ -5278,3 +5278,23 @@ components:
         admissionCode: {"type":"string","minLength":20,"maxLength":100}
       required: ["admissionCode"]
     VisitorCreated:
+      type: "object"
+      additionalProperties: false
+      properties:
+        invitation: {"$ref":"#/components/schemas/VisitorView"}
+        admissionCode: {"type":"string"}
+      required: ["invitation","admissionCode"]
+    VisitorInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        purpose: {"type":"string"}
+        validFrom: {"type":"string","format":"date-time"}
+        validUntil: {"type":"string","format":"date-time"}
+        unitId:
+          type: ["string","null"]
+          default: null
+        singleUse: {"type":"boolean","default":true}
+      required: ["name","purpose","validFrom","validUntil"]
+    VisitorView:
