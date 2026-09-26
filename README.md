@@ -18,7 +18,7 @@ configuration, operational documentation, and an OpenAPI contract. The broader
 [Product scope](#product-scope) records requirements and possible extensions;
 provider-dependent features and optional workflows are identified separately.
 
-The capabilities and requirements below describe the planned product scope. Features will be delivered incrementally. Hardware and third-party integrations depend on provider contracts, credentials, and validation.
+## Implemented capabilities
 
 ## Technology Stack
 
