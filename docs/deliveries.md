@@ -18,3 +18,23 @@ client cannot be used to access or modify a resource.
 | `DELETE /packages/{id}/credential` | Recipient; invalidates the credential immediately |
 | `POST /packages/{id}/delegates` | Recipient; explicitly authorizes an active member |
 | `DELETE /packages/{id}/delegates/{userId}` | Recipient; revokes delegation |
+| `POST /packages/{id}/report-pickup` | Recipient or delegate; records an unconfirmed report |
+| `POST /packages/{id}/confirm-pickup` | `packages.collect`; validates collector and credential |
+| `POST /packages/{id}/remind` | `packages.receive`; inbox reminder, at most once per 24 hours |
+| `POST /packages/{id}/cancel` | `packages.manage`; cancels an outstanding delivery |
+| `GET /lockers` | `lockers.manage`; includes compartment occupancy |
+| `POST /lockers` | `lockers.manage`; creates locker and compartments |
+| `PUT /lockers/{id}` | `lockers.manage`; updates names and maintenance settings |
+| `POST /lockers/{id}/open` | `lockers.manage`; currently returns `501 provider_unavailable` |
+| `POST /locker-events` | Dedicated integration credential; accepts trusted pickup confirmation |
+
+## Receive and collect
+
+Example receipt body:
+
+```json
+{
+  "recipientId": "recipient-account-id",
+  "description": "Small parcel",
+  "carrier": "Carrier name",
+  "trackingNumber": "TRACK123",
