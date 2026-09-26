@@ -78,3 +78,23 @@ class CommunitySecurityTest {
                 tx.update(membership, body(membership.decode<Membership>().copy(active = false)))
             }
             val result = client.get("/api/v1/notifications") { bearerAuth(f.resident.token) }
+            assertEquals(HttpStatusCode.OK, result.status)
+            assertFalse(result.bodyAsText().contains("Community update"))
+        }
+    }
+
+    @Test
+    fun `document audience and camera capability checks happen before returning resources`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            val document = client.post(f.path("documents")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(DocumentInput("Private form", "Unit information", "https://example.test/private.pdf", "application/pdf", f.otherUnit)))
+            }
+            val id = json.decodeFromString<Record>(document.bodyAsText()).id
+            assertFalse(client.get(f.path("documents")) { bearerAuth(f.resident.token) }.bodyAsText().contains("Private form"))
+            assertEquals(HttpStatusCode.NotFound, client.post(f.path("documents/$id/acknowledge")) { bearerAuth(f.resident.token) }.status)
+            val camera = client.post(f.path("cameras")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(CameraInput("Lobby", "Main entrance")))
+            }
