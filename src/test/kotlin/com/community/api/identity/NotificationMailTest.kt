@@ -18,3 +18,23 @@ class NotificationMailTest {
             val notification = db.notificationFixture()
             val messages = mutableListOf<MailMessage>()
             val sender = MailSender { _, message -> messages += message }
+            assertEquals(MailBatchResult(1, 0), deliverNotificationMailBatch(db, config, sender))
+            assertEquals(MailBatchResult(0, 0), deliverNotificationMailBatch(db, config, sender))
+            assertEquals(testEmail, messages.single().to)
+            assertFalse(messages.single().text.contains("private", ignoreCase = true))
+            assertFalse(messages.single().subject.contains("private", ignoreCase = true))
+            assertEquals("You have a new notification. Open the app to view it.", messages.single().text)
+            val unchanged = db.tx { it.get("notification", notification.id, tenantA)!! }
+            assertEquals(notification, unchanged)
+            val delivery = db.tx { it.list("notification_delivery", tenantA).single() }
+            assertFalse(delivery.data.toString().contains(testEmail))
+            assertFalse(delivery.data.toString().contains("private"))
+            assertEquals("accepted", db.tx { it.notificationMailStatus(notification)!!.status })
+        }
+    }
+
+    @Test
+    fun `email opt out suppresses pending mail and does not replay when enabled again`() = runBlocking {
+        Database.memory().use { db ->
+            val notification = db.notificationFixture()
+            db.tx { it.setEmailPreference(notification.ownerId!!, false) }
