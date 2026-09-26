@@ -118,3 +118,23 @@ jq -nc --arg collectorId "$RESIDENT_ID" --arg credential "$PICKUP_CREDENTIAL" \
   '{collectorId:$collectorId,credential:$credential}' |
   api_json POST "$ADMIN_TOKEN" \
     "/api/v1/locations/$LOCATION_ID/packages/$PACKAGE_ID/confirm-pickup"
+```
+
+The result is `COLLECTED`. The credential is consumed and any locker compartment
+is released in the same transaction. A second confirmation fails with `409`.
+The resident's separate `/report-pickup` action records a report and keeps the
+delivery outstanding until staff or an authenticated provider confirms it.
+
+## 4. Create a facility and reserve tomorrow's local afternoon
+
+```bash
+FACILITY=$(printf '%s' '{"name":"Meeting room","timeZone":"America/Sao_Paulo","capacity":10,"opensAt":"08:00","closesAt":"22:00"}' |
+  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/facilities")
+FACILITY_ID=$(printf '%s' "$FACILITY" | jq -er .id)
+
+START_AT=$(python3 - <<'PY'
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+tomorrow = datetime.now(ZoneInfo("America/Sao_Paulo")) + timedelta(days=1)
+start = tomorrow.replace(hour=14, minute=0, second=0, microsecond=0)
+print(start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
