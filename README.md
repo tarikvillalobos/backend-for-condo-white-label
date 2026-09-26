@@ -231,7 +231,10 @@ H2 file under `data/`.
 ./gradlew test
 ```
 
-`build` compiles the application, runs tests, and creates distribution archives. Use `test` to run the tests separately.
+`build` compiles the service, runs tests, and creates distributions. The tests
+exercise access control, credential lifecycle, state transitions, serialization,
+concurrent allocation, and HTTP contracts. No live hardware or mail provider is
+needed by the test suite.
 
 ### Run Locally
 
