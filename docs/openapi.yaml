@@ -158,3 +158,23 @@ paths:
       summary: "Sign in with a one-time email code"
       operationId: "post_api_v1_auth_otp_confirm"
       security: []
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/OtpRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Tokens"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/auth/logout":
+    post:
+      tags: ["Identity"]
+      summary: "Revoke the current session"
+      operationId: "post_api_v1_auth_logout"
+      responses:
+        "200":
+          description: "Successful operation."
