@@ -215,7 +215,7 @@ Additional product scope may include assemblies, polls, voting workflows, financ
 
 These extensions require their own business rules and permissions. Full accounting, payment processing, video hosting, and equipment firmware are not assumed to be built into the initial backend.
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
