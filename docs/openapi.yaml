@@ -958,3 +958,23 @@ paths:
       tags: ["Documents"]
       summary: "Download an authorized attachment"
       operationId: "get_api_v1_locations_locationId_attachments_id"
+      description: "Required permission: attachments.read.own or attachments.read.all or documents.read. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "image/png":
+              schema: {"type":"string","format":"binary"}
