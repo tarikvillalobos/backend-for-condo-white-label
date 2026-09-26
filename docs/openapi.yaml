@@ -4438,3 +4438,23 @@ components:
       allOf:
         - {"$ref":"#/components/schemas/Page"}
         -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/InboxNotificationRecord"}
+    IntegrationIssued:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        token: {"type":"string"}
+      required: ["id","token"]
+    IntegrationRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        provider: {"type":"string"}
+        type:
+          type: "string"
+          default: "locker"
