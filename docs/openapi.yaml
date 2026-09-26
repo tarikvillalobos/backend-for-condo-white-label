@@ -1558,3 +1558,23 @@ paths:
       operationId: "post_api_v1_locations_locationId_facilities"
       description: "Required permission: facilities.manage. The client and location must enable the reservations feature."
       parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/FacilityData"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/FacilityView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/facilities/{id}":
+    put:
