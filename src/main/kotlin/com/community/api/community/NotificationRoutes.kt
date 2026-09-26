@@ -38,3 +38,23 @@ internal fun Route.notificationRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val actor = call.actor(tx)
                 val row = tx.requireRecord("notification", call.resourceId(), actor.tenantId)
+                if (row.ownerId != actor.userId) notFound()
+                val ctx = tx.notificationContext(actor, row.locationId, "notifications.manage")
+                val value = row.decode<InboxNotification>()
+                if (value.readAt != null) row else tx.changed(ctx, row, body(value.copy(readAt = Instant.now().toString())), "notification.read")
+            })
+        }
+        get("/preferences") {
+            call.respond(db.query { tx ->
+                val actor = call.actor(tx)
+                tx.notificationContext(actor, null, "notifications.read")
+                tx.list("notification_preferences", actor.tenantId, ownerId = actor.userId).firstOrNull()?.decode<NotificationPreferences>()
+                    ?: NotificationPreferences()
+            })
+        }
+        put("/preferences") {
+            val input = call.receive<NotificationPreferences>()
+            if (input.language !in setOf("pt-BR", "en", "es")) badRequest("Unsupported language")
+            call.respond(db.query { tx ->
+                val actor = call.actor(tx)
+                val ctx = tx.notificationContext(actor, null, "notifications.manage")
