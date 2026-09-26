@@ -75,6 +75,12 @@ Owners may cancel open requests or reopen resolved/closed requests. Staff contro
 the remaining transitions. Staff-only comments require management permission and
 are excluded from resident and read-only audit responses. Closed/cancelled
 requests reject new comments. Assignment and status changes create inbox updates.
+Only open/in-progress requests can be escalated; resolved/closed requests must be
+reopened first. Escalation preserves lifecycle status and never lowers priority.
+An optional assignee must have scoped management access. The current priority,
+assignee, and deadline are visible to the owner; escalation reasons and prior
+assignment details remain in staff-only history. Inbox updates contain generic
+text and omit private escalation reasons. Escalation and its history are atomic.
 
 Permissions: `requests.create`, `requests.read.own`, `requests.read.all`,
 `requests.comment`, `requests.manage`.
