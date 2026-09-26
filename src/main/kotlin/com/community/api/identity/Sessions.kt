@@ -58,3 +58,10 @@ internal fun Tx.refresh(token: String, host: String): AuthResult<Tokens> {
     if (session.usedRefreshHashes.size >= 1024) {
         update(record, body(session.copy(revoked = true)))
         return AuthResult()
+    }
+    val access = "${record.tenantId}.${record.id}.${secretToken()}"
+    val refresh = "${record.tenantId}.${record.id}.${secretToken()}"
+    update(record, body(session.copy(accessHash = digest(access), refreshHash = digest(refresh),
+        accessExpiresAt = Instant.now().plusSeconds(900).toString(), usedRefreshHashes = session.usedRefreshHashes + suppliedHash)))
+    return AuthResult(Tokens(access, refresh))
+}
