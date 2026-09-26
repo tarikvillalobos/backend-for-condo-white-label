@@ -78,3 +78,23 @@ fun Tx.requireRecord(kind: String, id: String, tenantId: String, locationId: Str
 }
 
 fun Tx.memberPermissions(tenantId: String, membership: Membership): Set<String> {
+    val role = roleTemplates[membership.role]
+        ?: list("role", tenantId).firstOrNull { it.decode<RoleDefinition>().name == membership.role }?.decode<RoleDefinition>()?.permissions
+        ?: emptySet()
+    return role + membership.permissions
+}
+
+fun Tx.activeMemberships(tenantId: String, userId: String): List<Record> =
+    list("membership", tenantId, ownerId = userId).filter { it.decode<Membership>().current() }
+
+fun Tx.requireMember(tenantId: String, locationId: String, userId: String) {
+    if (get("account", userId, tenantId)?.data?.get("active")?.jsonPrimitive?.booleanOrNull != true) notFound()
+    if (activeMemberships(tenantId, userId).none { it.locationId == null || it.locationId == locationId }) notFound()
+}
+
+private fun Tx.context(actor: Actor, locationId: String?, feature: String?): Context {
+    val client = get("client", actor.tenantId, actor.tenantId) ?: forbidden()
+    if (client.data["active"]?.jsonPrimitive?.booleanOrNull != true) forbidden()
+    if (get("account", actor.userId, actor.tenantId)?.data?.get("active")?.jsonPrimitive?.booleanOrNull != true) forbidden()
+    val memberships = activeMemberships(actor.tenantId, actor.userId)
+        .filter { it.locationId == null || (locationId != null && it.locationId == locationId) }
