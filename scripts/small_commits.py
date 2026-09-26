@@ -18,3 +18,23 @@ def head_content(path):
 
 def stage_and_commit(path, content, mode, part):
     blob = git("hash-object", "-w", "--stdin", data=content).decode().strip()
+    git("update-index", "--add", "--cacheinfo", f"{mode},{blob},{path}")
+    changed = git("diff", "--cached", "--numstat", "-z").split(b"\0")
+    rows = [row.split(b"\t", 2) for row in changed if row]
+    if len(rows) != 1 or rows[0][2].decode() != path:
+        raise RuntimeError("Refusing commit: staged changes must contain exactly one selected file")
+    added, removed = rows[0][:2]
+    # Git reports binary artifacts as '-' because they have no text line count.
+    lines = 0 if added == b"-" else int(added) + int(removed)
+    if lines > 20:
+        raise RuntimeError(f"Refusing commit with {lines} changed lines")
+    git("commit", "-m", f"feat: implement {path} (part {part})")
+    sha = git("rev-parse", "--short", "HEAD").decode().strip()
+    print(f"{sha} {path}: {lines} text lines", flush=True)
+
+
+def commit_file(path):
+    file = Path(path)
+    if not file.is_file() or file.is_symlink():
+        raise ValueError(f"Expected a regular file: {path}")
+    target = file.read_bytes()
