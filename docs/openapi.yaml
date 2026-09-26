@@ -1278,3 +1278,23 @@ paths:
         required: true
         content:
           "application/json":
+            schema: {"$ref":"#/components/schemas/DelegationRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/packages/{id}/delegates/{userId}":
+    delete:
+      tags: ["Packages"]
+      summary: "Revoke a delegated collector"
+      operationId: "delete_api_v1_locations_locationId_packages_id_delegates_userId"
+      description: "Recipient ownership is required for credential and delegation changes. Delegation changes invalidate existing pickup credentials. Required permission: packages.read.own. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
