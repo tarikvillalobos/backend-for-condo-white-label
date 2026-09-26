@@ -78,3 +78,20 @@ internal fun Route.documentRoutes(db: Database) {
                     .firstOrNull { it.decode<DocumentAcknowledgment>() == ack }
                     ?: tx.saved(ctx, "document_acknowledgment", body(ack))
             })
+        }
+        get("/{id}/acknowledgments") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.manage", "documents")
+                tx.record(ctx, "document", call.resourceId())
+                tx.list("document_acknowledgment", ctx.tenantId, ctx.locationId).filter { it.decode<DocumentAcknowledgment>().documentId == call.resourceId() }
+            })
+        }
+        post("/{id}/archive") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.manage", "documents")
+                val row = tx.record(ctx, "document", call.resourceId())
+                tx.changed(ctx, row, body(row.decode<CommunityDocument>().copy(archived = true)), "document.archived")
+            })
+        }
+    }
+}
