@@ -4958,3 +4958,23 @@ components:
             type: "object"
             additionalProperties: {"type":"integer","format":"int32"}
       required: ["counts","statuses"]
+    RequestAssignment:
+      type: "object"
+      additionalProperties: false
+      properties:
+        userId: {"type":"string"}
+        dueAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["userId"]
+    RequestComment:
+      type: "object"
+      additionalProperties: false
+      properties:
+        requestId: {"type":"string"}
+        message: {"type":"string"}
+        internal: {"type":"boolean"}
+        attachments:
+          type: "array"
+          items: {"type":"string"}
