@@ -898,3 +898,23 @@ paths:
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/Report"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/reports/{kind}/export":
+    get:
+      tags: ["Platform"]
+      summary: "Export an authorized operational report"
+      operationId: "get_api_v1_locations_locationId_reports_kind_export"
+      description: "Required permission: reports.read plus the domain read permission. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "kind"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
