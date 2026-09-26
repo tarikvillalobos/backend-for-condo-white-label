@@ -5078,3 +5078,23 @@ components:
       additionalProperties: false
       properties:
         content: {"$ref":"#/components/schemas/RequestInput"}
+        status:
+          type: "string"
+          default: "open"
+          enum: ["open","in_progress","resolved","closed","cancelled"]
+        assignedTo:
+          type: ["string","null"]
+          default: null
+        dueAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["content"]
+    ResidentRequestRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ResidentRequest"}
+    ResidentRequestRecordPage:
