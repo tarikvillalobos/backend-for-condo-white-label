@@ -38,3 +38,22 @@ internal fun Route.cameraRoutes(db: Database) {
                 tx.changed(ctx, tx.record(ctx, "camera", call.resourceId()), body(input), "camera.updated")
             })
         }
+        post("/{id}/sessions") {
+            db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "cameras.view", "cameras")
+                val camera = tx.record(ctx, "camera", call.resourceId()).decode<CameraInput>()
+                if (!tx.audience(ctx, camera.unitId, "cameras.manage")) notFound()
+                if (!camera.enabled) conflict("Camera is unavailable")
+            }
+            throw ApiException(501, "integration_unavailable", "Camera live viewing requires a configured camera provider")
+        }
+        get("/{id}/recordings") {
+            db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "cameras.recordings", "cameras")
+                val camera = tx.record(ctx, "camera", call.resourceId()).decode<CameraInput>()
+                if (!tx.audience(ctx, camera.unitId, "cameras.manage")) notFound()
+            }
+            throw ApiException(501, "integration_unavailable", "Camera recordings require a configured recording provider")
+        }
+    }
+}
