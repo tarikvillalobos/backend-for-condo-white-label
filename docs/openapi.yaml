@@ -1078,3 +1078,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/integrations/{id}":
     delete:
+      tags: ["Integrations"]
+      summary: "Revoke a provider account"
+      operationId: "delete_api_v1_locations_locationId_integrations_id"
+      description: "Required permission: integrations.manage. Requires password verification within the last 10 minutes; use POST /api/v1/me/verify when verification_required is returned."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
