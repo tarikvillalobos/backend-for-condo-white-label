@@ -18,3 +18,23 @@ class IdentitySessionsTest {
         assertFailsWith<ApiException> { Passwords.hash("short") }
     }
 
+    @Test
+    fun `sessions cannot authenticate through another tenant or with refresh token`() = Database.memory().use { db ->
+        val account = db.seedIdentity()
+        val token = db.signIn()
+        assertEquals(account.id, db.tx { it.authenticate(token.accessToken).userId })
+        assertFailsWith<ApiException> { db.tx { it.authenticate(token.refreshToken) } }
+        assertFailsWith<ApiException> { db.tx { it.authenticate(token.accessToken.replace(tenantA, tenantB)) } }
+        assertFailsWith<ApiException> { db.tx { it.login(LoginRequest(tenantB, testEmail, testPassword), "other") }.unwrap() }
+    }
+
+    @Test
+    fun `refresh rotation revokes previous access and replay revokes entire session`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val first = db.signIn()
+        val second = db.tx { it.refresh(first.refreshToken, "test-host") }.unwrap()
+        assertFailsWith<ApiException> { db.tx { it.authenticate(first.accessToken) } }
+        db.tx { it.authenticate(second.accessToken) }
+        assertFailsWith<ApiException> { db.tx { it.refresh(first.refreshToken, "test-host") }.unwrap() }
+        assertFailsWith<ApiException> { db.tx { it.authenticate(second.accessToken) } }
+        assertFailsWith<ApiException> { db.tx { it.refresh(second.refreshToken, "test-host") }.unwrap() }
