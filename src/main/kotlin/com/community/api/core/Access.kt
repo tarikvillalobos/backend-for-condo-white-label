@@ -58,3 +58,23 @@ val roleTemplates = mapOf(
     "client_admin" to setOf("*"),
     "property_manager" to managerPermissions,
     "concierge" to conciergePermissions,
+    "operational_staff" to setOf("maintenance.read", "maintenance.work", "requests.read.all", "requests.manage", "contacts.read"),
+    "resident" to residentPermissions,
+    "auditor" to setOf("packages.read.all", "reservations.read.all", "requests.read.all", "reports.read", "audit.read"),
+)
+
+fun ApplicationCall.actor(tx: Tx): Actor {
+    val header = request.headers["Authorization"] ?: unauthorized()
+    if (!header.startsWith("Bearer ", ignoreCase = true)) unauthorized()
+    val token = header.substring(7)
+    if (token.isBlank() || token.length > 1024) unauthorized()
+    return tx.authenticate(token)
+}
+
+fun Tx.requireRecord(kind: String, id: String, tenantId: String, locationId: String? = null): Record {
+    val record = get(kind, id, tenantId) ?: notFound()
+    if (locationId != null && record.locationId != locationId) notFound()
+    return record
+}
+
+fun Tx.memberPermissions(tenantId: String, membership: Membership): Set<String> {
