@@ -49,7 +49,16 @@ provider-dependent features and optional workflows are identified separately.
 
 ## Documentation
 
-## Planned Capabilities
+- [Architecture and transaction design](docs/architecture.md)
+- [OpenAPI contract](docs/openapi.yaml)
+- [Identity, sessions, SMTP, and recovery](docs/identity.md)
+- [Packages and smart lockers](docs/deliveries.md)
+- [Facilities and reservations](docs/reservations.md)
+- [Community and operations endpoints](docs/community.md)
+
+## Product scope
+
+The following sections preserve the full product brief. Use the implementation
 
 ### Authentication and Account Management
 
