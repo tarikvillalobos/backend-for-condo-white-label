@@ -5338,3 +5338,23 @@ components:
         evidence:
           type: "array"
           items: {"type":"string"}
+          default: []
+      required: ["content"]
+    WorkOrderHistory:
+      type: "object"
+      additionalProperties: false
+      properties:
+        orderId: {"type":"string"}
+        status:
+          type: "string"
+          enum: ["scheduled","in_progress","completed","cancelled"]
+        notes: {"type":"string"}
+        evidence:
+          type: "array"
+          items: {"type":"string"}
+      required: ["orderId","status","notes","evidence"]
+    WorkOrderHistoryRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
