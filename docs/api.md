@@ -38,3 +38,23 @@ api_json() {
   curl -fsS -X "$method" "$API_BASE$path" \
     -H "Authorization: Bearer $token" \
     -H 'Content-Type: application/json' "$@" --data-binary @-
+}
+```
+
+Access tokens expire after 15 minutes. `/api/v1/auth/refresh` accepts
+`{"refreshToken":"..."}` and returns a new access/refresh pair. Keep the newest
+pair: reusing a consumed refresh token revokes that session.
+
+## 2. Create a location and invite a resident
+
+The `condominium` kind supports residential units. For a standalone locker
+deployment, change `kind` to `standalone`; package workflows do not require units.
+
+```bash
+LOCATION=$(printf '%s' '{"name":"API walkthrough","kind":"condominium","timeZone":"America/Sao_Paulo"}' |
+  api_json POST "$ADMIN_TOKEN" /api/v1/locations)
+LOCATION_ID=$(printf '%s' "$LOCATION" | jq -er .id)
+
+RESIDENT_EMAIL=resident-walkthrough@example.test
+INVITATION=$(jq -nc \
+  --arg email "$RESIDENT_EMAIL" --arg locationId "$LOCATION_ID" \
