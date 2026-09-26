@@ -47,7 +47,7 @@ provider-dependent features and optional workflows are identified separately.
 - HikariCP connection pooling and Flyway schema migrations.
 - Eclipse Angus Mail for authentication email; Logback for redacted HTTP logs.
 
-See [Architecture](docs/architecture.md) for the current layout, planned module boundaries, and delivery order.
+## Documentation
 
 ## Planned Capabilities
 
