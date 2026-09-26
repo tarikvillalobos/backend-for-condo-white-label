@@ -78,3 +78,8 @@ class DeliveryRouteTest {
             db.tx { tx ->
                 val integration = tx.requireRecord("integration", "hardware", "tenant")
                 tx.update(integration, body(integration.decode<IntegrationData>().copy(active = false)))
+            }
+            assertEquals(HttpStatusCode.Unauthorized, send("location", integrationToken).status)
+        }
+    }
+}
