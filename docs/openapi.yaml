@@ -4978,3 +4978,23 @@ components:
         attachments:
           type: "array"
           items: {"type":"string"}
+      required: ["requestId","message","internal","attachments"]
+    RequestCommentInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        message: {"type":"string"}
+        internal: {"type":"boolean","default":false}
+        attachments:
+          type: "array"
+          items: {"type":"string","format":"uri"}
+          default: []
+          maxItems: 10
+      required: ["message"]
+    RequestCommentRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/RequestComment"}
