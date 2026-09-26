@@ -1098,3 +1098,23 @@ paths:
       responses:
         "204": {"description":"Completed; no response body."}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/locker-events":
+    post:
+      tags: ["Integrations"]
+      summary: "Ingest a trusted locker pickup event"
+      operationId: "post_api_v1_locations_locationId_locker_events"
+      description: "Accepts only dedicated active integration credentials bound to this location and locker. Human sessions are rejected. Same event ID and payload returns the original result; changed payload returns 409. Stale transitions are ignored. The client and location must enable the packages feature."
+      security:
+        -
+          IntegrationBearer: []
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
