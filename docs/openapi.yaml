@@ -4178,3 +4178,23 @@ components:
             items:
               type: "array"
               items: {"$ref":"#/components/schemas/ContactInputRecord"}
+    ContactRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        email: {"type":"string","format":"email","maxLength":254}
+        password: {"type":"string","format":"password","writeOnly":true}
+      required: ["email","password"]
+    ContractorInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        service: {"type":"string"}
+        contact: {"type":"string"}
+        approved: {"type":"boolean","default":true}
+      required: ["name","service","contact"]
+    ContractorInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
