@@ -38,3 +38,23 @@ class IdentityChangesTest {
 
     @Test
     fun `refresh cannot replace verification for privileged changes`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val first = db.signIn()
+        val actor = db.tx { it.authenticate(first.accessToken) }
+        db.tx { tx ->
+            tx.requireRecentAuthentication(actor)
+            val session = tx.get("session", actor.sessionId, tenantA)!!
+            tx.update(session, body(session.decode<SessionData>().copy(verifiedAt = Instant.now().minusSeconds(601).toString())))
+        }
+        val renewed = db.tx { it.refresh(first.refreshToken, "test-host") }.unwrap()
+        db.tx { it.authenticate(renewed.accessToken) }
+        assertEquals("verification_required", assertFailsWith<ApiException> { db.tx { it.requireRecentAuthentication(actor) } }.code)
+        db.tx { it.verifyIdentity(actor, testPassword, "test-host") }.unwrap()
+        db.tx { it.requireRecentAuthentication(actor) }
+    }
+
+    @Test
+    fun `admin credential revocation prevents a pending invitation activating again`() = Database.memory().use { db ->
+        db.seedIdentity()
+        val invite = db.tx { it.issueInvitation(tenantA, "disabled@example.com", "Disabled") }
+        db.tx { it.revokeAccountCredentials(tenantA, invite.userId) }
