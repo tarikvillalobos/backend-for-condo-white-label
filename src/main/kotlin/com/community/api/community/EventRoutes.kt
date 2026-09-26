@@ -22,6 +22,26 @@ internal fun EventInput.validated(): EventInput {
     if (capacity !in 1..10000) badRequest("Capacity must be between 1 and 10000")
     return copy(title = text(title, "title", 160), description = text(description, "description", 10000))
 }
+
+internal fun Tx.validateEventReservation(ctx: Context, input: EventInput, eventId: String? = null) {
+    val reservationId = input.reservationId ?: return
+    val locationId = ctx.locationId ?: forbidden()
+    authorize(ctx.actor, locationId, "events.manage", "reservations")
+    val row = requireRecord("reservation", reservationId, ctx.tenantId, locationId)
+    if (row.ownerId != ctx.userId && !ctx.can("reservations.manage")) forbidden()
+    val reservation = row.decode<ReservationData>()
+    if (reservation.status !in setOf("PENDING", "CONFIRMED")) conflict("Event requires an active reservation")
+    if (instant(input.startsAt, "startsAt").isBefore(instant(reservation.request.startsAt, "reservation.startsAt")) ||
+        instant(input.endsAt, "endsAt").isAfter(instant(reservation.request.endsAt, "reservation.endsAt"))) {
+        badRequest("Event must fit inside the linked reservation interval")
+    }
+    if (list("event", ctx.tenantId, locationId).any { existing ->
+            existing.id != eventId && existing.decode<CommunityEvent>().let {
+                !it.cancelled && it.content.reservationId == reservationId
+            }
+        }) conflict("Reservation is already linked to another active event")
+}
+
 internal fun Route.eventRoutes(db: Database) {
     route("/events") {
         get {
