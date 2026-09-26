@@ -147,3 +147,11 @@ stable code and safe message with that ID. Unexpected-error logs omit exception
 messages that might contain secrets. Request bodies, credentials, and private
 records are not written to HTTP logs.
 
+Bootstrap runs as an operator CLI command and creates a client administrator in
+one transaction. The client-state CLI can disable a client and revoke associated
+credentials. Application HTTP endpoints do not expose unrestricted cross-client
+administration. Shutdown cancels managed worker coroutines and closes the pool.
+
+The [README](../README.md) maps working modules to the broader product scope.
+The [OpenAPI contract](openapi.yaml) lists routes and request models; the module
+guides explain domain rules and external-provider boundaries.
