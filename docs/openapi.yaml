@@ -1798,3 +1798,23 @@ paths:
     post:
       tags: ["Reservations"]
       summary: "Reject a reservation"
+      operationId: "post_api_v1_locations_locationId_reservations_id_reject"
+      description: "Required permission: reservations.manage. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
