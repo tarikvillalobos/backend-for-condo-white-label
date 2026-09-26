@@ -109,7 +109,7 @@ Permissions: `visitors.create`, `visitors.read.own`, `visitors.read.all`,
 Plates are normalized and unique per location. Resident visibility is restricted
 to owned vehicles, movements, and allocated spaces. `ParkingInput` has `name`
 and nullable `vehicleId`; setting null releases the allocation. Allocated
-vehicles cannot be deleted. Staff enter movements with sequence validation;
+vehicles and vehicles currently checked in cannot be deleted. Staff enter movements with sequence validation;
 expired vehicle authorization and inactive owner membership prevent entry.
 
 Permissions: `vehicles.read.own`, `vehicles.read.all`, `vehicles.create`,
