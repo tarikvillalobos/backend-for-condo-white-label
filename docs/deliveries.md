@@ -78,3 +78,23 @@ operations. Occupied compartments cannot be removed or reassigned via locker
 updates. Maintenance blocks new deliveries without discarding existing ones.
 
 For a provider event, configure an active integration of type `locker` and bind
+its ID to the locker. Use its dedicated credential on `/locker-events`; human
+session tokens are not accepted there. The event body is:
+
+```json
+{
+  "eventId": "provider-event-123",
+  "packageId": "package-id",
+  "compartmentId": "A1",
+  "collectorId": "recipient-or-delegate-id",
+  "occurredAt": "2030-01-02T12:00:00Z",
+  "type": "pickup_confirmed"
+}
+```
+
+The provider must establish the physical collection and collector identity before
+sending an event. The server checks integration binding, location, compartment,
+recipient authorization, and event time. A repeated event with the same payload
+returns its original result. Reuse of an event ID with changed content returns
+`409`. Events predating receipt or arriving after cancellation/collection are
+recorded as `ignored`; events more than five minutes in the future are rejected.
