@@ -38,3 +38,7 @@ internal class CommunityFixture : AutoCloseable {
     fun install(builder: ApplicationTestBuilder) = builder.application {
         configureHttp()
         routing { communityRoutes(db) }
+    }
+    fun path(resource: String) = "/api/v1/locations/$location/$resource"
+    override fun close() = db.close()
+}
