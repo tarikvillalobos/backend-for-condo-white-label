@@ -1318,3 +1318,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/PackageView"}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/packages/{id}/report-pickup":
+    post:
+      tags: ["Packages"]
+      summary: "Report pickup without confirming collection"
+      operationId: "post_api_v1_locations_locationId_packages_id_report_pickup"
+      description: "Required permission: packages.read.own. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
