@@ -1598,3 +1598,23 @@ paths:
       requestBody:
         required: true
         content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/FacilityData"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/FacilityView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/facilities/{id}/availability":
+    get:
+      tags: ["Reservations"]
+      summary: "Read busy intervals without resident details"
+      operationId: "get_api_v1_locations_locationId_facilities_id_availability"
+      description: "A positive interval of at most 93 days is required. Required permission: facilities.read. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
