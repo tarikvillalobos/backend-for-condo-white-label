@@ -78,3 +78,15 @@ private fun Route.membershipScope(db: Database, path: String) {
                 tx.requireRecentAuthentication(ctx.actor)
                 val scope = "invitation:${ctx.userId}:${ctx.locationId}:$key"
                 val digest = MessageDigest.getInstance("SHA-256").digest(scope.toByteArray()).joinToString("") { "%02x".format(it) }
+                val id = "invite-$digest"
+                if (tx.get("idempotency", id, ctx.tenantId) != null) conflict("Invitation already issued for this key; credentials are returned once")
+                val invitation = tx.invite(ctx, input)
+                tx.create("idempotency", ctx.tenantId, ctx.locationId, ctx.userId, buildJsonObject {
+                    put("operation", "invitation")
+                    put("resourceId", invitation.userId)
+                }, id = id)
+                invitation
+            })
+        }
+    }
+}
