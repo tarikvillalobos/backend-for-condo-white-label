@@ -52,7 +52,8 @@ fun main(args: Array<String>) {
     }.start(wait = true)
 }
 
-fun Application.module() {
+fun Application.module(database: Database = Database.fromEnvironment(), mailConfig: MailConfig? = null) {
+    monitor.subscribe(ApplicationStopped) { database.close() }
     configureHttp()
     routing {
         healthRoutes()
