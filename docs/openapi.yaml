@@ -718,3 +718,23 @@ paths:
           description: "Created."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/LocationRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}":
+    get:
+      tags: ["Platform"]
+      summary: "Read location details"
+      operationId: "get_api_v1_locations_locationId"
+      description: "Required permission: locations.read."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
