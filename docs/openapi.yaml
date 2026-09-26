@@ -78,3 +78,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/Tokens"}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/auth/activate":
+    post:
+      tags: ["Identity"]
+      summary: "Activate an invited account"
+      operationId: "post_api_v1_auth_activate"
+      security: []
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ActivationRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/auth/recovery/request":
+    post:
