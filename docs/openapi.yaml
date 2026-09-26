@@ -3618,3 +3618,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/notifications/unread-count":
     get:
+      tags: ["Notifications"]
+      summary: "Count unread authorized notifications"
+      operationId: "get_api_v1_notifications_unread_count"
+      description: "Required permission: notifications.read. The client and location must enable the notifications feature."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/UnreadNotifications"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/notifications/{id}/delivery":
+    get:
+      tags: ["Notifications"]
+      summary: "Read delivery status for your notification"
+      operationId: "get_api_v1_notifications_id_delivery"
+      description: "Reports notification email delivery attempts. SMTP acceptance is distinct from a read acknowledgment. If no delivery was scheduled, status is not_scheduled. Required permission: notifications.read. The client and location must enable the notifications feature."
+      parameters:
+        -
+          name: "id"
