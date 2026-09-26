@@ -54,6 +54,7 @@ internal fun Route.eventRoutes(db: Database) {
             val input = call.receive<EventInput>().validated()
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.manage", "events")
+                tx.validateEventReservation(ctx, input)
                 tx.saved(ctx, "event", body(CommunityEvent(input)))
             })
         }
