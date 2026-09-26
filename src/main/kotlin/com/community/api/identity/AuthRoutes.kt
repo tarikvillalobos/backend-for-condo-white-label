@@ -18,3 +18,23 @@ fun Route.identityRoutes(db: Database) {
             val result = db.query { it.refresh(request.refreshToken, call.request.local.remoteHost) }
             call.respond(result.unwrap())
         }
+        post("/activate") {
+            val request = call.receive<ActivationRequest>()
+            Passwords.validate(request.password)
+            val result = db.query { it.activate(request, call.request.local.remoteHost, "activation") }
+            call.respond(result.unwrap())
+        }
+        post("/recovery/request") {
+            val request = call.receive<EmailRequest>()
+            val result = db.query { it.requestRecovery(request, call.request.local.remoteHost, false) }
+            call.respond(result.unwrap())
+        }
+        post("/recovery/confirm") {
+            val request = call.receive<ActivationRequest>()
+            Passwords.validate(request.password)
+            val result = db.query { it.activate(request, call.request.local.remoteHost, "recovery") }
+            call.respond(result.unwrap())
+        }
+        post("/otp/request") {
+            val request = call.receive<EmailRequest>()
+            val result = db.query { it.requestRecovery(request, call.request.local.remoteHost, true) }
