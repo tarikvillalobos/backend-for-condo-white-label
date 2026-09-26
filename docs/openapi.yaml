@@ -3858,3 +3858,23 @@ components:
       properties:
         filename: {"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._ -]{0,119}$"}
         contentType:
+          type: "string"
+          enum: ["image/png","image/jpeg","application/pdf"]
+        contentBase64:
+          type: "string"
+          contentEncoding: "base64"
+          maxLength: 2796204
+          description: "Base64-encoded PNG, JPEG, or PDF, 1 byte to 2 MiB decoded. Signature and extension must match."
+        visibility:
+          type: "string"
+          default: "private"
+          enum: ["private","location"]
+      required: ["filename","contentType","contentBase64"]
+    AttachmentView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        filename: {"type":"string"}
+        contentType: {"type":"string"}
+        size: {"type":"integer","format":"int32"}
