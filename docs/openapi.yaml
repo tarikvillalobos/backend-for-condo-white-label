@@ -4158,3 +4158,23 @@ components:
         website:
           type: ["string","null"]
           default: null
+        operatingHours:
+          type: ["string","null"]
+          default: null
+      required: ["name","category"]
+    ContactInputRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ContactInput"}
+    ContactInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ContactInputRecord"}
