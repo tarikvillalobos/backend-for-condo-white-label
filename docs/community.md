@@ -98,3 +98,23 @@ Checkout is separate from revocation. Physical gate commands are not implied.
 Permissions: `visitors.create`, `visitors.read.own`, `visitors.read.all`,
 `visitors.manage`, `visitors.checkin`.
 
+## Vehicles and parking
+
+- `GET /vehicles`, `POST /vehicles`, `PUT /vehicles/{id}`, `DELETE /vehicles/{id}`.
+- `GET /vehicles/{id}/movements`, `POST /vehicles/{id}/movements`:
+  `{direction:"entry"}` or `{direction:"exit"}`.
+- `GET /parking`, `POST /parking`, `PUT /parking/{id}`.
+
+`VehicleInput`: `plate`, `model`, `color`, optional `unitId`, `validUntil`.
+Plates are normalized and unique per location. Resident visibility is restricted
+to owned vehicles, movements, and allocated spaces. `ParkingInput` has `name`
+and nullable `vehicleId`; setting null releases the allocation. Allocated
+vehicles cannot be deleted. Staff enter movements with sequence validation;
+expired vehicle authorization and inactive owner membership prevent entry.
+
+Permissions: `vehicles.read.own`, `vehicles.read.all`, `vehicles.create`,
+`vehicles.manage.own`, `vehicles.manage`.
+
+## Staff, contractors, equipment, and work orders
+
+- `GET /staff`, `POST /staff`: upsert `{userId,responsibility,active}`. A staff
