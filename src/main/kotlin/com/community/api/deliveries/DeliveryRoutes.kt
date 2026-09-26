@@ -58,3 +58,23 @@ fun Route.deliveryRoutes(db: Database) {
                 post("/confirm-pickup") {
                     val request = call.receive<ConfirmPickup>()
                     call.respond(db.query { tx -> service.confirmPickup(tx, call.deliveryContext(tx, "packages.collect"), call.deliveryId(), request) })
+                }
+                post("/cancel") {
+                    call.respond(db.query { tx -> service.cancel(tx, call.deliveryContext(tx, "packages.manage"), call.deliveryId()) })
+                }
+            }
+        }
+        route("/lockers") {
+            get {
+                call.respondPage(db.query { tx ->
+                    val ctx = tx.authorizeAny(call.actor(tx), call.parameters["locationId"]!!, setOf("lockers.read", "lockers.manage"), "packages")
+                    service.lockers(tx, ctx)
+                })
+            }
+            post {
+                val request = call.receive<LockerData>()
+                call.respond(HttpStatusCode.Created, db.query { tx -> service.saveLocker(tx, call.deliveryContext(tx, "lockers.manage"), request) })
+            }
+            put("/{id}") {
+                val request = call.receive<LockerData>()
+                call.respond(db.query { tx -> service.saveLocker(tx, call.deliveryContext(tx, "lockers.manage"), request, call.deliveryId()) })
