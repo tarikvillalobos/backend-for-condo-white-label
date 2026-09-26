@@ -18,3 +18,23 @@ class EventReservationTest {
     private val end = "2030-01-02T14:00:00Z"
     private val event = EventInput("Community lunch", "Bring a dish", start, end, reservationId = "booking")
 
+    private fun database(): Database = Database.memory().also { db ->
+        db.tx { tx ->
+            tx.create("client", "tenant", data = body(ClientSettings("Tenant")), id = "tenant")
+            tx.create("location", "tenant", data = body(Location("Property")), id = "location")
+            listOf("owner", "other", "manager").forEach { userId ->
+                tx.create("account", "tenant", data = buildJsonObject { put("active", true) }, id = userId)
+                val role = if (userId == "manager") "property_manager" else "resident"
+                tx.create("membership", "tenant", "location", userId,
+                    body(Membership(userId, "location", role = role, permissions = setOf("events.manage"))))
+            }
+            val data = ReservationData(CreateReservation("facility", start, end), "CONFIRMED", emptyList())
+            tx.create("reservation", "tenant", "location", "owner", body(data), "booking")
+        }
+    }
+
+    private fun Tx.context(userId: String = "owner") = authorize(Actor(userId, "tenant", "session"), "location", "events.manage", "events")
+
+    @Test
+    fun `owner and reservation manager can link confirmed or pending bookings`() = database().use { db ->
+        db.tx { tx ->
