@@ -4398,3 +4398,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        id: {"type":"string"}
+        rules: {"$ref":"#/components/schemas/FacilityData"}
+      required: ["id","rules"]
+    FacilityViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/FacilityView"}
+    HealthResponse:
+      type: "object"
+      additionalProperties: false
+      properties:
+        status: {"type":"string"}
+      required: ["status"]
+    InboxNotification:
+      type: "object"
