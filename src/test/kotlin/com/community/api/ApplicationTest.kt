@@ -18,3 +18,23 @@ import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+
+class ApplicationTest {
+    @Test
+    fun `health endpoints return JSON and a distinct generated request ID`() = testApplication {
+        application { module() }
+
+        val responses = listOf("/health/live", "/health/ready").map { path ->
+            client.get(path) { header("X-Request-ID", "caller-provided-id") }
+        }
+
+        responses.forEach { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
