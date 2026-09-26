@@ -18,3 +18,23 @@ fun bootstrap(env: Map<String, String> = System.getenv()) {
             tx.create("client", id, data = body(ClientSettings(name)), id = id)
             val account = tx.createAccount(id, email, password, "Client administrator")
             tx.create("membership", id, ownerId = account.id, data = body(Membership(account.id, role = "client_admin")))
+            tx.audit(Context(Actor(account.id, id, "bootstrap"), null, setOf("*")), "client.bootstrapped", id)
+            account.id
+        }
+        println("Client created: $id")
+        println("Administrator created: $userId")
+    }
+}
+
+fun changeClientState(env: Map<String, String> = System.getenv()) {
+    val id = env["CLIENT_ID"] ?: error("Set CLIENT_ID")
+    val active = env["CLIENT_ACTIVE"]?.toBooleanStrictOrNull() ?: error("Set CLIENT_ACTIVE to true or false")
+    Database.fromEnvironment(env).use { db ->
+        db.tx { tx ->
+            val record = tx.requireRecord("client", id, id)
+            tx.update(record, body(record.decode<ClientSettings>().copy(active = active)))
+            if (!active) tx.list("account", id).forEach { tx.revokeAccountCredentials(id, it.id) }
+            tx.audit(Context(Actor("operator", id, "cli"), null, setOf("*")), "client.state_changed", id)
+        }
+    }
+    println("Client $id active=$active")
