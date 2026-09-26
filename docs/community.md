@@ -107,6 +107,17 @@ Checkout is separate from revocation. Physical gate commands are not implied.
 Permissions: `visitors.create`, `visitors.read.own`, `visitors.read.all`,
 `visitors.manage`, `visitors.checkin`.
 
+### Concierge handover and incident notes
+
+- `GET /shift-notes`, `POST /shift-notes`: `{message,incident:false}`.
+
+Both operations require the explicit `concierge.notes` permission and the
+`visitors` feature. The default concierge and manager roles can participate;
+residents cannot publish or read these records. Notes are immutable, scoped to
+their location, timestamped, and attributed to their author. Text allows up to
+10,000 characters. The incident flag identifies an operational incident without
+publishing a resident-visible request or sending private handover text in notifications.
+
 ## Vehicles and parking
 
 - `GET /vehicles`, `POST /vehicles`, `PUT /vehicles/{id}`, `DELETE /vehicles/{id}`.
