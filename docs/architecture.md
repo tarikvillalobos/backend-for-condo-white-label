@@ -76,10 +76,11 @@ See [Identity API](identity.md) for refresh, credential, recovery, and SMTP deta
 
 ## Authorization and white-label isolation
 
-HTTP logs contain method, status, and a generated request ID. Handled errors
-(400, 404, 415, and 500) contain a stable code, safe message, and the same request ID. Unexpected error
-logs omit exception messages, which may contain credentials or personal data.
-Add an appropriately redacted diagnostics sink when implementing business flows.
+An authenticated actor establishes the client; request payloads cannot switch it.
+Each protected operation checks the active client, account, membership, selected
+location, enabled feature, and action permission. Location/resource ownership
+and field-level restrictions are checked inside the same transaction as writes.
+The same resource restrictions apply to reports and exports.
 
 The default listener is local (`127.0.0.1`). Configure `HOST` explicitly for a
 container or server. This foundation has no authentication or business data;
