@@ -178,3 +178,17 @@ delivery. Permissions: `notifications.read`, `notifications.manage`.
 - `POST /cameras/{id}/sessions` requires `cameras.view` and the camera audience.
 - `GET /cameras/{id}/recordings` separately requires `cameras.recordings`.
 
+Both provider operations return `501 integration_unavailable` until a real
+provider adapter is implemented. They never return invented live URLs or
+equipment credentials. Management requires `cameras.manage`.
+
+## Validation and boundaries
+
+Titles generally allow 160 characters, long descriptions 10,000, and attachment
+lists at most 10 URLs. External URLs require HTTPS and reject embedded credentials.
+Invalid bodies produce 400, unauthorized operations 403, out-of-scope identifiers
+404, and invalid state transitions 409. Read-own permission does not authorize
+reading another member's resources or adding internal staff comments.
+These modules store metadata and auditable staff operations; provider-specific
+delivery, live video, gate actuation, and external attachment access policies are
+separate integration responsibilities.
