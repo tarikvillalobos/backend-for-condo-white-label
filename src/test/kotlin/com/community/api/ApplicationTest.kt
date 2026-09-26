@@ -98,3 +98,23 @@ class ApplicationTest {
             module()
             routing {
                 post("/test/json") { call.respond(call.receive<JsonObject>()) }
+            }
+        }
+
+        client.post("/test/json") {
+            contentType(ContentType.Text.Plain)
+            setBody("private-value")
+        }.assertError(
+            HttpStatusCode.UnsupportedMediaType,
+            "unsupported_media_type",
+            "Unsupported content type",
+        )
+    }
+
+    private fun HttpResponse.requestId(): String {
+        val id = assertNotNull(headers["X-Request-ID"])
+        assertEquals(id, UUID.fromString(id).toString())
+        return id
+    }
+
+    private suspend fun HttpResponse.jsonBody(): JsonObject =
