@@ -107,7 +107,7 @@ class ApplicationTest {
     @Test
     fun `unsupported request content returns a JSON media type error`() = testApplication {
         application {
-            module()
+            module(Database.memory())
             routing {
                 post("/test/json") { call.respond(call.receive<JsonObject>()) }
             }
