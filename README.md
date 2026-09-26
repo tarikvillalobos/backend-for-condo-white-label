@@ -285,7 +285,7 @@ an `Idempotency-Key`; consult each module's retry semantics.
 | `DATABASE_URL` | `jdbc:h2:file:./data/community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE` |
 | `DATABASE_USER` | `sa` for local H2; configure a PostgreSQL application user in production |
 | `DATABASE_PASSWORD` | Empty for local H2; required in production |
-| `SMTP_HOST`, `SMTP_FROM` | Configure authentication email delivery |
+| `SMTP_HOST`, `SMTP_FROM` | Configure authentication and notification email delivery |
 | `SMTP_PORT` | `587` |
 | `SMTP_USER`, `SMTP_PASSWORD` | Configure together; required for production SMTP |
 | `SMTP_STARTTLS` | `true`; required in production |
