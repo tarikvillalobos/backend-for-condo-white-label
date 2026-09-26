@@ -58,3 +58,23 @@ must explicitly issue and share a replacement with the intended collector.
 
 Delegate with `{"userId":"delegate-account-id"}`. Household or unit membership
 alone never grants delivery visibility or collection permission. Delegates can
+view only the deliveries explicitly delegated to them and report a pickup.
+Only the recipient can manage delegates and issue credentials.
+
+Staff confirmation requires `{"collectorId":"account-id","credential":"secret"}`.
+It verifies active membership, recipient or delegate status, expiration, and the
+credential digest. Collection consumes the credential and releases the
+compartment atomically. A resident report sets `PICKUP_REPORTED`; it does not
+confirm collection or release storage. All duplicate collection attempts fail
+after the first confirmed pickup. Cancellation also releases storage and revokes
+credentials. Secrets never appear in package views, audit, or notifications.
+
+## Lockers and provider events
+
+Create a locker using `name`, optional `maintenance`, optional `integrationId`,
+and `compartments`: `[{"id":"A1","label":"A1","maintenance":false}]`.
+Compartment IDs are unique within a locker. Occupancy is controlled by delivery
+operations. Occupied compartments cannot be removed or reassigned via locker
+updates. Maintenance blocks new deliveries without discarding existing ones.
+
+For a provider event, configure an active integration of type `locker` and bind
