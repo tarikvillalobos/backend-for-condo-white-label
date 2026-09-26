@@ -1178,3 +1178,23 @@ paths:
       tags: ["Packages"]
       summary: "Read a package and its history"
       operationId: "get_api_v1_locations_locationId_packages_id"
+      description: "Required permission: packages.read.own or packages.read.all. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageView"}
