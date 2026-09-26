@@ -578,3 +578,23 @@ paths:
         content:
           "application/json":
             schema: {"$ref":"#/components/schemas/InvitationRequest"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/InvitationIssue"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/memberships":
+    get:
+      tags: ["Platform"]
+      summary: "List memberships in the selected scope"
+      operationId: "get_api_v1_locations_locationId_memberships"
+      description: "Required permission: memberships.read."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
