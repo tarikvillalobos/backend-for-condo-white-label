@@ -38,3 +38,23 @@ fun Route.deliveryRoutes(db: Database) {
                     call.response.headers.append("Cache-Control", "no-store")
                     call.respond(result)
                 }
+                delete("/credential") {
+                    call.respond(db.query { tx -> service.revokeCredential(tx, call.deliveryContext(tx, "packages.read.own"), call.deliveryId()) })
+                }
+                post("/delegates") {
+                    val request = call.receive<DelegationRequest>()
+                    call.respond(db.query { tx -> service.delegate(tx, call.deliveryContext(tx, "packages.read.own"), call.deliveryId(), request.userId) })
+                }
+                delete("/delegates/{userId}") {
+                    val userId = call.parameters["userId"] ?: badRequest("Delegate is required")
+                    call.respond(db.query { tx -> service.delegate(tx, call.deliveryContext(tx, "packages.read.own"), call.deliveryId(), userId, true) })
+                }
+                post("/report-pickup") {
+                    call.respond(db.query { tx -> service.reportPickup(tx, call.deliveryContext(tx, "packages.read.own"), call.deliveryId()) })
+                }
+                post("/remind") {
+                    call.respond(db.query { tx -> service.remind(tx, call.deliveryContext(tx, "packages.receive"), call.deliveryId()) })
+                }
+                post("/confirm-pickup") {
+                    val request = call.receive<ConfirmPickup>()
+                    call.respond(db.query { tx -> service.confirmPickup(tx, call.deliveryContext(tx, "packages.collect"), call.deliveryId(), request) })
