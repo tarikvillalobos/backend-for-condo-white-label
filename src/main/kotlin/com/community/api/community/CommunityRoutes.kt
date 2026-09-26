@@ -11,6 +11,7 @@ fun Route.communityRoutes(db: Database) {
         petRoutes(db)
         requestRoutes(db)
         visitorRoutes(db)
+        shiftRoutes(db)
         vehicleRoutes(db)
         maintenanceRoutes(db)
         documentRoutes(db)
