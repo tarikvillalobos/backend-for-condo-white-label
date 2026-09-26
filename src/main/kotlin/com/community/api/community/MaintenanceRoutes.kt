@@ -38,3 +38,23 @@ internal fun Route.maintenanceRoutes(db: Database) {
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
                 tx.saved(ctx, "contractor", body(input))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<ContractorInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "maintenance.manage", "maintenance")
+                tx.changed(ctx, tx.record(ctx, "contractor", call.resourceId()), body(input), "contractor.updated")
+            })
+        }
+    }
+    route("/work-orders") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("maintenance.read", "maintenance.manage"), "maintenance")
+                tx.list("work_order", ctx.tenantId, ctx.locationId).filter { ctx.can("maintenance.manage") || it.decode<WorkOrder>().content.assignedTo == ctx.userId }
+            })
+        }
+        post {
+            val input = call.receive<WorkOrderInput>()
+            instant(input.scheduledAt, "scheduledAt")
