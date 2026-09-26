@@ -246,6 +246,19 @@ running the command. Credentials must not be committed:
 | `BOOTSTRAP_CLIENT_NAME` | Display name for the first client |
 | `BOOTSTRAP_EMAIL` | Initial client administrator's email |
 | `BOOTSTRAP_PASSWORD` | Initial password, 12–256 characters |
+| `BOOTSTRAP_CLIENT_ID` | Optional UUID; generated when omitted |
+
+```sh
+./gradlew run --args=bootstrap
+```
+
+Bootstrap creates a client and administrator in one transaction and prints their
+IDs. Keep the client ID for login. Run bootstrap before starting the local H2
+server; use the same database environment for both commands. An existing client
+ID is rejected without overwriting data. A new bootstrap operation is an explicit
+operator action for creating another isolated client.
+
+### Run locally
 
 ```sh
 ./gradlew run
