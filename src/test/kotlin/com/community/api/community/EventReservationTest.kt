@@ -98,3 +98,23 @@ class EventReservationTest {
             db.tx { tx -> tx.validateEventReservation(tx.context(), event) }
         }.status)
         db.tx { tx ->
+            tx.update(tx.requireRecord("event", saved.id, "tenant"), body(CommunityEvent(event, cancelled = true)))
+            tx.validateEventReservation(tx.context(), event)
+        }
+    }
+
+    @Test
+    fun `linking checks the currently enabled reservation feature`() = database().use { db ->
+        val ctx = db.tx { it.context() }
+        db.tx { tx ->
+            val location = tx.requireRecord("location", "location", "tenant")
+            tx.update(location, body(location.decode<Location>().copy(features = allFeatures - "reservations")))
+        }
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { it.validateEventReservation(ctx, event) } }.status)
+        db.tx { it.validateEventReservation(ctx, event.copy(reservationId = null)) }
+    }
+
+    @Test
+    fun `concurrent event creation cannot share one active reservation`() = database().use { db ->
+        val gate = CountDownLatch(1)
+        val executor = Executors.newFixedThreadPool(2)
