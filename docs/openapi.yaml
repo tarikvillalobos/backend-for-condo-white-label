@@ -4598,3 +4598,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        eventId: {"type":"string","minLength":1,"maxLength":128}
+        packageId: {"type":"string"}
+        compartmentId: {"type":"string"}
+        collectorId: {"type":"string"}
+        occurredAt: {"type":"string","format":"date-time"}
+        type:
+          type: "string"
+          default: "pickup_confirmed"
+          enum: ["pickup_confirmed"]
+      required: ["eventId","packageId","compartmentId","collectorId","occurredAt"]
+    LockerView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        name: {"type":"string"}
+        maintenance: {"type":"boolean"}
+        compartments:
+          type: "array"
+          items: {"$ref":"#/components/schemas/Compartment"}
