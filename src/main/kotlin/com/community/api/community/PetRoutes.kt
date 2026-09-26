@@ -38,3 +38,23 @@ internal fun Route.petRoutes(db: Database) {
                 tx.requireUnit(ctx, input.unitId, "pets.manage")
                 tx.saved(ctx, "pet", body(input))
             })
+        }
+        put("/{id}") {
+            val input = call.receive<PetInput>().validated()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("pets.manage.own", "pets.manage"), "pets")
+                val row = tx.record(ctx, "pet", call.resourceId())
+                tx.own(ctx, row, "pets.manage")
+                tx.requireUnit(ctx, input.unitId, "pets.manage")
+                tx.changed(ctx, row, body(input), "pet.updated")
+            })
+        }
+        delete("/{id}") {
+            db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("pets.manage.own", "pets.manage"), "pets")
+                val row = tx.record(ctx, "pet", call.resourceId())
+                tx.own(ctx, row, "pets.manage")
+                tx.delete(row)
+                tx.audit(ctx, "pet.deleted", row.id)
+            }
+            call.respond(HttpStatusCode.NoContent)
