@@ -798,3 +798,23 @@ paths:
           required: true
           schema: {"type":"string"}
           description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/UnitData"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/UnitDataRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/units/{id}":
+    put:
+      tags: ["Platform"]
+      summary: "Update a condominium unit"
+      operationId: "put_api_v1_locations_locationId_units_id"
+      description: "Required permission: units.manage."
+      parameters:
+        -
