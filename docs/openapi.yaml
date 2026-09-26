@@ -2858,3 +2858,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityEventRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/events/{id}/attendance":
+    post:
+      tags: ["Events"]
+      summary: "Register your attendance"
+      operationId: "post_api_v1_locations_locationId_events_id_attendance"
+      description: "Required permission: events.attend. The client and location must enable the events feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
