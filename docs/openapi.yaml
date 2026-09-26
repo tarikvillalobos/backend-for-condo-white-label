@@ -3278,3 +3278,23 @@ paths:
           name: "locationId"
           in: "path"
           required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VisitorView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/vehicles/{id}/movements":
+    post:
+      tags: ["Vehicles"]
+      summary: "Record physical entry or exit observed by staff"
+      operationId: "post_api_v1_locations_locationId_vehicles_id_movements"
