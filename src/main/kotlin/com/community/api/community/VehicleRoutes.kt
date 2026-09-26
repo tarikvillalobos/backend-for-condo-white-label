@@ -78,3 +78,23 @@ internal fun Route.vehicleRoutes(db: Database) {
             })
         }
         get("/{id}/movements") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("vehicles.read.own", "vehicles.read.all"), "vehicles")
+                val row = tx.record(ctx, "vehicle", call.resourceId())
+                tx.own(ctx, row, "vehicles.read.all")
+                tx.list("vehicle_movement", ctx.tenantId, ctx.locationId).filter { it.decode<VehicleMovement>().vehicleId == row.id }
+            })
+        }
+    }
+    route("/parking") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("vehicles.read.own", "vehicles.read.all"), "vehicles")
+                val vehicles = tx.visible(ctx, "vehicle", "vehicles.read.all").map { it.id }.toSet()
+                tx.list("parking", ctx.tenantId, ctx.locationId).filter { ctx.can("vehicles.read.all") || it.decode<ParkingInput>().vehicleId in vehicles }
+            })
+        }
+        post {
+            val input = call.receive<ParkingInput>()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "vehicles.manage", "vehicles")
