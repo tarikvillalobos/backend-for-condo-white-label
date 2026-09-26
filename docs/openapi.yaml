@@ -2258,3 +2258,23 @@ paths:
       responses:
         "201":
           description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ParkingInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/parking/{id}":
+    put:
+      tags: ["Vehicles"]
+      summary: "Update parking"
+      operationId: "put_api_v1_locations_locationId_parking_id"
+      description: "Required permission: vehicles.manage. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
