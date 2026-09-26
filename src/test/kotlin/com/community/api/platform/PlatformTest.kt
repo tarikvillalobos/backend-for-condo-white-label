@@ -98,3 +98,23 @@ class PlatformTest {
         val response = client.post("/api/v1/roles") {
             bearerAuth(f.token); contentType(ContentType.Application.Json)
             setBody(json.encodeToString(RoleDefinition("custom", setOf("packages.read.own"))))
+        }
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+        assertEquals("verification_required", json.parseToJsonElement(response.bodyAsText()).jsonObject["code"]?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `retries do not issue another invitation or expose credentials`() = testApplication {
+        val f = PlatformFixture()
+        application { module(f.db) }
+        val request = InvitationRequest("new@example.com", "New resident", f.location)
+        suspend fun issue() = client.post("/api/v1/locations/${f.location}/invitations") {
+            bearerAuth(f.token); contentType(ContentType.Application.Json)
+            header("Idempotency-Key", "single-invitation")
+            setBody(json.encodeToString(request))
+        }
+        val first = issue()
+        assertEquals(HttpStatusCode.Created, first.status, first.bodyAsText())
+        val second = issue()
+        assertEquals(HttpStatusCode.Conflict, second.status)
+        assertFalse(second.bodyAsText().contains(json.parseToJsonElement(first.bodyAsText()).jsonObject.getValue("token").jsonPrimitive.content))
