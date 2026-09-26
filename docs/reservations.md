@@ -38,3 +38,23 @@ same facility interval concurrently.
   "maintenance": false
 }
 ```
+
+Provide the property's IANA time zone explicitly when creating a facility; the
+default is `America/Sao_Paulo`. Weekdays use ISO numbering (Monday = 1). Local
+operating hours must open and close on the same day. Bookings must also start
+and finish within one local day. The server converts submitted UTC instants to
+the facility zone, including daylight saving changes, before checking hours.
+
+Each reservation exclusively occupies the facility for its interval. Capacity
+is the maximum attendance for that booking, not a pool of separately bookable
+seats. Minimum notice and duration use elapsed minutes. Advance limits use the
+facility's local calendar date. Active limits are per member and facility.
+
+Rule changes apply to subsequent bookings. Existing reservations remain recorded.
+Before enabling whole-facility maintenance, staff must cancel future active
+reservations. For a shorter closure, create a maintenance interval instead.
+
+## Book, approve, and cancel
+
+```json
+{
