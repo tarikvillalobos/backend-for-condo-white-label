@@ -378,3 +378,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/Brand"}
       responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/BrandRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/brands/{id}":
+    put:
+      tags: ["Platform"]
+      summary: "Update a white-label brand"
+      operationId: "put_api_v1_brands_id"
+      description: "Required permission: brands.manage."
+      parameters:
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
