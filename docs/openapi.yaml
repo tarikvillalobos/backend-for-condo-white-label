@@ -4918,3 +4918,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        id: {"type":"string"}
+        kind: {"type":"string"}
+        tenantId: {"type":"string"}
+        locationId:
+          type: ["string","null"]
+        ownerId:
+          type: ["string","null"]
+        data: {"type":"object","additionalProperties":true}
+        createdAt: {"type":"string","format":"date-time"}
+        updatedAt: {"type":"string","format":"date-time"}
+        version: {"type":"integer","format":"int32"}
+      required: ["id","kind","tenantId","locationId","ownerId","data","createdAt","updatedAt","version"]
+    RecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
