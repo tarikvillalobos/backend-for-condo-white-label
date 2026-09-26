@@ -5345,6 +5345,9 @@ components:
         -
           type: "object"
           properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ShiftNoteInputRecord"}
     StaffProfile:
       type: "object"
       additionalProperties: false
