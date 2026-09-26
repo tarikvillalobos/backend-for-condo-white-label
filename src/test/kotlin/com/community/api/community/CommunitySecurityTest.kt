@@ -98,3 +98,9 @@ class CommunitySecurityTest {
                 bearerAuth(f.manager.token); contentType(ContentType.Application.Json)
                 setBody(json.encodeToString(CameraInput("Lobby", "Main entrance")))
             }
+            val cameraId = json.decodeFromString<Record>(camera.bodyAsText()).id
+            assertEquals(HttpStatusCode.NotImplemented, client.post(f.path("cameras/$cameraId/sessions")) { bearerAuth(f.resident.token) }.status)
+            assertEquals(HttpStatusCode.Forbidden, client.get(f.path("cameras/$cameraId/recordings")) { bearerAuth(f.resident.token) }.status)
+        }
+    }
+}
