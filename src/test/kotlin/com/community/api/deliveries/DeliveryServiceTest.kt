@@ -98,3 +98,23 @@ class DeliveryServiceTest {
 
     @Test
     fun `occupied and maintenance compartments cannot receive another package`() = database().use { db ->
+        val locker = db.tx { service.saveLocker(it, staff, LockerData("Reception", listOf(Compartment("A", "A"), Compartment("B", "B", true)))) }
+        val request = ReceivePackage("recipient", "Parcel", lockerId = locker.id, compartmentId = "A")
+        db.tx { service.receive(it, staff, request, "one") }
+        assertEquals(409, assertFailsWith<ApiException> { db.tx { service.receive(it, staff, request, "two") } }.status)
+        assertEquals(409, assertFailsWith<ApiException> { db.tx { service.receive(it, staff, request.copy(compartmentId = "B"), "three") } }.status)
+        assertEquals(1, db.tx { it.list("package", "tenant").size })
+    }
+
+    @Test
+    fun `trusted events are scoped deduplicated and ignore stale transitions`() = database().use { db ->
+        db.tx { it.create("integration", "tenant", "standalone", data = buildJsonObject { put("type", "locker"); put("active", true) }, id = "hardware") }
+        val locker = db.tx { service.saveLocker(it, staff, LockerData("Reception", listOf(Compartment("A", "A")), integrationId = "hardware")) }
+        val parcel = db.tx { service.receive(it, staff, ReceivePackage("recipient", "Parcel", lockerId = locker.id, compartmentId = "A"), "receipt") }
+        val integration = Context(Actor("integration:hardware", "tenant", "hardware"), "standalone", setOf("packages.collect"))
+        val event = LockerPickupEvent("event-1", parcel.id, "A", "recipient", clock.instant().toString())
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { service.trustedPickup(it, staff, event) } }.status)
+        assertEquals("ignored", db.tx { service.trustedPickup(it, integration, event.copy(eventId = "old", occurredAt = "2020-01-01T00:00:00Z")) }.status)
+        assertEquals("applied", db.tx { service.trustedPickup(it, integration, event) }.status)
+        assertEquals("applied", db.tx { service.trustedPickup(it, integration, event) }.status)
+        assertEquals("ignored", db.tx { service.trustedPickup(it, integration, event.copy(eventId = "later")) }.status)
