@@ -2158,3 +2158,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/VehicleInput"}
       responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VehicleInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/vehicles/{id}":
+    put:
+      tags: ["Vehicles"]
+      summary: "Update vehicles"
+      operationId: "put_api_v1_locations_locationId_vehicles_id"
+      description: "Required permission: vehicles.manage.own or vehicles.manage. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
