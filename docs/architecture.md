@@ -111,6 +111,11 @@ location document access.
 - Reservations use facility time zones, operating rules, and half-open intervals.
   Pending approvals reserve capacity, preventing approval-time overbooking.
 - Event attendance, document acknowledgments, notice receipts, and inbox read
+  status avoid duplicate records for repeated actions.
+- Visitor admissions require the staff action, a valid credential, an active
+  inviter, the allowed time window, and the configured single-use rule.
+- Work orders, request status changes, vehicle movements, and administrative
+  changes retain audit/history records under the same tenant/location boundary.
 
 - [Ktor server configuration](https://ktor.io/docs/server-configuration-code.html)
 - [Ktor application testing](https://ktor.io/docs/server-testing.html)
