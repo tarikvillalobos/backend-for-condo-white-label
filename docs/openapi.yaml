@@ -4938,3 +4938,23 @@ components:
           properties:
             items:
               type: "array"
+              items: {"$ref":"#/components/schemas/Record"}
+    RefreshRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        refreshToken: {"type":"string"}
+      required: ["refreshToken"]
+    Report:
+      type: "object"
+      additionalProperties: false
+      properties:
+        counts:
+          type: "object"
+          additionalProperties: {"type":"integer","format":"int32"}
+        statuses:
+          type: "object"
+          additionalProperties:
+            type: "object"
+            additionalProperties: {"type":"integer","format":"int32"}
+      required: ["counts","statuses"]
