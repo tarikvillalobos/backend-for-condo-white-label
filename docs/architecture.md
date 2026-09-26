@@ -99,7 +99,7 @@ location membership or feature access is revoked. Uploaded private attachments
 require ownership or an explicit read-all grant; published attachments require
 location document access.
 
-The full planned product scope remains in [README.md](../README.md).
+## Domain consistency
 
 ## Framework references
 
