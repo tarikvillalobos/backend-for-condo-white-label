@@ -3178,3 +3178,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/VisitorViewPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Visitors"]
+      summary: "Create a visitor invitation and return its code once"
+      operationId: "post_api_v1_locations_locationId_visitors"
+      description: "Required permission: visitors.create. The client and location must enable the visitors feature. The admission code is returned once; retain it securely. Retrying a used idempotency key returns 409."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "Idempotency-Key"
+          in: "header"
+          required: true
+          schema: {"type":"string","minLength":8,"maxLength":128,"pattern":"^[A-Za-z0-9_.:-]{8,128}$"}
+          description: "One stable key per invitation, scoped to the caller and location. Repeated keys return 409 without issuing another invitation or code."
