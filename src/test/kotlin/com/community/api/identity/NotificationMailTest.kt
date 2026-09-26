@@ -78,3 +78,23 @@ class NotificationMailTest {
     @Test
     fun `failed notification delivery backs off and obeys opt out before retry`() = runBlocking {
         Database.memory().use { db ->
+            val notification = db.notificationFixture()
+            val failure = MailSender { _, _ -> error("secret provider credential") }
+            assertEquals(MailBatchResult(0, 1), deliverNotificationMailBatch(db, config, failure))
+            assertEquals(MailBatchResult(0, 0), deliverNotificationMailBatch(db, config, failure))
+            assertEquals("smtp_delivery_failed", db.tx { it.notificationMailStatus(notification)!!.failure })
+            db.tx { tx ->
+                val row = tx.list("notification_delivery", tenantA).single()
+                tx.update(row, body(row.decode<NotificationEmailDelivery>().copy(nextAttemptAt = Instant.now().minusSeconds(1).toString())))
+                tx.setEmailPreference(notification.ownerId!!, false)
+            }
+            assertEquals(MailBatchResult(0, 0), deliverNotificationMailBatch(db, config, MailSender { _, _ -> fail("Opt-out ignored on retry") }))
+        }
+    }
+
+    @Test
+    fun `concurrent notification workers share durable claims`() = runBlocking {
+        Database.memory().use { db ->
+            db.notificationFixture()
+            val calls = AtomicInteger()
+            val sender = MailSender { _, _ -> delay(30); calls.incrementAndGet() }
