@@ -138,3 +138,23 @@ handle temporary admission separately.
 
 Permissions: `staff.manage`, `maintenance.read`, `maintenance.work`, `maintenance.manage`.
 
+## Documents and contacts
+
+- `GET /documents`, `POST /documents`.
+- `GET /documents/{id}/versions`, `POST /documents/{id}/versions`.
+- `POST /documents/{id}/acknowledge`, `GET /documents/{id}/acknowledgments`.
+- `POST /documents/{id}/archive`.
+- `GET /contacts`, `POST /contacts`, `PUT /contacts/{id}`, `DELETE /contacts/{id}`.
+
+`DocumentInput`: `title`, `description`, `url`, `mediaType`, optional `unitId`,
+`acknowledgmentRequired`. Versions are append-only, individually audience-checked,
+and acknowledgments refer to a specific revision. Supported metadata MIME types:
+PDF, JPEG, PNG, plain text, and DOCX. External document URLs must use HTTPS;
+the storage provider must enforce any required access policy for those URLs.
+`ContactInput`: `name`, `category` (`emergency`, `administration`, `maintenance`,
+`service`), optional `phone`, `email`, `website`, `operatingHours`. At least one
+contact method is required. Contacts are deliberately published by managers.
+
+Permissions: `documents.read`, `documents.manage`, `contacts.read`, `contacts.manage`.
+
+## Notification inbox and preferences
