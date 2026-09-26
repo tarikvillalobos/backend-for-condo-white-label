@@ -18,3 +18,23 @@ same facility interval concurrently.
 | `POST /reservations/maintenance` | `reservations.manage`; requires `Idempotency-Key` |
 | `POST /reservations/{id}/cancel` | Owner with `reservations.create`, or `reservations.manage` |
 | `POST /reservations/{id}/approve` | `reservations.manage`; pending bookings only |
+| `POST /reservations/{id}/reject` | `reservations.manage`; pending bookings only |
+
+## Facility rules
+
+```json
+{
+  "name": "Party room",
+  "timeZone": "America/Sao_Paulo",
+  "capacity": 40,
+  "opensAt": "08:00",
+  "closesAt": "22:00",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "maxDurationMinutes": 240,
+  "minNoticeMinutes": 60,
+  "maxDaysAhead": 90,
+  "maxActivePerMember": 5,
+  "requiresApproval": true,
+  "maintenance": false
+}
+```
