@@ -40,7 +40,12 @@ provider-dependent features and optional workflows are identified separately.
 
 ## Technology stack
 
-The backend will remain a shared monolith for both applications. Business capabilities will be organized into modules as they are implemented.
+- Kotlin/JVM 2.4.20, Ktor 3.6.0, Netty, and Java 21.
+- Gradle 9.4.1 with Kotlin DSL and the included Gradle Wrapper.
+- Kotlin serialization for JSON; opaque bearer sessions with hashed secrets.
+- PostgreSQL for production; persistent H2 for local development and H2 for tests.
+- HikariCP connection pooling and Flyway schema migrations.
+- Eclipse Angus Mail for authentication email; Logback for redacted HTTP logs.
 
 See [Architecture](docs/architecture.md) for the current layout, planned module boundaries, and delivery order.
 
