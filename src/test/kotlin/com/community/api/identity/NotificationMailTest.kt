@@ -38,3 +38,23 @@ class NotificationMailTest {
         Database.memory().use { db ->
             val notification = db.notificationFixture()
             db.tx { it.setEmailPreference(notification.ownerId!!, false) }
+            val sender = MailSender { _, _ -> fail("Opted-out notification sent") }
+            assertEquals(MailBatchResult(0, 0), deliverNotificationMailBatch(db, config, sender))
+            assertEquals("suppressed", db.tx { it.notificationMailStatus(notification)!!.status })
+            db.tx { it.setEmailPreference(notification.ownerId!!, true) }
+            assertEquals(MailBatchResult(0, 0), deliverNotificationMailBatch(db, config, sender))
+        }
+    }
+
+    @Test
+    fun `inactive account membership location or module prevents notification delivery`() = runBlocking {
+        for (disabled in listOf("account", "membership", "location", "client-module")) {
+            Database.memory().use { db ->
+                val notification = db.notificationFixture()
+                db.tx { tx ->
+                    when (disabled) {
+                        "account" -> tx.get("account", notification.ownerId!!, tenantA)!!.let { tx.update(it, body(it.decode<Account>().copy(active = false))) }
+                        "membership" -> tx.list("membership", tenantA).single().let { tx.update(it, body(it.decode<Membership>().copy(active = false))) }
+                        "location" -> tx.get("location", notification.locationId!!, tenantA)!!.let { tx.update(it, body(it.decode<Location>().copy(active = false))) }
+                        else -> tx.get("client", tenantA, tenantA)!!.let { tx.update(it, body(it.decode<ClientSettings>().copy(features = emptySet()))) }
+                    }
