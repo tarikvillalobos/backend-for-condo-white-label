@@ -38,3 +38,23 @@ internal fun Route.documentRoutes(db: Database) {
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.manage", "documents")
                 tx.requireUnit(ctx, input.unitId, "documents.manage")
+                val doc = tx.saved(ctx, "document", body(CommunityDocument(input)))
+                tx.saved(ctx, "document_version", body(DocumentVersion(doc.id, 1, input)))
+                doc
+            })
+        }
+        post("/{id}/versions") {
+            val input = call.receive<DocumentInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "documents.manage", "documents")
+                val row = tx.record(ctx, "document", call.resourceId())
+                tx.requireUnit(ctx, input.unitId, "documents.manage")
+                val current = row.decode<CommunityDocument>()
+                if (current.archived) conflict("Document is archived")
+                val revised = current.copy(content = input, revision = current.revision + 1)
+                tx.saved(ctx, "document_version", body(DocumentVersion(row.id, revised.revision, input)))
+                tx.changed(ctx, row, body(revised), "document.revised")
+            })
+        }
+        get("/{id}/versions") {
+            call.respondPage(db.query { tx ->
