@@ -2,6 +2,17 @@ package com.community.api
 
 import com.community.api.config.AppConfig
 import com.community.api.config.Environment
+import com.community.api.core.Database
+import com.community.api.core.integrationRoutes
+import com.community.api.identity.identityRoutes
+import com.community.api.identity.MailConfig
+import com.community.api.identity.deliverAuthMailBatch
+import com.community.api.platform.bootstrap
+import com.community.api.platform.changeClientState
+import com.community.api.platform.platformRoutes
+import com.community.api.community.communityRoutes
+import com.community.api.deliveries.deliveryRoutes
+import com.community.api.reservations.reservationRoutes
 import com.community.api.health.healthRoutes
 import com.community.api.plugins.configureHttp
 import io.ktor.server.application.Application
