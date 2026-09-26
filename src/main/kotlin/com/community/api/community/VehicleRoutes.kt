@@ -57,6 +57,9 @@ internal fun Route.vehicleRoutes(db: Database) {
                 val row = tx.record(ctx, "vehicle", call.resourceId())
                 tx.own(ctx, row, "vehicles.manage")
                 if (tx.list("parking", ctx.tenantId, ctx.locationId).any { it.decode<ParkingInput>().vehicleId == row.id }) conflict("Release the parking space before deleting this vehicle")
+                val movement = tx.list("vehicle_movement", ctx.tenantId, ctx.locationId)
+                    .filter { it.decode<VehicleMovement>().vehicleId == row.id }.maxByOrNull { it.createdAt }
+                if (movement?.decode<VehicleMovement>()?.direction == "entry") conflict("Record the vehicle exit before deleting its registration")
                 tx.delete(row)
                 tx.audit(ctx, "vehicle.deleted", row.id)
             }
