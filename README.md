@@ -236,7 +236,16 @@ exercise access control, credential lifecycle, state transitions, serialization,
 concurrent allocation, and HTTP contracts. No live hardware or mail provider is
 needed by the test suite.
 
-### Run Locally
+### Bootstrap the first client
+
+Set these environment variables through your shell or secret manager before
+running the command. Credentials must not be committed:
+
+| Variable | Purpose |
+| --- | --- |
+| `BOOTSTRAP_CLIENT_NAME` | Display name for the first client |
+| `BOOTSTRAP_EMAIL` | Initial client administrator's email |
+| `BOOTSTRAP_PASSWORD` | Initial password, 12–256 characters |
 
 ```sh
 ./gradlew run
