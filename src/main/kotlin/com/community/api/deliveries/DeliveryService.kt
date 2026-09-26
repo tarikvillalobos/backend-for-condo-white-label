@@ -98,3 +98,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         tx.audit(ctx, "package.credential_issued", id)
         return PickupCredential(secret, expiresAt)
     }
+
+    fun revokeCredential(tx: Tx, ctx: Context, id: String): PackageView {
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        requireRecipient(ctx, data)
+        val updated = tx.update(record, body(data.copy(credentialHash = null, credentialExpiresAt = null,
+            history = data.history + event(ctx, "credential_revoked"))))
+        tx.audit(ctx, "package.credential_revoked", id)
+        return view(updated)
+    }
+
+    fun delegate(tx: Tx, ctx: Context, id: String, userId: String, revoke: Boolean = false): PackageView {
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        requireRecipient(ctx, data)
+        requireOutstanding(data)
+        if (userId == ctx.userId) badRequest("Recipient does not need delegation")
+        if (!revoke) tx.requireMember(ctx.tenantId, ctx.location(), userId)
+        val delegates = if (revoke) data.delegates - userId else data.delegates + userId
+        if (delegates.size > 10) badRequest("A package can have at most 10 delegates")
