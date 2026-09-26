@@ -78,3 +78,21 @@ private fun Route.clientRoutes(db: Database) {
                 if (input.permissions.any { !ctx.can(it) }) forbidden()
                 if (input.name in roleTemplates || tx.list("role", ctx.tenantId).any { it.decode<RoleDefinition>().name == input.name }) conflict("Role name already exists")
                 tx.create("role", ctx.tenantId, data = body(input)).also { tx.audit(ctx, "role.created", it.id) }
+            })
+        }
+        put("/roles/{id}") {
+            val input = call.receive<RoleDefinition>()
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), null, "roles.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                val record = tx.requireRecord("role", call.parameters["id"]!!, ctx.tenantId)
+                if (input.name != record.decode<RoleDefinition>().name) badRequest("Role names cannot be changed")
+                if (input.permissions.size > 100 || input.permissions.any { it.length > 80 || !ctx.can(it) }) forbidden()
+                tx.update(record, body(input)).also { tx.audit(ctx, "role.updated", it.id) }
+            })
+        }
+    }
+}
+
+@kotlinx.serialization.Serializable
+private data class Configuration(val client: Record, val brands: List<Record>, val memberships: List<Record>)
