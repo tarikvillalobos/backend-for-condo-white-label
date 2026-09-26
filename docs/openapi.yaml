@@ -5238,3 +5238,23 @@ components:
         vehicleId: {"type":"string"}
         direction:
           type: "string"
+          enum: ["entry","exit"]
+        recordedAt: {"type":"string","format":"date-time"}
+      required: ["vehicleId","direction"]
+    VehicleMovementInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        direction:
+          type: "string"
+          enum: ["entry","exit"]
+      required: ["direction"]
+    VehicleMovementRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/VehicleMovement"}
+    VehicleMovementRecordPage:
+      allOf:
