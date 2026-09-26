@@ -18,3 +18,23 @@ internal fun Tx.notificationContext(actor: Actor, locationId: String?, permissio
     if (locationId != null) return authorize(actor, locationId, permission, "notifications")
     for (membership in activeMemberships(actor.tenantId, actor.userId)) {
         try { return authorize(actor, membership.locationId, permission, "notifications") }
+        catch (error: ApiException) { if (error.status !in setOf(403, 404)) throw error }
+    }
+    forbidden()
+}
+internal fun Tx.inbox(actor: Actor): List<Record> = list("notification", actor.tenantId, ownerId = actor.userId).filter {
+    try { notificationContext(actor, it.locationId, "notifications.read"); true }
+    catch (error: ApiException) { if (error.status !in setOf(403, 404)) throw error; false }
+}
+internal fun Route.notificationRoutes(db: Database) {
+    route("/api/v1/notifications") {
+        get {
+            call.respondPage(db.query { tx -> tx.inbox(call.actor(tx)).sortedByDescending { it.createdAt } })
+        }
+        get("/unread-count") {
+            call.respond(db.query { tx -> UnreadNotifications(tx.inbox(call.actor(tx)).count { it.decode<InboxNotification>().readAt == null }) })
+        }
+        post("/{id}/read") {
+            call.respond(db.query { tx ->
+                val actor = call.actor(tx)
+                val row = tx.requireRecord("notification", call.resourceId(), actor.tenantId)
