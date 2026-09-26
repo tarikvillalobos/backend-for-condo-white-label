@@ -138,3 +138,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
             } }) conflict("Facility is already reserved for this period")
     }
 
+    fun transition(tx: Tx, ctx: Context, id: String, action: String): ReservationView {
+        val record = tx.requireRecord("reservation", id, ctx.tenantId, ctx.location())
+        val data = record.decode<ReservationData>()
+        if (action == "cancel") {
+            if (!ctx.can("reservations.manage") && !(ctx.can("reservations.create") && record.ownerId == ctx.userId)) forbidden()
+        } else ctx.allow("reservations.manage")
+        if (data.status !in blocking) conflict("Reservation is already closed")
+        if (!instant(data.request.endsAt).isAfter(clock.instant())) conflict("Past reservations cannot be changed")
+        val status = when (action) {
+            "cancel" -> "CANCELLED"
+            "approve" -> {
+                if (data.status != "PENDING") conflict("Only pending reservations can be approved")
+                val facility = tx.requireRecord("facility", data.request.facilityId, ctx.tenantId, ctx.location()).decode<FacilityData>()
+                if (facility.maintenance) conflict("Facility is under maintenance")
+                ensureNoOverlap(records(tx, ctx), data.request.facilityId, instant(data.request.startsAt), instant(data.request.endsAt), id)
+                "CONFIRMED"
+            }
+            "reject" -> {
+                if (data.status != "PENDING") conflict("Only pending reservations can be rejected")
+                "REJECTED"
