@@ -58,3 +58,19 @@ internal fun Tx.claimAuthDelivery(): Record? {
                 continue
             }
             return update(record, body(data.copy(attempts = data.attempts + 1,
+                leaseId = UUID.randomUUID().toString(), leaseUntil = now.plusSeconds(300).toString())))
+        }
+    }
+    return null
+}
+
+private fun AuthDelivery.asMessage(id: String): MailMessage {
+    val purpose = when (type) {
+        "otp" -> "sign-in code"
+        "recovery" -> "password recovery token"
+        "contact" -> "email verification token"
+        else -> error("Unsupported authentication delivery")
+    }
+    return MailMessage(email, "Community: your $purpose",
+        "Your $purpose is:\n\n$credential\n\nExpires at $expiresAt (UTC).\nIf you did not request this, ignore this message.", id)
+}
