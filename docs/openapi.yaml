@@ -1758,3 +1758,23 @@ paths:
         -
           name: "id"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ReservationView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/reservations/{id}/approve":
+    post:
+      tags: ["Reservations"]
+      summary: "Approve a reservation"
+      operationId: "post_api_v1_locations_locationId_reservations_id_approve"
+      description: "Required permission: reservations.manage. The client and location must enable the reservations feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
