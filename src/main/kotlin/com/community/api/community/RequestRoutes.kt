@@ -78,3 +78,10 @@ internal fun Route.requestRoutes(db: Database) {
                 val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("requests.comment", "requests.manage"), "requests")
                 val row = tx.record(ctx, "request", call.resourceId())
                 tx.own(ctx, row, "requests.manage")
+                if (input.internal && !ctx.can("requests.manage")) forbidden()
+                if (row.decode<ResidentRequest>().status in setOf("closed", "cancelled")) conflict("Request is closed")
+                tx.saved(ctx, "request_comment", body(RequestComment(row.id, message, input.internal, attachments)))
+            })
+        }
+    }
+}
