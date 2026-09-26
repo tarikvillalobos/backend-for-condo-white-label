@@ -18,3 +18,11 @@ for commit in commits:
     rows = [row.split(b"\t", 2) for row in git("diff-tree", "--root", "--no-commit-id", "--numstat", "--no-renames", "-r", "-z", commit).split(b"\0") if row]
     if len(rows) != 1:
         failures.append(f"{commit}: expected one changed file, found {len(rows)}")
+        continue
+    added, removed, path = rows[0]
+    if added != b"-" and int(added) + int(removed) > 20:
+        failures.append(f"{commit}: more than 20 changed lines in {path.decode()}")
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+print(f"Verified {len(commits)} commits: one file and at most 20 text lines each.")
