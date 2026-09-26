@@ -6,7 +6,7 @@ Shared monolithic backend for the `smartlocker-app` and `condo-app` white-label 
 
 Community API provides shared identity, scoped access, and business workflows for residents, smart locker users, concierge teams, property managers, and client administrators.
 
-Both applications will share identity, access control, package management, notifications, and other common capabilities. The Condo app will also use condominium-specific features enabled for each client and property.
+Both applications use the same identity, package, notification, and access rules. Condominium features are enabled per client and location; a brand selects presentation and application configuration without changing data ownership.
 
 Smart locker operations must remain usable at standalone locations without requiring a condominium or residential unit.
 
