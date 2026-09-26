@@ -58,3 +58,23 @@ internal fun Route.announcementRoutes(db: Database) {
             })
         }
         post("/{id}/archive") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.manage", "announcements")
+                val row = tx.record(ctx, "announcement", call.resourceId())
+                tx.changed(ctx, row, body(row.decode<Announcement>().copy(archived = true)), "announcement.archived")
+            })
+        }
+        post("/{id}/read") {
+            call.respond(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.read", "announcements")
+                val row = tx.record(ctx, "announcement", call.resourceId())
+                val item = row.decode<Announcement>()
+                if (!item.visibleAt() || !tx.audience(ctx, item.content.unitId)) notFound()
+                tx.list("announcement_read", ctx.tenantId, ctx.locationId, ctx.userId).firstOrNull {
+                    it.decode<Acknowledgment>().resourceId == row.id
+                } ?: tx.saved(ctx, "announcement_read", body(Acknowledgment(row.id)))
+            })
+        }
+        get("/{id}/receipts") {
+            val rows = db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "announcements.manage", "announcements")
