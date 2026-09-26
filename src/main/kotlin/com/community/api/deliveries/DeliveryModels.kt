@@ -58,3 +58,23 @@ data class LockerData(
     val compartments: List<Compartment>,
     val maintenance: Boolean = false,
     val integrationId: String? = null,
+)
+
+@Serializable
+data class LockerView(val id: String, val name: String, val maintenance: Boolean, val compartments: List<Compartment>)
+
+@Serializable
+data class PickupCredential(val credential: String, val expiresAt: String)
+
+@Serializable
+data class CredentialRequest(val validForMinutes: Int = 30)
+
+@Serializable
+data class DelegationRequest(val userId: String)
+
+@Serializable
+data class ConfirmPickup(val collectorId: String, val credential: String)
+
+@Serializable
+data class ReceiptKey(val fingerprint: String, val packageId: String)
+
