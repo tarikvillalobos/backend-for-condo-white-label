@@ -2938,3 +2938,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/AttendanceRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/lost-pets":
+    get:
+      tags: ["Pets"]
+      summary: "List public lost-pet notices"
+      operationId: "get_api_v1_locations_locationId_lost_pets"
+      description: "Required permission: pets.read.own or pets.read.all. The client and location must enable the pets feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
