@@ -18,3 +18,23 @@ internal fun Route.profileRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val actor = tx.authenticate(token)
                 tx.get("account", actor.userId, actor.tenantId)!!.profile()
+            })
+        }
+        patch {
+            val request = call.receive<ProfileRequest>()
+            val name = normalizedName(request.name)
+            val token = call.identityBearer()
+            call.respond(db.query { tx ->
+                val actor = tx.authenticate(token)
+                val account = tx.get("account", actor.userId, actor.tenantId)!!
+                tx.update(account, body(account.decode<Account>().copy(name = name))).profile()
+            })
+        }
+        post("/password") {
+            val request = call.receive<PasswordRequest>()
+            Passwords.validate(request.newPassword)
+            val token = call.identityBearer()
+            val result = db.query { tx -> tx.changePassword(tx.authenticate(token), request, call.request.local.remoteHost) }
+            call.respond(result.unwrap())
+        }
+        post("/contact/request") {
