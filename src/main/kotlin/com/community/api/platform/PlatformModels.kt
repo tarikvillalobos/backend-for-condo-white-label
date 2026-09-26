@@ -49,6 +49,7 @@ data class InvitationRequest(
     val unitId: String? = null,
     val role: String = "resident",
     val expiresAt: String? = null,
+    val relationship: String? = null,
 )
 
 @Serializable
