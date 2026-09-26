@@ -98,3 +98,23 @@ class NotificationMailTest {
             db.notificationFixture()
             val calls = AtomicInteger()
             val sender = MailSender { _, _ -> delay(30); calls.incrementAndGet() }
+            coroutineScope {
+                listOf(async { deliverNotificationMailBatch(db, config, sender) },
+                    async { deliverNotificationMailBatch(db, config, sender) }).awaitAll()
+            }
+            assertEquals(1, calls.get())
+        }
+    }
+
+    private fun Database.notificationFixture(): Record {
+        val account = seedIdentity()
+        return tx { tx ->
+            tx.update(tx.get("client", tenantA, tenantA)!!, body(ClientSettings("Test client")))
+            val location = tx.create("location", tenantA, data = body(Location("Test location")))
+            tx.create("membership", tenantA, location.id, account.id, body(Membership(account.id, location.id)))
+            tx.create("notification", tenantA, location.id, account.id, body(InboxNotification("Private package", "Private pickup credential", "2026-09-26T00:00:00Z")))
+        }
+    }
+
+    private fun Tx.setEmailPreference(userId: String, enabled: Boolean) {
+        val existing = list("notification_preferences", tenantA, ownerId = userId).firstOrNull()
