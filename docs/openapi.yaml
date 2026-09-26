@@ -1,0 +1,20 @@
+# OpenAPI contract for the implemented HTTP routes.
+# Update this file when route methods, paths, or DTOs change.
+openapi: "3.1.0"
+info:
+  title: "Community API"
+  version: "0.1.0"
+  description: "Kotlin/Ktor API for white-label condo and smart locker applications. IDs are opaque strings. Human sessions select a tenant at sign-in; branding never grants access. Protected operations enforce active membership, enabled features, action permissions, and resource ownership. ISO timestamps use an explicit UTC offset. JSON request bodies reject unknown properties. The request body limit is 3 MiB. Permissions listed in descriptions are additional to authentication. See docs/identity.md, docs/deliveries.md, docs/reservations.md, and docs/community.md for workflow rules."
+servers:
+  - {"url":"http://localhost:8080","description":"Local development"}
+security:
+  -
+    SessionBearer: []
+paths:
+  "/health/live":
+    get:
+      tags: ["Health"]
+      summary: "Check liveness"
+      operationId: "get_health_live"
+      security: []
+      responses:
