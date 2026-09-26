@@ -2178,3 +2178,23 @@ paths:
           schema: {"type":"string"}
           description: "Selected location ID."
         -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/VehicleInput"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/VehicleInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+    delete:
+      tags: ["Vehicles"]
+      summary: "Delete vehicles"
