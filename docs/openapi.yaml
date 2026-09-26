@@ -4138,3 +4138,23 @@ components:
     ContactConfirmation:
       type: "object"
       additionalProperties: false
+      properties:
+        token: {"type":"string"}
+      required: ["token"]
+    ContactInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        category:
+          type: "string"
+          enum: ["emergency","administration","maintenance","service"]
+        phone:
+          type: ["string","null"]
+          default: null
+        email:
+          type: ["string","null"]
+          default: null
+        website:
+          type: ["string","null"]
+          default: null
