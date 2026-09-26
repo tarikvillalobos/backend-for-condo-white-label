@@ -3598,3 +3598,23 @@ paths:
           description: "A compatible provider is not configured."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/ApiError"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/notifications":
+    get:
+      tags: ["Notifications"]
+      summary: "Read your inbox across authorized locations"
+      operationId: "get_api_v1_notifications"
+      description: "Required permission: notifications.read. The client and location must enable the notifications feature."
+      parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/InboxNotificationRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/notifications/unread-count":
+    get:
