@@ -60,7 +60,10 @@ without waiting for token expiry. Access lasts 15 minutes; refresh lasts at most
 30 days, rotates on use, and detects replay. Password hashes use PBKDF2-HMAC-SHA256
 with individual salts and 600,000 iterations.
 
-## Consistency requirements
+Invitations, recovery, OTP, and verified contact changes have expiring, bounded,
+single-use challenges. Sensitive administration requires recent password
+verification. Rate limits are durable and scoped to account and connection
+source; forwarding headers are not trusted as authentication or network identity.
 
 Use durable transactions and database constraints for concurrent reservations,
 single-use credentials, and idempotent operations. Provider events need a stable
