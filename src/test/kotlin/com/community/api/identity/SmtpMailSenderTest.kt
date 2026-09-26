@@ -38,3 +38,23 @@ class SmtpMailSenderTest {
     private fun serve(server: ServerSocket): List<String> {
         server.soTimeout = 5000
         val lines = mutableListOf<String>()
+        server.accept().use { socket ->
+            socket.soTimeout = 5000
+            val reader = socket.getInputStream().bufferedReader()
+            val writer = socket.getOutputStream().bufferedWriter()
+            fun reply(value: String) { writer.write("$value\r\n"); writer.flush() }
+            reply("220 localhost test SMTP")
+            while (true) {
+                val line = reader.readLine() ?: break
+                lines += line
+                when {
+                    line.startsWith("EHLO") -> reply("250-localhost\r\n250-AUTH PLAIN\r\n250 8BITMIME")
+                    line.startsWith("AUTH PLAIN") -> reply("235 Authentication accepted")
+                    line.startsWith("MAIL FROM") || line.startsWith("RCPT TO") -> reply("250 OK")
+                    line == "DATA" -> {
+                        reply("354 Send data")
+                        while (true) {
+                            val content = reader.readLine() ?: break
+                            if (content == ".") break
+                            lines += content
+                        }
