@@ -58,3 +58,23 @@ class PlatformTest {
     fun `location may be suspended and restored by client administrator`() = testApplication {
         val f = PlatformFixture()
         application { module(f.db) }
+        for (active in listOf(false, true)) {
+            val response = client.put("/api/v1/locations/${f.location}") {
+                bearerAuth(f.token); contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(Location("Location", active = active)))
+            }
+            assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        }
+        val response = client.put("/api/v1/client") {
+            bearerAuth(f.token); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ClientSettings("Client", active = false)))
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `disabled features are absent from reports and blocked in exports`() = testApplication {
+        val f = PlatformFixture()
+        f.db.tx { tx ->
+            val location = tx.requireRecord("location", f.location, f.tenant)
+            tx.update(location, body(location.decode<Location>().copy(features = allFeatures - "packages")))
