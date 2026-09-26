@@ -78,3 +78,23 @@ Permissions: `requests.create`, `requests.read.own`, `requests.read.all`,
 
 ## Visitors
 
+- `GET /visitors`, `POST /visitors`.
+- `POST /visitors/{id}/revoke`.
+- `POST /visitors/{id}/check-in`: `{admissionCode}`.
+- `POST /visitors/{id}/check-out`.
+
+`VisitorInput`: `name`, `purpose`, `validFrom`, `validUntil`, optional `unitId`,
+`singleUse` (default true). Validity windows may span at most 90 days.
+Creation returns `{invitation,admissionCode}`. Only a SHA-256 credential hash is
+persisted; the admission code is returned once and is omitted from all lists.
+Creation requires `Idempotency-Key` (8–128 characters: letters, digits, `_`, `.`,
+`:`, or `-`). Reusing a key within the same user and location returns 409 without
+creating another invitation or reissuing its code. If the first response was lost,
+revoke the invitation and create a replacement with a new key.
+Checking in requires staff permission, the code, current inviter membership,
+an active validity window, and unused admission when single-use is enabled.
+Checkout is separate from revocation. Physical gate commands are not implied.
+
+Permissions: `visitors.create`, `visitors.read.own`, `visitors.read.all`,
+`visitors.manage`, `visitors.checkin`.
+
