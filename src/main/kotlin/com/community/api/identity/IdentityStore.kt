@@ -38,3 +38,23 @@ fun Tx.createAccount(tenantId: String, email: String, password: String, name: St
     if (findAccount(tenantId, normalized) != null) conflict("Account already exists")
     val account = Account(normalized, normalizedName(name), Passwords.hash(password))
     return create("account", tenantId, data = body(account))
+}
+
+internal fun Record.profile(): Profile = decode<Account>().let { Profile(id, tenantId, it.email, it.name) }
+
+internal fun Tx.revokeSessions(tenantId: String, userId: String) {
+    list("session", tenantId, ownerId = userId).forEach {
+        val session = it.decode<SessionData>()
+        if (!session.revoked) update(it, body(session.copy(revoked = true)))
+    }
+}
+
+internal fun parseToken(token: String): List<String>? = token.takeIf { it.length in 50..300 }
+    ?.split('.')?.takeIf { it.size == 3 && it.all { part -> part.isNotBlank() } }
+
+internal fun Tx.identityAudit(tenantId: String, userId: String?, action: String) {
+    create("audit", tenantId, ownerId = userId, data = kotlinx.serialization.json.buildJsonObject {
+        put("action", kotlinx.serialization.json.JsonPrimitive(action))
+        userId?.let { put("actorId", kotlinx.serialization.json.JsonPrimitive(it)) }
+    })
+}
