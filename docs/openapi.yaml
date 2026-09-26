@@ -3558,3 +3558,23 @@ paths:
         -
           name: "locationId"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "501":
+          description: "A compatible provider is not configured."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ApiError"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/cameras/{id}/recordings":
+    get:
+      tags: ["Cameras"]
+      summary: "Report unavailable camera provider"
