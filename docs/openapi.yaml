@@ -2618,3 +2618,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ContactInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ContactInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/contacts/{id}":
+    put:
+      tags: ["Contacts"]
+      summary: "Update contacts"
+      operationId: "put_api_v1_locations_locationId_contacts_id"
+      description: "Required permission: contacts.manage. The client and location must enable the contacts feature."
+      parameters:
