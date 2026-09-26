@@ -78,3 +78,8 @@ class ConciergeEscalationTest {
                 val membership = tx.list("membership", f.tenant, f.location, f.other.id).single()
                 tx.update(membership, body(membership.decode<Membership>().copy(role = "concierge")))
             }
+            assertTrue(client.get(f.path("shift-notes")) { bearerAuth(f.other.token) }.bodyAsText().contains(note.message))
+            assertEquals(1, f.db.tx { it.list("shift_note", f.tenant, f.location).size })
+        }
+    }
+}
