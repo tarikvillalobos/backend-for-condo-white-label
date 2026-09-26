@@ -58,3 +58,21 @@ fun Route.attachmentRoutes(db: Database) {
                 val record = tx.requireRecord("attachment", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
                 val data = record.decode<AttachmentData>()
                 if (record.ownerId != ctx.userId && !ctx.can("attachments.read.all") && !(data.visibility == "location" && ctx.can("documents.read"))) notFound()
+                tx.audit(ctx, "attachment.downloaded", record.id)
+                data
+            }
+            call.response.headers.append(HttpHeaders.ContentDisposition, "attachment; filename=\"${data.filename}\"")
+            call.respondBytes(Base64.getDecoder().decode(data.contentBase64), ContentType.parse(data.contentType))
+        }
+        delete("/{id}") {
+            db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.parameters["locationId"]!!, setOf("attachments.create", "documents.manage"), "documents")
+                val record = tx.requireRecord("attachment", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
+                if (record.ownerId != ctx.userId && !ctx.can("documents.manage")) notFound()
+                tx.delete(record)
+                tx.audit(ctx, "attachment.deleted", record.id)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
