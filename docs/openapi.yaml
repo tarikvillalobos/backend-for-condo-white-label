@@ -2198,3 +2198,23 @@ paths:
     delete:
       tags: ["Vehicles"]
       summary: "Delete vehicles"
+      operationId: "delete_api_v1_locations_locationId_vehicles_id"
+      description: "Required permission: vehicles.manage.own or vehicles.manage. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/parking":
+    get:
