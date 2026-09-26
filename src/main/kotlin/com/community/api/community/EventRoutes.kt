@@ -18,3 +18,23 @@ data class Attendance(val eventId: String)
 internal fun EventInput.validated(): EventInput {
     if (!instant(endsAt, "endsAt").isAfter(instant(startsAt, "startsAt"))) badRequest("End must follow start")
     if (capacity !in 1..10000) badRequest("Capacity must be between 1 and 10000")
+    return copy(title = text(title, "title", 160), description = text(description, "description", 10000))
+}
+internal fun Route.eventRoutes(db: Database) {
+    route("/events") {
+        get {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.read", "events")
+                tx.list("event", ctx.tenantId, ctx.locationId)
+            })
+        }
+        post {
+            val input = call.receive<EventInput>().validated()
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.manage", "events")
+                tx.saved(ctx, "event", body(CommunityEvent(input)))
+            })
+        }
+        put("/{id}") {
+            val input = call.receive<EventInput>().validated()
+            call.respond(db.query { tx ->
