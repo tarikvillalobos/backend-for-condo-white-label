@@ -138,3 +138,14 @@ class Tx internal constructor(private val connection: Connection) {
         connection.prepareStatement("DELETE FROM app_records WHERE id=? AND tenant_id=? AND version=?").use {
             it.setString(1, record.id)
             it.setString(2, record.tenantId)
+            it.setInt(3, record.version)
+            if (it.executeUpdate() != 1) conflict()
+        }
+    }
+
+    private fun ResultSet.record() = Record(
+        getString("id"), getString("kind"), getString("tenant_id"), getString("location_id"),
+        getString("owner_id"), json.parseToJsonElement(getString("payload")) as kotlinx.serialization.json.JsonObject,
+        getString("created_at"), getString("updated_at"), getInt("version"),
+    )
+}
