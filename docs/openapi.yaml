@@ -5178,3 +5178,23 @@ components:
           type: ["string","null"]
           default: null
       required: ["name"]
+    UnitDataRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/UnitData"}
+    UnitDataRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/UnitDataRecord"}
+    UnreadNotifications:
+      type: "object"
+      additionalProperties: false
+      properties:
