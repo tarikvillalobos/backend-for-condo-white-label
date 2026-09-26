@@ -38,3 +38,9 @@ object SmtpMailSender : MailSender {
             sentDate = Date()
             saveChanges()
         }
+        session.getTransport("smtp").use { transport ->
+            transport.connect(config.host, config.port, config.username, config.password)
+            transport.sendMessage(mime, mime.allRecipients)
+        }
+    }
+}
