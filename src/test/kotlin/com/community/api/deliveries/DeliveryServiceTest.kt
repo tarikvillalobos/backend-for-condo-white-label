@@ -18,3 +18,23 @@ class DeliveryServiceTest {
 
     private fun database(): Database = Database.memory().also { db ->
         db.tx { tx ->
+            listOf("staff", "recipient", "outsider", "delegate").forEach { userId ->
+                tx.create("account", "tenant", data = buildJsonObject { put("active", true) }, id = userId)
+                tx.create("membership", "tenant", "standalone", userId, body(Membership(userId, "standalone")))
+            }
+        }
+    }
+
+    @Test
+    fun `receipt is idempotent and confined to a standalone location`() = database().use { db ->
+        val request = ReceivePackage("recipient", "Small parcel")
+        val first = db.tx { service.receive(it, staff, request, "receipt-1") }
+        val repeated = db.tx { service.receive(it, staff, request, "receipt-1") }
+        assertEquals(first.id, repeated.id)
+        assertEquals(1, db.tx { it.list("package", "tenant").size })
+        assertEquals(1, db.tx { it.list("notification", "tenant").size })
+        assertEquals(409, assertFailsWith<ApiException> {
+            db.tx { service.receive(it, staff, request.copy(description = "Different"), "receipt-1") }
+        }.status)
+        assertEquals(403, assertFailsWith<ApiException> { db.tx { service.get(it, outsider, first.id) } }.status)
+        assertEquals(404, assertFailsWith<ApiException> {
