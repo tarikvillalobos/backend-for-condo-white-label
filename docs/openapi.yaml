@@ -4418,3 +4418,23 @@ components:
       required: ["status"]
     InboxNotification:
       type: "object"
+      additionalProperties: false
+      properties:
+        title: {"type":"string"}
+        message: {"type":"string"}
+        readAt:
+          type: ["string","null"]
+          default: null
+          format: "date-time"
+      required: ["title","message"]
+    InboxNotificationRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/InboxNotification"}
+    InboxNotificationRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
