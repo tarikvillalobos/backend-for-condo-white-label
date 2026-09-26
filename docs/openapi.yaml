@@ -938,3 +938,23 @@ paths:
         -
           name: "locationId"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/AttachmentInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AttachmentView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/attachments/{id}":
+    get:
+      tags: ["Documents"]
+      summary: "Download an authorized attachment"
+      operationId: "get_api_v1_locations_locationId_attachments_id"
