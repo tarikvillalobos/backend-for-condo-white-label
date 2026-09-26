@@ -2678,3 +2678,23 @@ paths:
           name: "id"
           in: "path"
           required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "204": {"description":"Completed; no response body."}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/cameras":
+    get:
+      tags: ["Cameras"]
+      summary: "List authorized cameras"
+      operationId: "get_api_v1_locations_locationId_cameras"
+      description: "Required permission: cameras.view. The client and location must enable the cameras feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
