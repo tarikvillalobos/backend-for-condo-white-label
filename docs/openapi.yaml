@@ -198,3 +198,23 @@ paths:
       tags: ["Identity"]
       summary: "Update your display name"
       operationId: "patch_api_v1_me"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ProfileRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Profile"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/me/verify":
+    post:
+      tags: ["Identity"]
+      summary: "Verify your password for sensitive operations"
+      operationId: "post_api_v1_me_verify"
+      requestBody:
+        required: true
+        content:
