@@ -78,3 +78,23 @@ internal fun Route.maintenanceRoutes(db: Database) {
             val evidence = input.evidence.map(::url)
             call.respond(db.query { tx ->
                 val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("maintenance.work", "maintenance.manage"), "maintenance")
+                val row = tx.record(ctx, "work_order", call.resourceId())
+                val order = row.decode<WorkOrder>()
+                if (!ctx.can("maintenance.manage") && order.content.assignedTo != ctx.userId) forbidden()
+                validateWorkOrderTransition(order.status, input.status)
+                if (input.status in setOf("cancelled", "scheduled") && !ctx.can("maintenance.manage")) forbidden()
+                tx.saved(ctx, "work_order_history", body(WorkOrderHistory(row.id, input.status, notes, evidence)), order.content.assignedTo)
+                tx.changed(ctx, row, body(order.copy(status = input.status, completionNotes = notes, evidence = evidence)), "work_order.status.changed")
+            })
+        }
+        get("/{id}/history") {
+            call.respondPage(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("maintenance.read", "maintenance.manage"), "maintenance")
+                val row = tx.record(ctx, "work_order", call.resourceId())
+                if (!ctx.can("maintenance.manage") && row.decode<WorkOrder>().content.assignedTo != ctx.userId) forbidden()
+                tx.list("work_order_history", ctx.tenantId, ctx.locationId).filter { it.decode<WorkOrderHistory>().orderId == row.id }
+            })
+        }
+    }
+    route("/equipment") {
+        get {
