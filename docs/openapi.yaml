@@ -4118,3 +4118,23 @@ components:
           description: "Server-managed occupancy. Omit when creating or updating a locker."
       required: ["id","label"]
     Configuration:
+      type: "object"
+      properties:
+        client: {"$ref":"#/components/schemas/Record"}
+        brands:
+          type: "array"
+          items: {"$ref":"#/components/schemas/Record"}
+        memberships:
+          type: "array"
+          items: {"$ref":"#/components/schemas/Record"}
+      required: ["client","brands","memberships"]
+    ConfirmPickup:
+      type: "object"
+      additionalProperties: false
+      properties:
+        collectorId: {"type":"string"}
+        credential: {"type":"string"}
+      required: ["collectorId","credential"]
+    ContactConfirmation:
+      type: "object"
+      additionalProperties: false
