@@ -118,3 +118,19 @@ class ApplicationTest {
     }
 
     private suspend fun HttpResponse.jsonBody(): JsonObject =
+        Json.parseToJsonElement(bodyAsText()).jsonObject
+
+    private suspend fun HttpResponse.assertError(
+        expectedStatus: HttpStatusCode,
+        expectedCode: String,
+        expectedMessage: String,
+    ) {
+        assertEquals(expectedStatus, status)
+        assertEquals(ContentType.Application.Json, contentType()?.withoutParameters())
+        val error = jsonBody()
+        assertEquals(setOf("code", "message", "requestId"), error.keys)
+        assertEquals(expectedCode, error["code"]?.jsonPrimitive?.content)
+        assertEquals(expectedMessage, error["message"]?.jsonPrimitive?.content)
+        assertEquals(requestId(), error["requestId"]?.jsonPrimitive?.content)
+    }
+}
