@@ -1858,3 +1858,23 @@ paths:
         required: true
         content:
           "application/json":
+            schema: {"$ref":"#/components/schemas/AnnouncementInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AnnouncementRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/announcements/{id}":
+    put:
+      tags: ["Announcements"]
+      summary: "Update announcements"
+      operationId: "put_api_v1_locations_locationId_announcements_id"
+      description: "Required permission: announcements.manage. The client and location must enable the announcements feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
