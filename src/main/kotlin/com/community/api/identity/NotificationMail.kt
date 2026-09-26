@@ -58,3 +58,23 @@ internal fun Tx.notificationEmail(notification: Record): String? {
 
 internal fun Tx.claimNotificationDelivery(): Record? {
     val now = Instant.now()
+    for (client in clients()) {
+        for (notification in list("notification", client.id)) {
+            val id = notificationDeliveryId(notification.id)
+            val existing = get("notification_delivery", id, notification.tenantId)
+            val data = existing?.decode<NotificationEmailDelivery>() ?: NotificationEmailDelivery()
+            if (data.status != "pending" || data.nextAttemptAt?.let { Instant.parse(it).isAfter(now) } == true ||
+                data.leaseUntil?.let { Instant.parse(it).isAfter(now) } == true) continue
+            val status = when {
+                notificationEmail(notification) == null -> "suppressed"
+                data.attempts >= 5 -> "failed"
+                else -> "pending"
+            }
+            val updated = if (status == "pending") data.copy(attempts = data.attempts + 1,
+                leaseId = UUID.randomUUID().toString(), leaseUntil = now.plusSeconds(300).toString())
+            else data.copy(status = status, leaseId = null, leaseUntil = null)
+            val row = if (existing == null) create("notification_delivery", notification.tenantId, notification.locationId,
+                notification.ownerId, body(updated), id) else update(existing, body(updated))
+            if (status == "pending") return row
+        }
+    }
