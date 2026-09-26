@@ -3678,3 +3678,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/NotificationPreferences"}
+        default: {"$ref":"#/components/responses/Error"}
+    put:
+      tags: ["Notifications"]
+      summary: "Update your communication preferences"
+      operationId: "put_api_v1_notifications_preferences"
+      description: "Preferences control supported email delivery. Push and SMS require provider adapters; SMTP must be configured for email delivery. Required permission: notifications.manage. The client and location must enable the notifications feature."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/NotificationPreferences"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/NotificationPreferences"}
