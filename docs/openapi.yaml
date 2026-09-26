@@ -3418,3 +3418,23 @@ paths:
       description: "Required permission: documents.manage. The client and location must enable the documents feature."
       parameters:
         -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/DocumentInput"}
+      responses:
+        "201":
+          description: "Created."
+          content:
