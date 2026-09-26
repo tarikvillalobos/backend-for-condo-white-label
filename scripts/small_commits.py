@@ -38,3 +38,23 @@ def commit_file(path):
     if not file.is_file() or file.is_symlink():
         raise ValueError(f"Expected a regular file: {path}")
     target = file.read_bytes()
+    current = head_content(path)
+    mode = "100755" if os.access(file, os.X_OK) else "100644"
+    if b"\0" in target or b"\0" in current:
+        if current != target:
+            stage_and_commit(path, target, mode, 1)
+        return
+    before, after = current.splitlines(keepends=True), target.splitlines(keepends=True)
+    part = 0
+    while before != after:
+        for operation, start, end, new_start, new_end in difflib.SequenceMatcher(
+            None, before, after, autojunk=False,
+        ).get_opcodes():
+            if operation == "equal":
+                continue
+            if operation == "delete":
+                del before[start:min(end, start + 20)]
+            elif operation == "insert":
+                before[start:start] = after[new_start:min(new_end, new_start + 20)]
+            else:
+                before[start:min(end, start + 10)] = after[new_start:min(new_end, new_start + 10)]
