@@ -51,12 +51,7 @@ There are no database foreign keys between JSON payload references. Domain
 services validate these references inside the transaction; direct database writes
 must not bypass those rules.
 
-Resolve the authenticated actor and active grants from trusted server-side state.
-Validate client, authorized location, enabled feature, action permission, and
-resource ownership for every operation. A supplied client ID, brand, unit ID, or
-role name cannot establish authorization. Repository queries and exports must
-apply the same restrictions. Session and membership revocation must take effect
-on subsequent requests.
+## Identity and sessions
 
 A standalone locker location belongs to a client and does not require a
 condominium or unit. Household relationships do not grant permission to collect
