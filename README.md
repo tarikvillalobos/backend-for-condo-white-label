@@ -219,7 +219,10 @@ These extensions require their own business rules and permissions. Full accounti
 
 ### Prerequisites
 
-Install a Java 21 JDK and make it available through `JAVA_HOME` or `PATH`. Use the included Gradle Wrapper; a separate Gradle installation is not required. The first build downloads Gradle and project dependencies and requires internet access.
+Install Java 21 and expose it through `JAVA_HOME` or `PATH`. Use the included
+Gradle Wrapper. The first build downloads dependencies and needs internet access.
+PostgreSQL is required when `APP_ENV=production`; development defaults to a local
+H2 file under `data/`.
 
 ### Build and Test
 
