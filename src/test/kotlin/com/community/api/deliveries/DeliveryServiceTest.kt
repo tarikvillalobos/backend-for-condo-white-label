@@ -78,3 +78,23 @@ class DeliveryServiceTest {
             db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("outsider", credential.credential)) }
         }.status)
         val delegate = outsider.copy(actor = outsider.actor.copy(userId = "delegate"))
+        assertEquals(parcel.id, db.tx { service.get(it, delegate, parcel.id) }.id)
+        assertEquals("delegate", db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("delegate", credential.credential)) }.collectorId)
+    }
+
+    @Test
+    fun `expired and revoked credentials cannot confirm collection`() = database().use { db ->
+        val parcel = db.tx { service.receive(it, staff, ReceivePackage("recipient", "Parcel"), "receipt") }
+        val credential = db.tx { service.credential(it, recipient, parcel.id, 1) }
+        val later = DeliveryService(Clock.offset(clock, java.time.Duration.ofMinutes(2)))
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { later.confirmPickup(it, staff, parcel.id, ConfirmPickup("recipient", credential.credential)) }
+        }.status)
+        db.tx { service.revokeCredential(it, recipient, parcel.id) }
+        assertEquals(403, assertFailsWith<ApiException> {
+            db.tx { service.confirmPickup(it, staff, parcel.id, ConfirmPickup("recipient", credential.credential)) }
+        }.status)
+    }
+
+    @Test
+    fun `occupied and maintenance compartments cannot receive another package`() = database().use { db ->
