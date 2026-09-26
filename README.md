@@ -224,7 +224,7 @@ Gradle Wrapper. The first build downloads dependencies and needs internet access
 PostgreSQL is required when `APP_ENV=production`; development defaults to a local
 H2 file under `data/`.
 
-### Build and Test
+### Build and test
 
 ```sh
 ./gradlew build
