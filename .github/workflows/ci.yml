@@ -38,3 +38,12 @@ jobs:
         run: ./gradlew --no-daemon build installDist
         env:
           TEST_DATABASE_URL: jdbc:postgresql://localhost:5432/community_test
+          TEST_DATABASE_USER: community
+          TEST_DATABASE_PASSWORD: community_test_only
+      - name: Build runtime container
+        run: docker build -t community-api:ci .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: test-results
+          path: build/reports/tests/test
