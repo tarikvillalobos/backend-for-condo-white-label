@@ -82,10 +82,11 @@ location, enabled feature, and action permission. Location/resource ownership
 and field-level restrictions are checked inside the same transaction as writes.
 The same resource restrictions apply to reports and exports.
 
-The default listener is local (`127.0.0.1`). Configure `HOST` explicitly for a
-container or server. This foundation has no authentication or business data;
-production deployment requires the authorization, persistence, integration,
-retention, monitoring, and recovery work described in the README.
+Memberships may be scoped to a location and unit, or deliberately client-wide.
+Roles are permission sets; custom roles and direct grants are constrained by the
+assigning administrator's authority. Client administrators have explicit
+client-wide privileges. Other roles remain scoped to their memberships.
+Unit membership alone never grants collection rights for another person's parcel.
 
 ## Delivery order
 
