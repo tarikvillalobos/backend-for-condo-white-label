@@ -59,6 +59,9 @@ provider-dependent features and optional workflows are identified separately.
 ## Product scope
 
 The following sections preserve the full product brief. Use the implementation
+matrix above and endpoint documentation to distinguish available workflows from
+provider-dependent or future capabilities.
+
 
 ### Authentication and Account Management
 
