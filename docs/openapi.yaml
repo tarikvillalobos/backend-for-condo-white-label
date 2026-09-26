@@ -3458,3 +3458,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/DocumentVersionRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/documents/{id}/acknowledge":
+    post:
+      tags: ["Documents"]
+      summary: "Acknowledge the current document revision"
+      operationId: "post_api_v1_locations_locationId_documents_id_acknowledge"
+      description: "Required permission: documents.read. The client and location must enable the documents feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
