@@ -38,3 +38,4 @@ internal fun Route.sessionRoutes(db: Database) {
             call.respond(Accepted())
         }
     }
+}
