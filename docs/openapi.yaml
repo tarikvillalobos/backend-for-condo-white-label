@@ -1418,3 +1418,23 @@ paths:
           name: "id"
           in: "path"
           required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/PackageView"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/lockers":
+    get:
+      tags: ["Packages"]
+      summary: "List lockers and compartment occupancy"
+      operationId: "get_api_v1_locations_locationId_lockers"
+      description: "Required permission: lockers.read or lockers.manage. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
