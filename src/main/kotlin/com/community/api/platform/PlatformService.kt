@@ -34,6 +34,8 @@ fun Brand.validate() {
 }
 
 fun Tx.validateMembership(context: Context, membership: Membership, allowInactiveAccount: Boolean = false) {
+    if (membership.relationship != null && membership.relationship !in setOf("owner", "tenant", "dependent", "household")) badRequest("Invalid unit relationship")
+    if (membership.relationship != null && membership.unitId == null) badRequest("Unit relationship requires a unit")
     if (membership.locationId != context.locationId) forbidden()
     if (membership.role == "client_admin" && membership.locationId != null) badRequest("Client administrators require client scope")
     if (membership.role == "client_admin" && membership.expiresAt != null) badRequest("Client administrator memberships cannot expire")
