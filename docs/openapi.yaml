@@ -2598,3 +2598,23 @@ paths:
           required: true
           schema: {"type":"string"}
           description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ContactInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Contacts"]
+      summary: "Create contacts"
+      operationId: "post_api_v1_locations_locationId_contacts"
+      description: "Required permission: contacts.manage. The client and location must enable the contacts feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
