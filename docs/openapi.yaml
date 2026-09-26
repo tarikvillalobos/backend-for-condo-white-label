@@ -758,3 +758,23 @@ paths:
           "application/json":
             schema: {"$ref":"#/components/schemas/Location"}
       responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/LocationRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/units":
+    get:
+      tags: ["Platform"]
+      summary: "List authorized residential units"
+      operationId: "get_api_v1_locations_locationId_units"
+      description: "Required permission: locations.read."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
