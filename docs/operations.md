@@ -103,6 +103,25 @@ features remain outside this implementation.
 
 ## Commit policy
 
+## Verification
+
+Run `./gradlew build installDist` and `python3 scripts/smoke_test.py` for local
+tests and a complete HTTP journey with restart persistence. The smoke test uses
+an isolated temporary database and generated credentials, then removes them.
+
+The OpenAPI validator also checks that every implemented route is documented:
+
+```sh
+python3 -m venv build/spec-venv
+build/spec-venv/bin/pip install -r requirements-dev.txt
+build/spec-venv/bin/python scripts/check_openapi.py
+```
+
+CI runs these checks, PostgreSQL integration tests, a container build, and the
+commit-history policy. Python 3.9 or later is needed for the helper scripts.
+
+## Commit policy
+
 Use `python3 scripts/small_commits.py FILE... --push` to split text changes into
 commits of at most 20 added/deleted lines, one file per commit on `main`.
 `python3 scripts/check_commits.py` verifies the entire history, including in CI.
