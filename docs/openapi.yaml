@@ -3778,3 +3778,23 @@ components:
             data: {"$ref":"#/components/schemas/Acknowledgment"}
     AcknowledgmentRecordPage:
       allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/AcknowledgmentRecord"}
+    ActivationRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        token: {"type":"string"}
+        password: {"type":"string","format":"password","writeOnly":true,"minLength":12,"maxLength":256}
+      required: ["token","password"]
+    Announcement:
+      type: "object"
+      additionalProperties: false
+      properties:
+        content: {"$ref":"#/components/schemas/AnnouncementInput"}
+        archived: {"type":"boolean","default":false}
