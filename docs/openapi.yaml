@@ -4198,3 +4198,23 @@ components:
       allOf:
         - {"$ref":"#/components/schemas/Record"}
         -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/ContractorInput"}
+    ContractorInputRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/ContractorInputRecord"}
+    CreateReservation:
+      type: "object"
+      additionalProperties: false
+      properties:
+        facilityId: {"type":"string"}
+        startsAt: {"type":"string","format":"date-time"}
+        endsAt: {"type":"string","format":"date-time"}
+        attendees: {"type":"integer","format":"int32","default":1}
