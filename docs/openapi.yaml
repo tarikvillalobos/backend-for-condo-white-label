@@ -1378,3 +1378,23 @@ paths:
   "/api/v1/locations/{locationId}/packages/{id}/remind":
     post:
       tags: ["Packages"]
+      summary: "Send an inbox reminder at most once per day"
+      operationId: "post_api_v1_locations_locationId_packages_id_remind"
+      description: "Required permission: packages.receive. The client and location must enable the packages feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
