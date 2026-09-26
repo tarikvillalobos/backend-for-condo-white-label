@@ -1,6 +1,8 @@
 package com.community.api.community
 
 import com.community.api.core.*
+import com.community.api.identity.NotificationDeliveryStatus
+import com.community.api.identity.notificationMailStatus
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
