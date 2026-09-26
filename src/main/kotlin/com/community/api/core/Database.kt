@@ -58,3 +58,23 @@ class Database(url: String, user: String = "sa", password: String = "") : AutoCl
             require(url.startsWith("jdbc:h2:") || url.startsWith("jdbc:postgresql:")) { "Unsupported DATABASE_URL" }
             if (env["APP_ENV"] == "production") {
                 require(url.startsWith("jdbc:postgresql:")) { "Production requires PostgreSQL" }
+                require(!env["DATABASE_PASSWORD"].isNullOrBlank()) { "DATABASE_PASSWORD is required in production" }
+            }
+            return Database(url, env["DATABASE_USER"] ?: "sa", env["DATABASE_PASSWORD"] ?: "")
+        }
+    }
+}
+
+class Tx internal constructor(private val connection: Connection) {
+    // Only bootstrap/maintenance workers may enumerate tenants. Never expose this over HTTP.
+    fun clients(): List<Record> = connection.prepareStatement("SELECT * FROM app_records WHERE kind = 'client' ORDER BY id").use {
+        it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.record()) } }
+    }
+
+    fun get(kind: String, id: String, tenantId: String? = null): Record? {
+        val sql = "SELECT * FROM app_records WHERE kind = ? AND id = ?" + if (tenantId != null) " AND tenant_id = ?" else ""
+        return connection.prepareStatement(sql).use {
+            it.setString(1, kind)
+            it.setString(2, id)
+            if (tenantId != null) it.setString(3, tenantId)
+            it.executeQuery().use { rows -> if (rows.next()) rows.record() else null }
