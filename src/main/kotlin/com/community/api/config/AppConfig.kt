@@ -18,3 +18,4 @@ data class AppConfig(val host: String, val port: Int, val environment: Environme
             return AppConfig(host, port, environment)
         }
     }
+}
