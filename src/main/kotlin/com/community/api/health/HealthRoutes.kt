@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HealthResponse(val status: String)
 
-fun Route.healthRoutes() {
+fun Route.healthRoutes(database: Database) {
     route("/health") {
         get("/live") { call.respond(HealthResponse("UP")) }
         // No external dependencies exist yet. Add their checks before introducing them.
