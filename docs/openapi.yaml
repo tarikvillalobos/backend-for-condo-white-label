@@ -2218,3 +2218,23 @@ paths:
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/parking":
     get:
+      tags: ["Vehicles"]
+      summary: "List authorized parking"
+      operationId: "get_api_v1_locations_locationId_parking"
+      description: "Required permission: vehicles.read.own or vehicles.read.all. The client and location must enable the vehicles feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ParkingInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
