@@ -118,3 +118,23 @@ class ReservationService(private val clock: Clock = Clock.systemUTC()) {
         if (request.attendees !in 1..facility.capacity) badRequest("Attendees exceed facility capacity")
         val now = clock.instant()
         if (start.isBefore(now.plusSeconds(facility.minNoticeMinutes * 60L))) badRequest("Reservation does not meet minimum notice")
+        val zone = ZoneId.of(facility.timeZone)
+        val localStart = start.atZone(zone)
+        val localEnd = end.atZone(zone)
+        if (localStart.toLocalDate().isAfter(now.atZone(zone).toLocalDate().plusDays(facility.maxDaysAhead.toLong()))) {
+            badRequest("Reservation exceeds advance booking limit")
+        }
+        if (Duration.between(start, end) > Duration.ofMinutes(facility.maxDurationMinutes.toLong())) badRequest("Reservation exceeds maximum duration")
+        if (localStart.toLocalDate() != localEnd.toLocalDate() || localStart.dayOfWeek.value !in facility.weekdays ||
+            localStart.toLocalTime().isBefore(LocalTime.parse(facility.opensAt)) || localEnd.toLocalTime().isAfter(LocalTime.parse(facility.closesAt))) {
+            badRequest("Reservation is outside the facility's local operating hours")
+        }
+    }
+
+    private fun ensureNoOverlap(records: List<Record>, facilityId: String, start: Instant, end: Instant, exceptId: String? = null) {
+        if (records.any { record -> record.id != exceptId && record.decode<ReservationData>().let {
+                it.request.facilityId == facilityId && it.status in blocking &&
+                    instant(it.request.startsAt).isBefore(end) && instant(it.request.endsAt).isAfter(start)
+            } }) conflict("Facility is already reserved for this period")
+    }
+
