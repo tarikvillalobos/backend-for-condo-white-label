@@ -275,7 +275,7 @@ invitations. Domain routes use `/api/v1/locations/{locationId}`. Creation of
 packages, reservations, account invitations, and visitor invitations requires
 an `Idempotency-Key`; consult each module's retry semantics.
 
-`.env.example` lists these variables for reference. The application reads the process environment; it does not load `.env` files automatically.
+### Runtime configuration
 
 For example:
 
