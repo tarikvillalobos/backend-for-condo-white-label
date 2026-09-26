@@ -4278,3 +4278,23 @@ components:
             - "text/plain"
             - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         unitId:
+          type: ["string","null"]
+          default: null
+        acknowledgmentRequired: {"type":"boolean","default":false}
+      required: ["title","description","url","mediaType"]
+    DocumentVersion:
+      type: "object"
+      additionalProperties: false
+      properties:
+        documentId: {"type":"string"}
+        revision: {"type":"integer","format":"int32"}
+        content: {"$ref":"#/components/schemas/DocumentInput"}
+      required: ["documentId","revision","content"]
+    DocumentVersionRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/DocumentVersion"}
+    DocumentVersionRecordPage:
