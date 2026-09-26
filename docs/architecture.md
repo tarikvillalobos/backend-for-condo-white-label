@@ -19,6 +19,8 @@ src/main/kotlin/com/community/api/
   community/           # Community, visitor, content, vehicle, maintenance flows
   health/              # HTTP liveness and database readiness
   plugins/             # JSON, body limits, errors, correlation, redacted logging
+src/main/resources/db/migration/  # Flyway schema migrations
+src/test/kotlin/                   # Domain, HTTP, isolation, concurrency tests
 ```
 
 ## Planned business boundaries
