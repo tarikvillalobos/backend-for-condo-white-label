@@ -98,3 +98,7 @@ recipient authorization, and event time. A repeated event with the same payload
 returns its original result. Reuse of an event ID with changed content returns
 `409`. Events predating receipt or arriving after cancellation/collection are
 recorded as `ignored`; events more than five minutes in the future are rejected.
+
+This is an authenticated ingestion contract, not a hardware adapter. Door opening
+and provider-specific webhook signature formats still require the selected
+vendor's contract and credentials. No endpoint simulates a physical door opening.
