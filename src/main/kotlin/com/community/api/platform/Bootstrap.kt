@@ -38,3 +38,4 @@ fun changeClientState(env: Map<String, String> = System.getenv()) {
         }
     }
     println("Client $id active=$active")
+}
