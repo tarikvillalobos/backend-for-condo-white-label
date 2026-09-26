@@ -12,7 +12,11 @@ Smart locker operations must remain usable at standalone locations without requi
 
 ## Status
 
-**Initial executable foundation.** The Kotlin/Ktor service includes HTTP liveness and readiness endpoints, JSON errors, generated `X-Request-ID` headers, environment configuration, and automated tests. Business endpoints, persistence, authentication, authorization, and provider integrations are not implemented yet.
+The Kotlin/Ktor backend includes persistent storage, authentication, authorization,
+and working APIs for the modules below. The repository contains tests, deployment
+configuration, operational documentation, and an OpenAPI contract. The broader
+[Product scope](#product-scope) records requirements and possible extensions;
+provider-dependent features and optional workflows are identified separately.
 
 The capabilities and requirements below describe the planned product scope. Features will be delivered incrementally. Hardware and third-party integrations depend on provider contracts, credentials, and validation.
 
