@@ -38,3 +38,19 @@ data class Brand(
 
 @Serializable
 data class InvitationRequest(
+    val email: String,
+    val name: String,
+    val locationId: String? = null,
+    val unitId: String? = null,
+    val role: String = "resident",
+    val expiresAt: String? = null,
+)
+
+@Serializable
+data class AccountState(val active: Boolean)
+
+@Serializable
+data class AccountSummary(val id: String, val email: String, val name: String, val active: Boolean)
+
+@Serializable
+data class Report(val counts: Map<String, Int>, val statuses: Map<String, Map<String, Int>>)
