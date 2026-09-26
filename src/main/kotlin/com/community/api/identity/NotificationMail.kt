@@ -98,3 +98,6 @@ private fun Tx.finishNotificationDelivery(claim: Record, success: Boolean) {
     val now = Instant.now()
     val updated = if (success) state.copy(status = "accepted", acceptedAt = now.toString(), leaseId = null, leaseUntil = null, lastFailure = null)
     else state.copy(status = if (state.attempts >= 5) "failed" else "pending", leaseId = null, leaseUntil = null,
+        lastFailure = "smtp_delivery_failed", nextAttemptAt = now.plusSeconds(minOf(300L, 30L shl (state.attempts - 1))).toString())
+    update(row, body(updated))
+}
