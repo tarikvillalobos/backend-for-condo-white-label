@@ -38,3 +38,23 @@ are evaluated on every read, so scheduled notices do not need a publishing job.
 capacity. Transactions prevent concurrent registrations from overbooking.
 Permissions: `events.read`, `events.manage`, `events.attend`.
 
+## Pets and lost notices
+
+- `GET /pets`, `POST /pets`, `PUT /pets/{id}`, `DELETE /pets/{id}`.
+- `GET /lost-pets`, `POST /lost-pets`, `POST /lost-pets/{id}/resolve`.
+
+`PetInput`: `name`, `species`, optional `unitId`, `identification`, `photoUrl`, and
+`vaccinationUrls`. Unit association must belong to the caller unless a manager
+performs the operation. Vaccination and owner records stay private.
+`LostPetInput`: owned `petId`, public `message`, public `lastSeen`.
+Lost-notice responses contain pet name/species/photo and public text; they omit
+owner identifiers, units, identification numbers, and vaccination attachments.
+
+Permissions: `pets.read.own`, `pets.read.all`, `pets.create`, `pets.manage.own`,
+`pets.manage`. Creation does not confer access to another person's pet.
+
+## Requests, complaints, incidents, and support
+
+- `GET /requests`, `POST /requests`, `GET /requests/{id}`.
+- `POST /requests/{id}/assign`: `{userId,dueAt?}`; assignee must be an active
+  member with scoped request-management access.
