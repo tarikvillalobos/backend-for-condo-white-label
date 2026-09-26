@@ -5258,3 +5258,23 @@ components:
             data: {"$ref":"#/components/schemas/VehicleMovement"}
     VehicleMovementRecordPage:
       allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/VehicleMovementRecord"}
+    VerificationRequest:
+      type: "object"
+      additionalProperties: false
+      properties:
+        password: {"type":"string","format":"password","writeOnly":true}
+      required: ["password"]
+    VisitorCheckIn:
+      type: "object"
+      additionalProperties: false
+      properties:
+        admissionCode: {"type":"string","minLength":20,"maxLength":100}
+      required: ["admissionCode"]
+    VisitorCreated:
