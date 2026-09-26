@@ -3169,6 +3169,11 @@ paths:
             schema: {"$ref":"#/components/schemas/ShiftNoteInput"}
       responses:
         "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ShiftNoteInputRecord"}
+        default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/requests/{id}/status":
     post:
       tags: ["Requests"]
