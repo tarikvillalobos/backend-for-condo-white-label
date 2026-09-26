@@ -88,7 +88,9 @@ assigning administrator's authority. Client administrators have explicit
 client-wide privileges. Other roles remain scoped to their memberships.
 Unit membership alone never grants collection rights for another person's parcel.
 
-## Delivery order
+Brands select presentation and application configuration. They do not establish
+tenant ownership or bypass permissions. Standalone locker locations belong to a
+client but need neither a condominium nor a unit.
 
 1. Trusted identity, revocable sessions, client/location context, and permission checks.
 2. Persistent client, location, membership, and package records with audit trails.
