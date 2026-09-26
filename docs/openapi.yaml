@@ -3098,3 +3098,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests/{id}/comments":
+    get:
+      tags: ["Requests"]
+      summary: "Read comments visible to your role"
+      operationId: "get_api_v1_locations_locationId_requests_id_comments"
+      description: "Required permission: requests.read.own or requests.read.all. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
