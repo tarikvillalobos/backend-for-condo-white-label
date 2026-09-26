@@ -98,3 +98,19 @@ with tempfile.TemporaryDirectory(prefix="community-smoke-") as temporary:
             assert package["id"] == retry["id"]
             package_path = prefix + "/packages/" + package["id"]
             credential = request("POST", package_path + "/credential", {}, resident)["credential"]
+            collected = request("POST", package_path + "/confirm-pickup", {"collectorId": invitation["userId"], "credential": credential}, admin)
+            assert collected["status"] == "COLLECTED"
+            facility = request("POST", prefix + "/facilities", {"name": "Meeting room", "timeZone": "UTC", "capacity": 10}, admin, expected=201)["id"]
+            tomorrow = datetime.datetime.now(datetime.timezone.utc).replace(hour=12, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+            reservation = {"facilityId": facility, "startsAt": tomorrow.isoformat(), "endsAt": (tomorrow + datetime.timedelta(hours=1)).isoformat()}
+            request("POST", prefix + "/reservations", reservation, resident, "smoke-booking", 201)
+            request("POST", prefix + "/reservations", reservation, resident, "conflicting-booking", 409)
+        finally:
+            stop(process)
+        process = start(log)
+        try:
+            persisted = request("GET", package_path, token=resident)
+            assert persisted["status"] == "COLLECTED"
+        finally:
+            stop(process)
+print("Smoke test passed: bootstrap, login, invitation, delivery, pickup, reservation conflict, and persistence after restart.")
