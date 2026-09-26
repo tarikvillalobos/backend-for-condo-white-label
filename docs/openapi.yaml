@@ -2838,3 +2838,23 @@ paths:
           description: "Successful operation."
           content:
             "application/json":
+              schema: {"$ref":"#/components/schemas/AcknowledgmentRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/events/{id}/cancel":
+    post:
+      tags: ["Events"]
+      summary: "Cancel a community event"
+      operationId: "post_api_v1_locations_locationId_events_id_cancel"
+      description: "Required permission: events.manage. The client and location must enable the events feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
