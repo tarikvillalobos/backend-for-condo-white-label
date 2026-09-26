@@ -118,3 +118,23 @@ class DeliveryService(private val clock: Clock = Clock.systemUTC()) {
         if (!revoke) tx.requireMember(ctx.tenantId, ctx.location(), userId)
         val delegates = if (revoke) data.delegates - userId else data.delegates + userId
         if (delegates.size > 10) badRequest("A package can have at most 10 delegates")
+        val action = if (revoke) "delegate_revoked" else "delegate_authorized"
+        val updated = tx.update(record, body(data.copy(delegates = delegates,
+            credentialHash = null, credentialExpiresAt = null, history = data.history + event(ctx, action))))
+        tx.audit(ctx, "package.$action", id)
+        return view(updated)
+    }
+
+    fun reportPickup(tx: Tx, ctx: Context, id: String): PackageView {
+        val record = packageRecord(tx, ctx, id)
+        val data = record.decode<PackageData>()
+        ctx.allow("packages.read.own")
+        if (data.receipt.recipientId != ctx.userId && ctx.userId !in data.delegates) forbidden()
+        requireOutstanding(data)
+        if (data.status == "PICKUP_REPORTED") return view(record)
+        val updated = tx.update(record, body(data.copy(status = "PICKUP_REPORTED",
+            history = data.history + event(ctx, "pickup_reported"))))
+        tx.audit(ctx, "package.pickup_reported", id)
+        return view(updated)
+    }
+
