@@ -78,3 +78,19 @@ class CommunityFlowTest {
         assertFalse(notice.visibleAt(now.minusNanos(1)))
         assertTrue(notice.visibleAt(now))
         assertFalse(notice.visibleAt(now.plusSeconds(60)))
+        val invite = VisitorInvite(VisitorInput("Guest", "Visit", now.toString(), now.plusSeconds(60).toString()), credentialHash("test-code"))
+        assertEquals(409, assertFailsWith<ApiException> { invite.checkIn("test-code", now.minusNanos(1)) }.status)
+        assertEquals(1, invite.checkIn("test-code", now).visits)
+        assertEquals(409, assertFailsWith<ApiException> { invite.checkIn("test-code", now.plusSeconds(60)) }.status)
+        assertEquals(403, assertFailsWith<ApiException> { invite.checkIn("wrong-code", now) }.status)
+    }
+
+    @Test
+    fun `privileged request and maintenance transitions reject escalation`() {
+        assertEquals(403, assertFailsWith<ApiException> { validateRequestTransition("in_progress", "resolved", false) }.status)
+        validateRequestTransition("resolved", "open", false)
+        assertEquals(409, assertFailsWith<ApiException> { validateRequestTransition("cancelled", "open", true) }.status)
+        validateWorkOrderTransition("scheduled", "in_progress")
+        assertEquals(409, assertFailsWith<ApiException> { validateWorkOrderTransition("scheduled", "completed") }.status)
+    }
+}
