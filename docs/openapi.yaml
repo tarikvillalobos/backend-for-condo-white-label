@@ -4838,3 +4838,23 @@ components:
       required: ["currentPassword","newPassword"]
     PetInput:
       type: "object"
+      additionalProperties: false
+      properties:
+        name: {"type":"string"}
+        species: {"type":"string"}
+        unitId:
+          type: ["string","null"]
+          default: null
+        identification:
+          type: ["string","null"]
+          default: null
+        photoUrl:
+          type: ["string","null"]
+          default: null
+        vaccinationUrls:
+          type: "array"
+          items: {"type":"string"}
+          default: []
+      required: ["name","species"]
+    PetInputRecord:
+      allOf:
