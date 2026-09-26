@@ -3378,3 +3378,23 @@ paths:
       responses:
         "200":
           description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/WorkOrderRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/work-orders/{id}/history":
+    get:
+      tags: ["Maintenance"]
+      summary: "Read work order status and evidence history"
+      operationId: "get_api_v1_locations_locationId_work_orders_id_history"
+      description: "Required permission: maintenance.read or maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
