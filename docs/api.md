@@ -58,3 +58,23 @@ LOCATION_ID=$(printf '%s' "$LOCATION" | jq -er .id)
 RESIDENT_EMAIL=resident-walkthrough@example.test
 INVITATION=$(jq -nc \
   --arg email "$RESIDENT_EMAIL" --arg locationId "$LOCATION_ID" \
+  '{email:$email,name:"Walkthrough resident",locationId:$locationId,role:"resident"}' |
+  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/invitations" \
+    -H "Idempotency-Key: resident-$LOCATION_ID")
+RESIDENT_ID=$(printf '%s' "$INVITATION" | jq -er .userId)
+ACTIVATION_TOKEN=$(printf '%s' "$INVITATION" | jq -er .token)
+```
+
+Invitations require recent password verification. If the API returns
+`403 verification_required`, verify and repeat the invitation with the same key:
+
+```bash
+jq -nc --arg password "$ADMIN_PASSWORD" '{password:$password}' |
+  api_json POST "$ADMIN_TOKEN" /api/v1/me/verify
+```
+
+In an actual onboarding flow, securely hand the activation token to the invited
+person. For this local walkthrough, activate the resident directly:
+
+```bash
+read -r -s -p 'Resident password, at least 12 characters: ' RESIDENT_PASSWORD; printf '\n'
