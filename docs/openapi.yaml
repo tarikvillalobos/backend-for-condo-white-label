@@ -678,3 +678,23 @@ paths:
         - {"$ref":"#/components/parameters/IdempotencyKey"}
       requestBody:
         required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/InvitationRequest"}
+      responses:
+        "201":
+          description: "Created."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/InvitationIssue"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations":
+    get:
+      tags: ["Platform"]
+      summary: "List your active locations"
+      operationId: "get_api_v1_locations"
+      parameters:
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
