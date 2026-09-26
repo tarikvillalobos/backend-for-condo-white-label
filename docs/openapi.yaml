@@ -5318,3 +5318,23 @@ components:
       allOf:
         - {"$ref":"#/components/schemas/Page"}
         -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/VisitorView"}
+    WorkOrder:
+      type: "object"
+      additionalProperties: false
+      properties:
+        content: {"$ref":"#/components/schemas/WorkOrderInput"}
+        status:
+          type: "string"
+          default: "scheduled"
+          enum: ["scheduled","in_progress","completed","cancelled"]
+        completionNotes:
+          type: ["string","null"]
+          default: null
+        evidence:
+          type: "array"
+          items: {"type":"string"}
