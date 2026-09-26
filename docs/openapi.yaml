@@ -3069,6 +3069,26 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/ResidentRequestRecord"}
         default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/requests/{id}/escalate":
+    post:
+      tags: ["Requests"]
+      summary: "Escalate an open request with reason and optional reassignment"
+      operationId: "post_api_v1_locations_locationId_requests_id_escalate"
+      description: "Required permission: requests.manage. The client and location must enable the requests feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      requestBody:
   "/api/v1/locations/{locationId}/requests/{id}/status":
     post:
       tags: ["Requests"]
