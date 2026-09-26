@@ -98,3 +98,23 @@ retrying an already successful invitation returns `409` without another token.
 
 ## 3. Receive a delivery, issue a credential, and confirm pickup
 
+The administrator acts as authorized reception staff in this example. Regular
+concierge accounts use the narrower `packages.receive` and `packages.collect`
+permissions. Omitted locker fields mean reception desk storage.
+
+```bash
+PARCEL=$(jq -nc --arg recipientId "$RESIDENT_ID" \
+  '{recipientId:$recipientId,description:"Walkthrough parcel",carrier:"Example carrier"}' |
+  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/packages" \
+    -H "Idempotency-Key: parcel-$LOCATION_ID")
+PACKAGE_ID=$(printf '%s' "$PARCEL" | jq -er .id)
+
+PICKUP=$(printf '%s' '{"validForMinutes":30}' |
+  api_json POST "$RESIDENT_TOKEN" \
+    "/api/v1/locations/$LOCATION_ID/packages/$PACKAGE_ID/credential")
+PICKUP_CREDENTIAL=$(printf '%s' "$PICKUP" | jq -er .credential)
+
+jq -nc --arg collectorId "$RESIDENT_ID" --arg credential "$PICKUP_CREDENTIAL" \
+  '{collectorId:$collectorId,credential:$credential}' |
+  api_json POST "$ADMIN_TOKEN" \
+    "/api/v1/locations/$LOCATION_ID/packages/$PACKAGE_ID/confirm-pickup"
