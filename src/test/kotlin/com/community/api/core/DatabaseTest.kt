@@ -58,3 +58,5 @@ class DatabaseTest {
         assertEquals(20, db.tx { it.requireRecord("counter", id, id).data.getValue("value").jsonPrimitive.int })
     }
 
+    private fun counter(value: Int) = buildJsonObject { put("value", value) }
+}
