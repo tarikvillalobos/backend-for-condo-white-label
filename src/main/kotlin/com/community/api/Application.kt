@@ -55,6 +55,18 @@ fun main(args: Array<String>) {
 fun Application.module(database: Database = Database.fromEnvironment(), mailConfig: MailConfig? = null) {
     monitor.subscribe(ApplicationStopped) { database.close() }
     configureHttp()
+    if (mailConfig != null) launch(Dispatchers.IO) {
+        while (isActive) {
+            try {
+                val batch = deliverAuthMailBatch(database, mailConfig)
+                if (batch.failed > 0) log.warn("Authentication mail delivery failed for {} messages", batch.failed)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                log.error("Authentication mail worker failed: {}", failure.javaClass.simpleName)
+            }
+            delay(10_000)
+        }
+    }
     routing {
         healthRoutes()
     }
