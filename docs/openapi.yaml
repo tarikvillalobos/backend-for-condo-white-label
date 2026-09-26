@@ -4538,3 +4538,23 @@ components:
           default:
             - "packages"
             - "reservations"
+            - "announcements"
+            - "events"
+            - "pets"
+            - "requests"
+            - "visitors"
+            - "vehicles"
+            - "maintenance"
+            - "documents"
+            - "cameras"
+            - "notifications"
+            - "contacts"
+        active: {"type":"boolean","default":true}
+        address:
+          type: ["string","null"]
+          default: null
+      required: ["name"]
+    LocationRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
