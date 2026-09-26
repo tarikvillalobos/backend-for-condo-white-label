@@ -1898,3 +1898,23 @@ paths:
               schema: {"$ref":"#/components/schemas/AnnouncementRecord"}
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/events":
+    get:
+      tags: ["Events"]
+      summary: "List authorized events"
+      operationId: "get_api_v1_locations_locationId_events"
+      description: "Required permission: events.read. The client and location must enable the events feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityEventRecordPage"}
