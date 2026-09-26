@@ -48,6 +48,7 @@ internal fun Route.petRoutes(db: Database) {
             call.respond(HttpStatusCode.Created, db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "pets.create", "pets")
                 tx.requireUnit(ctx, input.unitId, "pets.manage")
+                tx.enforcePetRules(ctx, input)
                 tx.saved(ctx, "pet", body(input))
             })
         }
