@@ -18,3 +18,23 @@ fun Route.locationRoutes(db: Database) {
                 }
             })
         }
+        post {
+            val input = call.receive<Location>().also { it.validate() }
+            call.respond(HttpStatusCode.Created, db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), null, "locations.manage")
+                tx.create("location", ctx.tenantId, data = body(input)).also { tx.audit(ctx, "location.created", it.id) }
+            })
+        }
+        get("/{locationId}") {
+            call.respond(db.query { tx ->
+                val id = call.parameters["locationId"]!!
+                val ctx = tx.authorize(call.actor(tx), id, "locations.read")
+                tx.requireRecord("location", id, ctx.tenantId)
+            })
+        }
+        put("/{locationId}") {
+            val input = call.receive<Location>().also { it.validate() }
+            call.respond(db.query { tx ->
+                val id = call.parameters["locationId"]!!
+                val actor = call.actor(tx)
+                val existing = tx.requireRecord("location", id, actor.tenantId)
