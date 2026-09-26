@@ -4058,3 +4058,23 @@ components:
           type: "object"
           properties:
             data: {"$ref":"#/components/schemas/ClientSettings"}
+    CommunityDocument:
+      type: "object"
+      additionalProperties: false
+      properties:
+        content: {"$ref":"#/components/schemas/DocumentInput"}
+        revision: {"type":"integer","format":"int32","default":1}
+        archived: {"type":"boolean","default":false}
+      required: ["content"]
+    CommunityDocumentRecord:
+      allOf:
+        - {"$ref":"#/components/schemas/Record"}
+        -
+          type: "object"
+          properties:
+            data: {"$ref":"#/components/schemas/CommunityDocument"}
+    CommunityDocumentRecordPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
