@@ -3129,6 +3129,26 @@ paths:
               schema: {"$ref":"#/components/schemas/RequestEscalationRecordPage"}
         default: {"$ref":"#/components/responses/Error"}
   "/api/v1/locations/{locationId}/shift-notes":
+    get:
+      tags: ["Visitors"]
+      summary: "Read authorized concierge shift notes"
+      operationId: "get_api_v1_locations_locationId_shift_notes"
+      description: "Required permission: concierge.notes. The client and location must enable the visitors feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ShiftNoteInputRecordPage"}
   "/api/v1/locations/{locationId}/requests/{id}/status":
     post:
       tags: ["Requests"]
