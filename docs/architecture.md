@@ -119,6 +119,8 @@ location document access.
   inviter, the allowed time window, and the configured single-use rule.
 - Work orders, request status changes, vehicle movements, and administrative
   changes retain audit/history records under the same tenant/location boundary.
+- Request escalation reasons and concierge handovers remain staff-only. Event
+  reservation links validate ownership, location, time coverage, and exclusive use.
 
 ## Provider and storage boundaries
 
