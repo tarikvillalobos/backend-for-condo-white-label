@@ -4658,3 +4658,23 @@ components:
         lastSeen: {"type":"string"}
       required: ["petId","message","lastSeen"]
     LostPetView:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        details: {"$ref":"#/components/schemas/LostPet"}
+        createdAt: {"type":"string","format":"date-time"}
+      required: ["id","details","createdAt"]
+    LostPetViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/LostPetView"}
+    Membership:
+      type: "object"
+      additionalProperties: false
+      properties:
