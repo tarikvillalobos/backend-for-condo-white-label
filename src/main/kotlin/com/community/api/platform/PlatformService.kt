@@ -78,3 +78,13 @@ private fun Tx.protectLastAdministrator(existing: Record, next: Membership) {
 }
 
 fun Tx.invite(context: Context, request: InvitationRequest): InvitationIssue {
+    if (request.locationId != context.locationId) forbidden()
+    // Create pending account and membership in the same transaction as the invitation.
+    val invitation = issueInvitation(context.tenantId, request.email, request.name)
+    val membership = Membership(invitation.userId, request.locationId, request.unitId, request.role, expiresAt = request.expiresAt)
+    val previous = list("membership", context.tenantId, ownerId = invitation.userId)
+        .firstOrNull { it.locationId == request.locationId && it.decode<Membership>().unitId == request.unitId }
+    saveMembership(context, membership, previous, allowInactive = true)
+    audit(context, "invitation.issued", invitation.userId)
+    return invitation
+}
