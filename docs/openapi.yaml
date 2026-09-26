@@ -4898,3 +4898,23 @@ components:
       type: "object"
       additionalProperties: false
       properties:
+        recipientId: {"type":"string"}
+        description: {"type":"string","minLength":1,"maxLength":1000}
+        carrier: {"type":"string","default":"","maxLength":200}
+        trackingNumber: {"type":"string","default":"","maxLength":200}
+        lockerId:
+          type: ["string","null"]
+          default: null
+          description: "Supply together with compartmentId, or omit both for reception desk storage."
+        compartmentId:
+          type: ["string","null"]
+          default: null
+        collectionDeadline:
+          type: ["string","null"]
+          default: null
+          description: "Informational target; does not automatically cancel the receipt or run a reminder."
+      required: ["recipientId","description"]
+    Record:
+      type: "object"
+      additionalProperties: false
+      properties:
