@@ -18,3 +18,23 @@ val allFeatures = setOf(
 
 @Serializable
 data class Membership(
+    val userId: String,
+    val locationId: String? = null,
+    val unitId: String? = null,
+    val role: String = "resident",
+    val permissions: Set<String> = emptySet(),
+    val active: Boolean = true,
+    val expiresAt: String? = null,
+) {
+    fun current(): Boolean = active && (expiresAt == null || Instant.parse(expiresAt).isAfter(Instant.now()))
+}
+
+@Serializable
+data class RoleDefinition(val name: String, val permissions: Set<String>)
+
+private val residentPermissions = setOf(
+    "locations.read", "attachments.read.own", "attachments.create",
+    "packages.read.own", "reservations.read.own", "reservations.create", "facilities.read",
+    "announcements.read", "events.read", "events.attend", "pets.read.own", "pets.create", "pets.manage.own",
+    "requests.create", "requests.read.own", "requests.comment", "visitors.create", "visitors.read.own",
+    "vehicles.read.own", "vehicles.create", "vehicles.manage.own", "documents.read", "contacts.read",
