@@ -78,3 +78,22 @@ fun Route.integrationRoutes(db: Database) {
             call.respond(db.query { tx ->
                 val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "integrations.manage")
                 tx.requireRecentAuthentication(ctx.actor)
+                val record = tx.requireRecord("integration", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
+                val token = "${ctx.tenantId}.${record.id}.${secret()}"
+                tx.update(record, body(record.decode<IntegrationData>().copy(tokenHash = digest(token), active = true)))
+                tx.audit(ctx, "integration.rotated", record.id)
+                IntegrationIssued(record.id, token)
+            })
+        }
+        delete("/{id}") {
+            db.query { tx ->
+                val ctx = tx.authorize(call.actor(tx), call.parameters["locationId"]!!, "integrations.manage")
+                tx.requireRecentAuthentication(ctx.actor)
+                val record = tx.requireRecord("integration", call.parameters["id"]!!, ctx.tenantId, ctx.locationId)
+                tx.update(record, body(record.decode<IntegrationData>().copy(active = false)))
+                tx.audit(ctx, "integration.revoked", record.id)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
