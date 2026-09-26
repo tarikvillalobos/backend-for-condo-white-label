@@ -328,8 +328,8 @@ Suspension revokes the client's account credentials; it does not delete records.
 
 | Method | Path | Behavior |
 | --- | --- | --- |
-| `GET` | `/health/live` | Returns HTTP 200 with `{"status":"UP"}` when the application can handle requests. |
-| `GET` | `/health/ready` | Returns HTTP 200 with `{"status":"UP"}` after application startup. |
+| `GET` | `/health/live` | 200 with `{"status":"UP"}` when HTTP handling is available |
+| `GET` | `/health/ready` | Database connectivity check; 200 UP or 503 DOWN |
 
 ```sh
 curl http://127.0.0.1:8080/health/live
