@@ -16,6 +16,11 @@ data class RequestTransition(val status: String, val reason: String)
 data class RequestCommentInput(val message: String, val internal: Boolean = false, val attachments: List<String> = emptyList())
 @Serializable
 data class RequestComment(val requestId: String, val message: String, val internal: Boolean, val attachments: List<String>)
+@Serializable
+data class RequestEscalationInput(val reason: String, val priority: String, val userId: String? = null, val dueAt: String? = null)
+@Serializable
+data class RequestEscalation(val requestId: String, val reason: String, val previousPriority: String,
+    val priority: String, val previousAssignee: String?, val assignedTo: String?, val previousDueAt: String?, val dueAt: String?)
 
 internal fun RequestInput.validated(): RequestInput {
     if (priority !in setOf("normal", "high", "urgent")) badRequest("Invalid priority")
