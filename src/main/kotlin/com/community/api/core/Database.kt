@@ -98,3 +98,23 @@ class Tx internal constructor(private val connection: Connection) {
     fun create(
         kind: String,
         tenantId: String,
+        locationId: String? = null,
+        ownerId: String? = null,
+        data: kotlinx.serialization.json.JsonObject,
+        id: String = UUID.randomUUID().toString(),
+    ): Record {
+        val now = Instant.now().toString()
+        val record = Record(id, kind, tenantId, locationId, ownerId, data, now, now, 1)
+        connection.prepareStatement("INSERT INTO app_records (id,kind,tenant_id,location_id,owner_id,payload,created_at,updated_at,version) VALUES (?,?,?,?,?,?,?,?,?)").use {
+            it.setString(1, id)
+            it.setString(2, kind)
+            it.setString(3, tenantId)
+            it.setString(4, locationId)
+            it.setString(5, ownerId)
+            it.setString(6, json.encodeToString(data))
+            it.setString(7, now)
+            it.setString(8, now)
+            it.setInt(9, 1)
+            it.executeUpdate()
+        }
+        return record
