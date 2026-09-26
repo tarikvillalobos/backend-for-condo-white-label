@@ -29,16 +29,11 @@ PostgreSQL is the production store. Development defaults to a persistent H2 file
 tests use isolated in-memory H2 databases in PostgreSQL compatibility mode.
 HikariCP owns connections, and Flyway applies the migration history.
 
-| Module | Responsibilities |
-| --- | --- |
-| Identity and access | Accounts, sessions, invitations, scoped permission grants |
-| Clients and brands | Client ownership, branding, app and feature configuration |
-| Locations and memberships | Condominiums, standalone locations, units, user relationships |
-| Deliveries and lockers | Shared package records, pickup authorization, locker operations |
-| Community | Pets, facilities, reservations, calendar, announcements |
-| Operations | Requests, visitors, vehicles, parking, staff, maintenance |
-| Content and communication | Documents, contacts, inbox, delivery preferences |
-| Administration | Onboarding, reports, exports, audit records |
+Records have an envelope containing `id`, `kind`, `tenantId`, `locationId`,
+`ownerId`, typed JSON `data`, creation/update timestamps, and a version number.
+The database stores the envelope in indexed columns and JSON payloads as text.
+This keeps common tenancy, ownership, audit, and migration handling consistent
+while each module uses typed domain models and explicit transitions.
 | Integrations | Provider adapters for lockers, cameras, access control, notifications |
 
 Within each module, routes translate HTTP requests, application services execute
