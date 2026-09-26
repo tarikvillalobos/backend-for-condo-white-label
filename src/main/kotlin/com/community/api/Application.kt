@@ -61,6 +61,8 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
             try {
                 val batch = deliverAuthMailBatch(database, mailConfig)
                 if (batch.failed > 0) log.warn("Authentication mail delivery failed for {} messages", batch.failed)
+                val notifications = deliverNotificationMailBatch(database, mailConfig)
+                if (notifications.failed > 0) log.warn("Notification mail delivery failed for {} messages", notifications.failed)
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
                 log.error("Authentication mail worker failed: {}", failure.javaClass.simpleName)
