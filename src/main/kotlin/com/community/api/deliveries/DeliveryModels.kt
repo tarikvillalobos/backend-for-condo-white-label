@@ -78,3 +78,18 @@ data class ConfirmPickup(val collectorId: String, val credential: String)
 @Serializable
 data class ReceiptKey(val fingerprint: String, val packageId: String)
 
+@Serializable
+data class LockerPickupEvent(
+    val eventId: String,
+    val packageId: String,
+    val compartmentId: String,
+    val collectorId: String,
+    val occurredAt: String,
+    val type: String = "pickup_confirmed",
+)
+
+@Serializable
+data class LockerEventResult(val eventId: String, val status: String)
+
+@Serializable
+data class StoredLockerEvent(val fingerprint: String, val result: LockerEventResult)
