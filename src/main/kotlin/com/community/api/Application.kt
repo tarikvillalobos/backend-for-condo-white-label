@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
     val config = AppConfig.fromEnvironment()
     val server = serverConfig {
         developmentMode = config.environment == Environment.DEVELOPMENT
-        module { module() }
+        module { module(mailConfig = MailConfig.fromEnvironment()) }
     }
     embeddedServer(Netty, server) {
         connector {
