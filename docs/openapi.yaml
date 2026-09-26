@@ -2438,3 +2438,23 @@ paths:
             "application/json":
               schema: {"$ref":"#/components/schemas/WorkOrderRecordPage"}
         default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Maintenance"]
+      summary: "Create work-orders"
+      operationId: "post_api_v1_locations_locationId_work_orders"
+      description: "Required permission: maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/WorkOrderInput"}
+      responses:
+        "201":
+          description: "Created."
