@@ -4638,3 +4638,23 @@ components:
         device: {"type":"string","default":"Unknown device"}
       required: ["tenantId","email","password"]
     LostPet:
+      type: "object"
+      additionalProperties: false
+      properties:
+        petName: {"type":"string"}
+        species: {"type":"string"}
+        photoUrl:
+          type: ["string","null"]
+        message: {"type":"string"}
+        lastSeen: {"type":"string"}
+        resolved: {"type":"boolean","default":false}
+      required: ["petName","species","photoUrl","message","lastSeen"]
+    LostPetInput:
+      type: "object"
+      additionalProperties: false
+      properties:
+        petId: {"type":"string"}
+        message: {"type":"string"}
+        lastSeen: {"type":"string"}
+      required: ["petId","message","lastSeen"]
+    LostPetView:
