@@ -4018,3 +4018,23 @@ components:
             type: "string"
             enum:
               - "packages"
+              - "reservations"
+              - "announcements"
+              - "events"
+              - "pets"
+              - "requests"
+              - "visitors"
+              - "vehicles"
+              - "maintenance"
+              - "documents"
+              - "cameras"
+              - "notifications"
+              - "contacts"
+          uniqueItems: true
+          default:
+            - "packages"
+            - "reservations"
+            - "announcements"
+            - "events"
+            - "pets"
+            - "requests"
