@@ -18,3 +18,23 @@ services:
     image: axllent/mailpit:v1
     ports:
       - "127.0.0.1:8025:8025"
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      APP_ENV: development
+      DATABASE_URL: jdbc:postgresql://db:5432/community
+      DATABASE_USER: community
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      SMTP_HOST: mail
+      SMTP_PORT: 1025
+      SMTP_FROM: community@example.test
+      SMTP_STARTTLS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+volumes:
+  database:
