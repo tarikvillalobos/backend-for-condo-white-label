@@ -4778,3 +4778,23 @@ components:
         - "description"
         - "carrier"
         - "trackingNumber"
+        - "lockerId"
+        - "compartmentId"
+        - "collectionDeadline"
+        - "status"
+        - "delegates"
+        - "collectorId"
+        - "history"
+    PackageViewPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
+          properties:
+            items:
+              type: "array"
+              items: {"$ref":"#/components/schemas/PackageView"}
+    Page:
+      type: "object"
+      properties:
+        items:
