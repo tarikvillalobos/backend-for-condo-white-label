@@ -38,3 +38,23 @@ class PlatformTest {
             val manager = Context(Actor(f.admin, f.tenant, "test"), f.location, setOf("memberships.manage", "locations.read"))
             assertFailsWith<ApiException> { tx.saveMembership(manager, Membership(f.resident, f.location, role = "property_manager")) }
             assertFailsWith<ApiException> { tx.saveMembership(manager, Membership(f.resident, role = "client_admin")) }
+        } }
+    }
+
+    @Test
+    fun `inactive alternate administrator cannot allow final administrator removal`() {
+        val f = PlatformFixture()
+        f.db.use { db -> db.tx { tx ->
+            val second = tx.create("account", f.tenant, data = body(Account("inactive@example.com", "Inactive", "unused", false)))
+            tx.create("membership", f.tenant, ownerId = second.id, data = body(Membership(second.id, role = "client_admin")))
+            val current = tx.list("membership", f.tenant, ownerId = f.admin).single()
+            assertEquals(409, assertFailsWith<ApiException> {
+                tx.saveMembership(Context(f.actor, null, setOf("*")), current.decode<Membership>().copy(active = false), current)
+            }.status)
+        } }
+    }
+
+    @Test
+    fun `location may be suspended and restored by client administrator`() = testApplication {
+        val f = PlatformFixture()
+        application { module(f.db) }
