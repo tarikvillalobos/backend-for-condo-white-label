@@ -58,3 +58,23 @@ class ConciergeEscalationTest {
             assertEquals(HttpStatusCode.Forbidden, response.status)
             assertEquals(0, f.db.tx { it.list("request_escalation", f.tenant, f.location).size })
             assertEquals("normal", f.db.tx { it.get("request", row.id, f.tenant)!!.decode<ResidentRequest>().content.priority })
+        }
+    }
+
+    @Test
+    fun `shift notes require explicit staff permission for reading and writing`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            val note = ShiftNoteInput("Incident handover for the evening team", incident = true)
+            assertEquals(HttpStatusCode.Forbidden, client.post(f.path("shift-notes")) {
+                bearerAuth(f.resident.token); contentType(ContentType.Application.Json); setBody(json.encodeToString(note))
+            }.status)
+            assertEquals(HttpStatusCode.Created, client.post(f.path("shift-notes")) {
+                bearerAuth(f.manager.token); contentType(ContentType.Application.Json); setBody(json.encodeToString(note))
+            }.status)
+            assertEquals(HttpStatusCode.Forbidden, client.get(f.path("shift-notes")) { bearerAuth(f.resident.token) }.status)
+            assertTrue(client.get(f.path("shift-notes")) { bearerAuth(f.manager.token) }.bodyAsText().contains(note.message))
+            f.db.tx { tx ->
+                val membership = tx.list("membership", f.tenant, f.location, f.other.id).single()
+                tx.update(membership, body(membership.decode<Membership>().copy(role = "concierge")))
+            }
