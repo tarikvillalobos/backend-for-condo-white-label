@@ -3738,3 +3738,23 @@ components:
       additionalProperties: false
       properties:
         accepted: {"type":"boolean","default":true}
+    AccountState:
+      type: "object"
+      additionalProperties: false
+      properties:
+        active: {"type":"boolean"}
+      required: ["active"]
+    AccountSummary:
+      type: "object"
+      additionalProperties: false
+      properties:
+        id: {"type":"string"}
+        email: {"type":"string"}
+        name: {"type":"string"}
+        active: {"type":"boolean"}
+      required: ["id","email","name","active"]
+    AccountSummaryPage:
+      allOf:
+        - {"$ref":"#/components/schemas/Page"}
+        -
+          type: "object"
