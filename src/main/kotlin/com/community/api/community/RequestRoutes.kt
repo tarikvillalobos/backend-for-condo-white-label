@@ -38,3 +38,23 @@ internal fun Route.requestRoutes(db: Database) {
                 val value = row.decode<ResidentRequest>()
                 if (value.status in setOf("closed", "cancelled")) conflict("Closed requests cannot be assigned")
                 tx.notify(ctx.tenantId, ctx.locationId, input.userId, "Request assigned", "A request was assigned to you")
+                tx.changed(ctx, row, body(value.copy(assignedTo = input.userId, dueAt = input.dueAt)), "request.assigned")
+            })
+        }
+        post("/{id}/status") {
+            val input = call.receive<RequestTransition>()
+            val reason = text(input.reason, "reason", 2000)
+            call.respond(db.query { tx ->
+                val ctx = tx.authorizeAny(call.actor(tx), call.locationId(), setOf("requests.create", "requests.manage"), "requests")
+                val row = tx.record(ctx, "request", call.resourceId())
+                tx.own(ctx, row, "requests.manage")
+                val value = row.decode<ResidentRequest>()
+                validateRequestTransition(value.status, input.status, ctx.can("requests.manage"))
+                tx.saved(ctx, "request_comment", body(RequestComment(row.id, "${value.status} → ${input.status}: $reason", false, emptyList())))
+                row.ownerId?.let { owner ->
+                    if (tx.activeMemberships(ctx.tenantId, owner).any { it.locationId == null || it.locationId == ctx.locationId })
+                        tx.notify(ctx.tenantId, ctx.locationId, owner, "Request updated", "Your request status has changed")
+                }
+                tx.changed(ctx, row, body(value.copy(status = input.status)), "request.status.changed")
+            })
+        }
