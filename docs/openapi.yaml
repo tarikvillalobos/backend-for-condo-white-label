@@ -5018,3 +5018,23 @@ components:
           default: "request"
           enum: ["request","complaint","incident","maintenance","support"]
         priority:
+          type: "string"
+          default: "normal"
+          enum: ["normal","high","urgent"]
+        attachments:
+          type: "array"
+          items: {"type":"string","format":"uri"}
+          default: []
+          maxItems: 10
+      required: ["title","description"]
+    RequestTransition:
+      type: "object"
+      additionalProperties: false
+      properties:
+        status:
+          type: "string"
+          enum: ["open","in_progress","resolved","closed","cancelled"]
+        reason: {"type":"string"}
+      required: ["status","reason"]
+    ReservationData:
+      type: "object"
