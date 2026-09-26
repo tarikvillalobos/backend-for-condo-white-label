@@ -9,12 +9,16 @@ without requiring separate services or duplicated package records.
 
 ```text
 src/main/kotlin/com/community/api/
-  Application.kt       # Composition and server startup
-  config/              # Environment configuration
-  health/              # Liveness and readiness routes
-  plugins/             # JSON, errors, request IDs, HTTP logging
-src/main/resources/     # Runtime logging configuration
-src/test/kotlin/        # HTTP and configuration tests
+  Application.kt       # Server composition, CLI dispatch, SMTP worker lifecycle
+  config/              # Listener and environment validation
+  core/                # Database transactions, permissions, audit, integrations
+  identity/            # Accounts, sessions, challenges, delivery, rate limiting
+  platform/            # Clients, brands, locations, units, memberships, reports
+  deliveries/          # Packages, lockers, delegation, pickup, provider events
+  reservations/        # Facilities, local-time rules, booking and maintenance
+  community/           # Community, visitor, content, vehicle, maintenance flows
+  health/              # HTTP liveness and database readiness
+  plugins/             # JSON, body limits, errors, correlation, redacted logging
 ```
 
 ## Planned business boundaries
