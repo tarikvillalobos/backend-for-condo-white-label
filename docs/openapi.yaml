@@ -2358,3 +2358,23 @@ paths:
         "200":
           description: "Successful operation."
           content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/ContractorInputRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+    post:
+      tags: ["Maintenance"]
+      summary: "Create contractors"
+      operationId: "post_api_v1_locations_locationId_contractors"
+      description: "Required permission: maintenance.manage. The client and location must enable the maintenance feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Selected location ID."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ContractorInput"}
