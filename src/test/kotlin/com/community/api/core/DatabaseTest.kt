@@ -38,3 +38,23 @@ class DatabaseTest {
             db.tx { it.create("persistence_test", id, data = counter(42), id = id) }
             assertFailsWith<IllegalStateException> { db.tx { tx -> tx.update(tx.requireRecord("persistence_test", id, id), counter(0)); error("rollback") } }
         }
+        Database(url, user, password).use { db ->
+            assertEquals(42, db.tx { it.requireRecord("persistence_test", id, id).data.getValue("value").jsonPrimitive.int })
+        }
+    }
+
+    private fun verifyConcurrency(db: Database) {
+        val id = UUID.randomUUID().toString()
+        db.tx { it.create("counter", id, data = counter(0), id = id) }
+        Executors.newFixedThreadPool(4).use { executor ->
+            executor.invokeAll((1..20).map { Callable {
+                db.tx { tx ->
+                    val row = tx.requireRecord("counter", id, id)
+                    val value = row.data.getValue("value").jsonPrimitive.int
+                    tx.update(row, counter(value + 1))
+                }
+            } }).forEach { it.get() }
+        }
+        assertEquals(20, db.tx { it.requireRecord("counter", id, id).data.getValue("value").jsonPrimitive.int })
+    }
+
