@@ -18,3 +18,23 @@ should use the location's configured time zone before sending an instant.
   `priority` (`normal`, `high`, `urgent`), `attachments`, and `acknowledgmentRequired`.
 - `POST /announcements/{id}/archive`: archive a notice.
 - `POST /announcements/{id}/read`: persist one receipt per person and notice.
+- `GET /announcements/{id}/receipts`: publisher access to receipts.
+
+Permissions: `announcements.read`, `announcements.manage`. Read receipts are
+explicit acknowledgments; delivery does not imply reading. Publication windows
+are evaluated on every read, so scheduled notices do not need a publishing job.
+
+## Events
+
+- `GET /events`, `POST /events`, `PUT /events/{id}`: list, publish, and update.
+  Updates cannot lower capacity below confirmed attendance.
+- `POST /events/{id}/cancel`: cancel an event.
+- `POST /events/{id}/attendance`, `DELETE /events/{id}/attendance`: register or
+  cancel the caller's attendance. Repeated registration returns the same record.
+- `GET /events/{id}/attendance`: own registration; publishers can list attendees.
+
+`EventInput` requires `title`, `description`, `startsAt`, `endsAt`, and `capacity`
+(1–10,000). Registration closes at the start and rejects cancellation or full
+capacity. Transactions prevent concurrent registrations from overbooking.
+Permissions: `events.read`, `events.manage`, `events.attend`.
+
