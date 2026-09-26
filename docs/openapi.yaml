@@ -3398,3 +3398,23 @@ paths:
         -
           name: "id"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+        - {"$ref":"#/components/parameters/Offset"}
+        - {"$ref":"#/components/parameters/Limit"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/WorkOrderHistoryRecordPage"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/documents/{id}/versions":
+    post:
+      tags: ["Documents"]
+      summary: "Publish a new document version"
+      operationId: "post_api_v1_locations_locationId_documents_id_versions"
+      description: "Required permission: documents.manage. The client and location must enable the documents feature."
+      parameters:
+        -
