@@ -64,6 +64,7 @@ internal fun Route.eventRoutes(db: Database) {
                 val ctx = tx.authorize(call.actor(tx), call.locationId(), "events.manage", "events")
                 val row = tx.record(ctx, "event", call.resourceId())
                 if (row.decode<CommunityEvent>().cancelled) conflict("Cancelled events cannot be edited")
+                tx.validateEventReservation(ctx, input, row.id)
                 val attendees = tx.list("attendance", ctx.tenantId, ctx.locationId).count { it.decode<Attendance>().eventId == row.id }
                 if (input.capacity < attendees) conflict("Capacity cannot be lower than confirmed attendance")
                 tx.changed(ctx, row, body(CommunityEvent(input)), "event.updated")
