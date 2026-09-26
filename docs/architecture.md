@@ -74,10 +74,7 @@ contain short-lived secrets and require protected storage and backup access.
 
 See [Identity API](identity.md) for refresh, credential, recovery, and SMTP details.
 
-`/health/live` confirms that HTTP requests can be handled. `/health/ready` currently
-confirms that the foundation initialized; it has no external dependencies to
-probe. Add bounded dependency checks and return HTTP 503 on failure when storage
-or other required dependencies are introduced.
+## Authorization and white-label isolation
 
 HTTP logs contain method, status, and a generated request ID. Handled errors
 (400, 404, 415, and 500) contain a stable code, safe message, and the same request ID. Unexpected error
