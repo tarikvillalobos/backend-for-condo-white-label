@@ -118,3 +118,23 @@ paths:
   "/api/v1/auth/recovery/confirm":
     post:
       tags: ["Identity"]
+      summary: "Reset password using a recovery token"
+      operationId: "post_api_v1_auth_recovery_confirm"
+      security: []
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema: {"$ref":"#/components/schemas/ActivationRequest"}
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/Accepted"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/auth/otp/request":
+    post:
+      tags: ["Identity"]
+      summary: "Request an email sign-in code"
+      operationId: "post_api_v1_auth_otp_request"
