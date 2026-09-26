@@ -18,3 +18,23 @@ class PropertyRulesTest {
             assertFailsWith<ApiException> {
                 tx.validateMembership(Context(f.actor, f.location, setOf("*")), Membership(f.resident, f.location, relationship = "owner"))
             }
+        } }
+    }
+
+    @Test
+    fun `location vaccination species and unit limits apply to create and update`() {
+        val f = PlatformFixture()
+        f.db.use { db -> db.tx { tx ->
+            val location = tx.requireRecord("location", f.location, f.tenant)
+            tx.update(location, body(location.decode<Location>().copy(petRules = PetRules(true, 1, setOf("dog")))))
+            val ctx = Context(f.actor, f.location, setOf("*"))
+            val pet = PetInput("Pet", "dog", "unit", vaccinationUrls = listOf("https://example.test/vaccination.pdf"))
+            assertFailsWith<ApiException> { tx.enforcePetRules(ctx, pet.copy(vaccinationUrls = emptyList())) }
+            assertFailsWith<ApiException> { tx.enforcePetRules(ctx, pet.copy(species = "cat")) }
+            tx.enforcePetRules(ctx, pet)
+            val existing = tx.create("pet", f.tenant, f.location, f.admin, body(pet))
+            assertEquals(409, assertFailsWith<ApiException> { tx.enforcePetRules(ctx, pet) }.status)
+            tx.enforcePetRules(ctx, pet, existing.id)
+        } }
+    }
+}
