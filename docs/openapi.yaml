@@ -2778,3 +2778,23 @@ paths:
           in: "path"
           required: true
           schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/AnnouncementRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/announcements/{id}/read":
+    post:
+      tags: ["Announcements"]
+      summary: "Acknowledge reading an announcement"
+      operationId: "post_api_v1_locations_locationId_announcements_id_read"
+      description: "Required permission: announcements.read. The client and location must enable the announcements feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
+          required: true
+          schema: {"type":"string"}
