@@ -38,3 +38,16 @@ object Passwords {
 
     private fun derive(password: String, salt: ByteArray, iterations: Int): ByteArray {
         val spec = PBEKeySpec(password.toCharArray(), salt, iterations, 256)
+        return try { SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded }
+        finally { spec.clearPassword() }
+    }
+}
+
+internal fun secretToken(): String = Base64.getUrlEncoder().withoutPadding()
+    .encodeToString(ByteArray(32).also(SecureRandom()::nextBytes))
+
+internal fun digest(value: String): String = Base64.getUrlEncoder().withoutPadding()
+    .encodeToString(MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8)))
+
+internal fun sameSecret(a: String, b: String): Boolean =
+    MessageDigest.isEqual(a.toByteArray(Charsets.UTF_8), b.toByteArray(Charsets.UTF_8))
