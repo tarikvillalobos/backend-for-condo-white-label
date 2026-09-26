@@ -3538,3 +3538,23 @@ paths:
         -
           name: "id"
           in: "path"
+          required: true
+          schema: {"type":"string"}
+          description: "Resource identifier."
+      responses:
+        "200":
+          description: "Successful operation."
+          content:
+            "application/json":
+              schema: {"$ref":"#/components/schemas/CommunityDocumentRecord"}
+        default: {"$ref":"#/components/responses/Error"}
+  "/api/v1/locations/{locationId}/cameras/{id}/sessions":
+    post:
+      tags: ["Cameras"]
+      summary: "Report unavailable camera provider"
+      operationId: "post_api_v1_locations_locationId_cameras_id_sessions"
+      description: "Camera live viewing requires a configured camera provider. Required permission: cameras.view. The client and location must enable the cameras feature."
+      parameters:
+        -
+          name: "locationId"
+          in: "path"
