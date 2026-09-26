@@ -58,3 +58,23 @@ class CommunitySecurityTest {
             client.post(f.path("lost-pets")) {
                 bearerAuth(f.resident.token); contentType(ContentType.Application.Json)
                 setBody(json.encodeToString(LostPetInput(id, "Missing since morning", "Garden")))
+            }
+            val response = client.get(f.path("lost-pets")) { bearerAuth(f.other.token) }
+            assertEquals(HttpStatusCode.OK, response.status)
+            val body = response.bodyAsText()
+            assertTrue(body.contains("Luna"))
+            listOf(f.resident.id, f.unit, "private-chip-id", "private.pdf", "ownerId").forEach { assertFalse(body.contains(it)) }
+        }
+    }
+
+    @Test
+    fun `notifications disappear after membership revocation`() = testApplication {
+        CommunityFixture().use { f ->
+            f.install(this)
+            f.db.tx { it.notify(f.tenant, f.location, f.resident.id, "Update", "Community update") }
+            assertTrue(client.get("/api/v1/notifications") { bearerAuth(f.resident.token) }.bodyAsText().contains("Community update"))
+            f.db.tx { tx ->
+                val membership = tx.list("membership", f.tenant, f.location, f.resident.id).single()
+                tx.update(membership, body(membership.decode<Membership>().copy(active = false)))
+            }
+            val result = client.get("/api/v1/notifications") { bearerAuth(f.resident.token) }
