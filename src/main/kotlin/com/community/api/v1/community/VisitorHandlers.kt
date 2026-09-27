@@ -38,3 +38,23 @@ private fun V1Context.createInvite(): V1Response {
     val inline = input["visitor"] as? JsonObject
     if ((visitorId == null) == (inline == null)) fail(422, "VISITOR_REQUIRED", "Informe visitorId ou visitor")
     val visitor = if (visitorId != null) owned(store.get("visitor", visitorId, locationId))
+        else save("visitor", inline!!.merge(obj("nodeId" to unitId)))
+    val row = save("access_invite", JsonObject(input - "visitor").merge(obj("visitorId" to visitor.id,
+        "visitorSnapshot" to visitor(visitor), "nodeId" to unitId, "usesCount" to 0, "uses" to JsonArray(emptyList()), "revokedAt" to null)).merge(newAccessSecret()))
+    return V1Response(invite(row), 201)
+}
+internal fun visitorHandlers(): Map<String, V1Handler> = mapOf(
+    "listVisitors" to V1Handler { c -> c.listResponse("visitor", true) { c.visitor(it) } },
+    "createVisitor" to V1Handler { c -> V1Response(c.visitor(c.save("visitor", c.input.merge(obj("nodeId" to c.unitId)))), 201) },
+    "getVisitor" to V1Handler { c -> V1Response(c.visitor(c.record("visitor", "visitorId"))) },
+    "updateVisitor" to V1Handler { c -> V1Response(c.visitor(c.change(c.record("visitor", "visitorId"), c.input))) },
+    "deleteVisitor" to V1Handler { c ->
+        val row = c.record("visitor", "visitorId")
+        c.store.list("access_invite", c.locationId, filters = mapOf("visitorId" to row.id)).forEach { invite ->
+            if (c.inviteStatus(invite) in setOf("scheduled", "active")) c.change(invite, obj("revokedAt" to now()), "access_invite.revoked")
+        }
+        c.remove(row)
+    },
+    "adminListVisitors" to V1Handler { c -> c.listResponse("visitor") { row ->
+        val latest = c.store.list("access_event", c.locationId, filters = mapOf("visitorId" to row.id)).maxByOrNull { it.data.text("occurredAt").orEmpty() }
+        obj("visitor" to c.visitor(row), "hostName" to c.personName(row.ownerId), "node" to c.node(row.data.text("nodeId")), "lastAccessAt" to latest?.data?.get("occurredAt"))
