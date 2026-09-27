@@ -38,3 +38,23 @@ private fun V1Context.adminAnnouncement(row: Record): JsonObject {
     return obj("announcement" to announcement(row), "targetNodes" to JsonArray(targets.map { node(it.jsonPrimitive.content) }),
         "readCount" to store.list("receipt", locationId, filters = mapOf("resourceId" to row.id)).size,
         "targetCount" to members().count { member -> targets.isEmpty() || targets.any { inSubtree(member.data.text("nodeId"), it.jsonPrimitive.content) } },
+        "scheduled" to timestamp(row.data.text("publishedAt")!!).isAfter(Instant.now()), "createdByName" to personName(row.ownerId))
+}
+private fun V1Context.checkedAnnouncement(): Record = store.get("announcement", id("announcementId"), locationId).also {
+    if (!announcementVisible(it)) fail(404, "NOT_FOUND", "Comunicado não encontrado")
+}
+internal fun announcementHandlers(): Map<String, V1Handler> = mapOf(
+    "listAnnouncements" to V1Handler { c -> c.listResponse("announcement") { row ->
+        if (!c.announcementVisible(row) || (c.query["unreadOnly"] == "true" && c.receipt(row.id) != null)) JsonNull else c.announcement(row)
+    } },
+    "getAnnouncement" to V1Handler { c -> V1Response(c.announcement(c.checkedAnnouncement())) },
+    "markAnnouncementRead" to V1Handler { c -> c.acknowledge(c.checkedAnnouncement()); V1Response(status = 204) },
+    "publishAnnouncement" to V1Handler { c ->
+        c.validateTargets(c.input)
+        val publishedAt = c.input.text("publishAt") ?: now()
+        if (c.input.text("expiresAt")?.let { !timestamp(it).isAfter(timestamp(publishedAt)) } == true)
+            c.fail(422, "INVALID_TIME_RANGE", "Expiração deve ser posterior à publicação")
+        val row = c.save("announcement", c.input.merge(obj("publishedAt" to publishedAt)))
+        if (c.input.flag("pushNotify") && !timestamp(publishedAt).isAfter(Instant.now()))
+            c.broadcast("announcement", row.id, c.input.text("title")!!, c.input.text("body"), c.input.array("targetNodeIds"))
+        V1Response(c.announcement(row), 201)
