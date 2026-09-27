@@ -38,3 +38,15 @@ class CommunityWorkflowTest {
         assertEquals(2, f.run("adminGetTicket", ids = ids, staff = true).body.jsonObject["comments"]!!.jsonArray.size)
         assertEquals(409, assertFailsWith<ApiException> { f.run("updateTicket", obj("status" to "resolved"), ids, staff = true) }.status)
         f.run("updateTicket", obj("status" to "in_progress"), ids, staff = true)
+        f.run("updateTicket", obj("status" to "resolved", "resolution" to "Reparado"), ids, staff = true)
+    }
+    @Test fun `work order completion requires valid transition and evidence`() = CommunityFixture().use { f ->
+        val order = f.run("adminCreateWorkOrder", obj("title" to "Inspeção", "scheduledAt" to future(3600)), staff = true)
+        val ids = mapOf("workOrderId" to order.id())
+        assertEquals(409, assertFailsWith<ApiException> { f.run("adminTransitionWorkOrder", obj("status" to "completed", "notes" to "Pronto"), ids, staff = true) }.status)
+        f.run("adminTransitionWorkOrder", obj("status" to "in_progress", "notes" to "Iniciando"), ids, staff = true)
+        assertEquals(422, assertFailsWith<ApiException> { f.run("adminTransitionWorkOrder", obj("status" to "completed", "notes" to "Pronto"), ids, staff = true) }.status)
+        f.run("adminTransitionWorkOrder", obj("status" to "cancelled", "notes" to "Cancelamento solicitado"), ids, staff = true)
+        assertEquals(409, assertFailsWith<ApiException> { f.run("adminUpdateWorkOrder", obj("title" to "Reaberta"), ids, staff = true, headers = mapOf("If-Match" to "\"3\"")) }.status)
+    }
+}
