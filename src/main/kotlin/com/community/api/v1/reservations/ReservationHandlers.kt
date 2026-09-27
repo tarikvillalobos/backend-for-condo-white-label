@@ -48,9 +48,7 @@ internal fun spaceView(c: V1Context, row: Record): JsonObject = obj(
     "active" to row.data.flag("active"), "rules" to row.data.objectAt("rules"), "openingHours" to row.data.arrayAt("openingHours"),
 )
 
-private fun spaces(c: V1Context): V1Response = V1Response(c.pageItems(
-    c.store.list("space", condominium(c)).filter { visible(c, it) }.map { spaceView(c, it) },
-))
+private fun spaces(c: V1Context): V1Response = V1Response(c.page("space", condominium(c), predicate = { visible(c, it) }) { spaceView(c, it) })
 
 private fun saveSpace(c: V1Context): V1Response {
     val old = c.path["spaceId"]?.let { space(c, it) }
