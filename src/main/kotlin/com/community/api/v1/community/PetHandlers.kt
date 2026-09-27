@@ -38,3 +38,23 @@ internal fun petHandlers(): Map<String, V1Handler> = mapOf(
         val row = c.record("pet", "petId")
         val data = row.data.merge(c.input)
         c.validatePet(data, row.id)
+        V1Response(c.pet(c.change(row, data.merge(obj("nodeId" to c.checkedNode(data, true))))))
+    },
+    "deletePet" to V1Handler { c ->
+        val row = c.record("pet", "petId")
+        if (c.store.list("pet_alert", c.locationId, filters = mapOf("petId" to row.id, "status" to "open")).isNotEmpty())
+            c.fail(409, "PET_HAS_OPEN_ALERT", "Resolva o alerta antes de excluir o pet")
+        c.remove(row)
+    },
+    "adminListPets" to V1Handler { c -> c.listResponse("pet") { row ->
+        obj("pet" to c.pet(row), "node" to c.node(row.data.text("nodeId")), "ownerName" to c.personName(row.ownerId))
+    } },
+    "addVaccination" to V1Handler { c ->
+        val pet = c.record("pet", "petId")
+        vaccinationDates(c.input)
+        c.result("Vaccination", c.save("vaccination", c.input.merge(obj("petId" to pet.id,
+            "nextDueAt" to c.input["nextDueAt"], "veterinarian" to c.input["veterinarian"], "attachmentUrl" to null))), 201)
+    },
+    "deleteVaccination" to V1Handler { c ->
+        val pet = c.record("pet", "petId")
+        val row = c.record("vaccination", "vaccinationId")
