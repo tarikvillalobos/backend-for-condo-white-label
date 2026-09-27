@@ -38,3 +38,23 @@ fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: S
     val saved = JsonObject(entry + obj("hash" to hash))
     c.tx.connection.prepareStatement("INSERT INTO audit_log (id,tenant_id,brand_id,location_id,request_id,actor_id,action,target_type,target_id,created_at,previous_hash,hash,payload) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
         listOf(id,c.tenantId,c.brandId,c.locationId,c.requestId,actor?.userId,action,record?.kind?.removePrefix("v1_"),record?.id,at,previous,hash,saved.toString()).forEachIndexed { index, value -> it.setObject(index + 1, value) }
+        it.executeUpdate()
+    }
+    return saved
+}
+
+fun auditActor(actor: V1Principal?): JsonObject = obj(
+    "kind" to if (actor?.deviceId != null) "device" else if (actor?.staff == true) "staff" else if (actor != null) "user" else "anonymous",
+    "userId" to actor?.userId, "deviceId" to actor?.deviceId, "name" to null,
+    "role" to if (actor?.staff == true) "staff" else if (actor != null) "resident" else null, "context" to null,
+)
+
+private val sensitive = Regex("password|secret|token|credential|code|qr|cpf|phone|email|document|cipher|keyhash|proof", RegexOption.IGNORE_CASE)
+fun redact(value: JsonElement): JsonElement = when (value) {
+    is JsonObject -> JsonObject(value.mapValues { (key, child) -> if (sensitive.containsMatchIn(key)) JsonPrimitive("***") else redact(child) })
+    is JsonArray -> JsonArray(value.map(::redact))
+    else -> value
+}
+
+fun recordRequest(db: Database, requestId: String, operation: ContractOperation?, tenantId: String?, brandId: String?, locationId: String?, actor: V1Principal?, method: String, route: String, status: Int, duration: Long, code: String?, replay: Boolean = false) {
+    db.scopedTx(null) { tx ->
