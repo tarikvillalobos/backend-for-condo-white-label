@@ -98,3 +98,23 @@ private fun V1Context.auditPage(table: String): JsonObject {
     val snapshot = cursor?.string("snapshot") ?: now.toString()
     val expires = cursor?.string("expires") ?: now.plusSeconds(900).toString()
     if (cursor != null && (cursor.string("binding") != binding || Instant.parse(expires).isBefore(now))) fail(410,"CURSOR_EXPIRED","Snapshot expired")
+    val (where,initial) = auditWhere(table,emptyMap())
+    val values = initial.toMutableList()
+    val idColumn = if (table=="api_requests") "request_id" else "id"
+    val sql = StringBuilder("SELECT $idColumn,created_at,payload FROM $table WHERE $where AND created_at <= ?")
+    values += snapshot
+    query["since"]?.let { sql.append(" AND created_at >= ?"); values += it }
+    query["until"]?.let { sql.append(" AND created_at < ?"); values += it }
+    if (cursor != null) { sql.append(" AND (created_at < ? OR (created_at = ? AND $idColumn > ?))"); values.addAll(listOf(cursor.string("at")!!,cursor.string("at")!!,cursor.string("last")!!)) }
+    if (tx.postgres) mapOf("category" to "category","action" to "action","outcome" to "outcome","severity" to "severity","operationId" to "operationId").forEach { (queryKey,payloadKey) ->
+        query[queryKey]?.let { sql.append(" AND payload::jsonb ->> ? = ?"); values.addAll(listOf(payloadKey,it)) }
+    }
+    sql.append(" ORDER BY created_at DESC,$idColumn LIMIT ?"); values += limit+1
+    val rows = tx.connection.prepareStatement(sql.toString()).use { statement ->
+        values.forEachIndexed { index,value -> statement.setObject(index+1,value) }
+        statement.executeQuery().use { rs -> buildList { while(rs.next()) add(Triple(rs.getString(1),rs.getString(2),json.parseToJsonElement(rs.getString(3)))) } }
+    }
+    val last = rows.take(limit).lastOrNull()
+    return obj("items" to rows.take(limit).map { it.third },"page" to obj("snapshotAt" to snapshot,"snapshotExpiresAt" to expires,
+        "nextCursor" to if(rows.size>limit && last!=null) seal(obj("binding" to binding,"snapshot" to snapshot,"expires" to expires,"at" to last.second,"last" to last.first).toString()) else null))
+}
