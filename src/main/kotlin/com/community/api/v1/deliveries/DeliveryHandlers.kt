@@ -96,6 +96,7 @@ private fun delegate(c: V1Context): V1Response {
     if (!removing) { c.member(id); if (id == c.membershipId) c.fail(422, "DELEGATE_NOT_ELIGIBLE", "Recipient does not need delegation") }
     val delegates = row.data.array("delegates").map { it.jsonPrimitive.content }.toMutableSet()
     if (removing) delegates.remove(id) else delegates.add(id)
+    c.revokeCredential(row.data)
     val updated = c.store.update(row, row.data.changed("delegates" to JsonArray(delegates.map(::JsonPrimitive)),
         "credentialStatus" to JsonPrimitive("revoked"), "sealedCode" to JsonNull, "credentialHash" to JsonNull))
     c.audit(if (removing) "parcel.delegate_removed" else "parcel.delegate_added", updated)
