@@ -138,3 +138,11 @@ class DeliveryHandlersTest {
         call(db, "addParcelDelegate", obj("membershipId" to "bob"), mapOf("parcelId" to firstId))
         assertEquals(firstId, call(db, "listParcels", user = "bob").body.jsonObject["items"]!!.jsonArray.single().jsonObject.string("id"))
     }
+    @Test fun `support issues respect ownership and trim minimum length`() = database().use { db ->
+        val parcel = frontDesk(db).string("id")!!
+        assertEquals(422, assertFailsWith<ApiException> { call(db, "createSupportIssue", obj("parcelId" to parcel, "message" to "     short     ")) }.status)
+        val created = call(db, "createSupportIssue", obj("parcelId" to parcel, "message" to "A encomenda não estava na portaria.")).body.jsonObject
+        assertEquals("received", created.string("status"))
+        assertEquals(404, assertFailsWith<ApiException> { call(db, "getSupportIssue", path = mapOf("issueId" to created.string("id")!!), user = "bob") }.status)
+    }
+}
