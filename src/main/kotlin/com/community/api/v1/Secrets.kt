@@ -38,3 +38,6 @@ object Secrets {
         require(bytes.size >= 28)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
+        cipher.doFinal(bytes.copyOfRange(12, bytes.size)).toString(Charsets.UTF_8)
+    } catch (_: Exception) { throw ApiException(400, "VALIDATION_ERROR", "Invalid protected value") }
+}
