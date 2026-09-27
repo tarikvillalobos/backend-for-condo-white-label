@@ -58,3 +58,12 @@ private fun V1Context.workItems(condo: Record): List<JsonObject> = buildList {
         item(it, "ticket_open", it.data.text("title") ?: it.data.text("reference") ?: "Chamado", it.data.text("priority") ?: "normal", it.data.text("dueAt"))
     }
     store.list("camera", locationId, filters = mapOf("status" to "offline")).forEach { item(it, "camera_offline", it.data.text("name")!!, "high") }
+    store.list("locker", locationId).filter { it.data.array("compartments").any { compartment -> compartment.jsonObject.text("status") == "faulty" } }
+        .forEach { item(it, "locker_fault", it.data.text("name") ?: "Locker", "high") }
+    store.list("equipment", locationId).filter { it.data.flag("active", true) && it.data.text("nextInspectionAt")?.let { date -> !LocalDate.parse(date).isAfter(LocalDate.now().plusDays(7)) } == true }
+        .forEach { item(it, "maintenance_due", it.data.text("name")!!, "high", it.data.text("nextInspectionAt")?.let { day -> "${day}T00:00:00Z" }) }
+    store.list("work_order", locationId).filter { it.data.text("status") !in setOf("completed", "cancelled") && timestamp(it.data.text("scheduledAt")!!).isBefore(now) }
+        .forEach { item(it, "work_order_overdue", it.data.text("title")!!, it.data.text("priority") ?: "normal", it.data.text("scheduledAt")) }
+    store.list("invitation", locationId).filter { it.data.text("status") == "pending" && it.data.text("expiresAt")?.let { time -> timestamp(time) in now..now.plusSeconds(86400) } == true }
+        .forEach { item(it, "invitation_expiring", "Convite de cadastro próximo ao vencimento", due = it.data.text("expiresAt")) }
+}
