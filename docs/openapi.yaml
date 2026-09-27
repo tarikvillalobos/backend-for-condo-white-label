@@ -859,6 +859,26 @@ paths:
       - $ref: '#/components/parameters/BrandId'
       - $ref: '#/components/parameters/Since'
       - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParcelMetrics'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
