@@ -1002,10 +1002,16 @@ paths:
     - $ref: '#/components/parameters/MembershipId'
     - $ref: '#/components/parameters/ParcelId'
     post:
-      tags: ["Identity"]
-      summary: "Sign in with a one-time email code"
-      operationId: "post_api_v1_auth_otp_confirm"
-      security: []
+      operationId: markManualPickup
+      tags:
+      - Parcels
+      summary: Registrar retirada informada pelo usuário
+      description: 'Exige confirmação explícita do usuário e canMarkManually. Revogar credencial atomicamente e
+        registrar
+
+        manualAt. Não preencher collectedAt nem declarar confirmação física. Repetição idempotente não duplica
+
+        eventos.'
       requestBody:
         required: true
         content:
