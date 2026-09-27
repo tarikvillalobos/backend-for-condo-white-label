@@ -58,3 +58,9 @@ internal fun blockSpace(c: V1Context): V1Response {
 
 internal fun unblockSpace(c: V1Context): V1Response {
     val facility = space(c)
+    val block = c.store.get("space_block", c.path.getValue("blockId"), condominium(c))
+    if (block.data.text("spaceId") != facility.id) c.fail(404, "NOT_FOUND", "Space block not found")
+    c.store.delete(block)
+    c.audit("space.unblocked", block)
+    return V1Response(status = 204)
+}
