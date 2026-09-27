@@ -46,8 +46,9 @@ private fun listParcels(c: V1Context): V1Response {
             (c.query["until"] == null || instant(data.text("depositedAt")).isBefore(instant(c.query["until"]))) &&
             (c.query["q"].isNullOrBlank() || listOf(data.text("carrier"), data.text("tracking"), (c.person(data.text("membershipId")) as? JsonObject)?.text("name"))
                 .any { it?.contains(c.query.getValue("q"), true) == true })
-    }.sortedWith(compareByDescending<Record> { it.data.text("depositedAt") }.thenBy { it.id })
-    var page = c.pageItems(rows.map { c.parcelView(it, admin) })
+    }
+    val rows = if (admin) c.store.list("parcel", c.locationId).filter(matches) else emptyList()
+    var page = c.page("parcel", c.locationId, descending = true, sortField = "depositedAt", predicate = matches) { c.parcelView(it, admin) }
     if (admin) page = page.changed("totals" to obj("waiting" to rows.count { it.data.text("status") == "waiting" },
         "overdue" to rows.count { it.data.text("status") in setOf("waiting", "manual") && instant(it.data.text("deadline")).isBefore(c.now) }))
     return V1Response(page)
