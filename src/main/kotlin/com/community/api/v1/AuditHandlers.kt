@@ -158,3 +158,18 @@ private fun V1Context.acceptClientEvent(index:Int,event:JsonObject):JsonObject {
             type.contains("recording_played") -> "recording"
             type.contains("pickup_code") -> "parcel"
             type.contains("access_qr") -> "access_invite"
+            type.contains("export_download") -> "export"
+            else -> null
+        }
+        if(expected!=null && target.kind!="v1_$expected") return result("rejected","target_mismatch")
+        val scopes=if(principal?.deviceId!=null) listOf(store.get("device",principal.deviceId).locationId) else store.list("membership",ownerId=principal?.userId,filters=mapOf("status" to "active")).map { it.locationId } + store.list("staff_assignment",ownerId=principal?.userId,filters=mapOf("status" to "active")).map { it.locationId }
+        if(target.ownerId!=principal?.userId && (target.locationId==null || target.locationId !in scopes)) return result("rejected","target_not_accessible")
+        if(member!=null && member.locationId!=target.locationId) return result("rejected","target_not_accessible")
+    }
+    val fingerprint=hash("${principal?.userId}:${principal?.deviceId}:$event")
+    store.find("client_event",fingerprint)?.let { return result("duplicate",id=it.data.string("entryId")) }
+    val scoped=V1Context(tx,operationId,tenantId,brandId,requestId,principal=principal,locationId=member?.locationId ?: target?.locationId)
+    val entry=appendAudit(scoped,type,target,details=obj("reportedEvent" to event,"observedByServer" to false))
+    store.create("client_event",obj("entryId" to entry["id"]),scoped.locationId,principal?.userId,id=fingerprint)
+    return result("accepted",id=entry.string("id"))
+}
