@@ -38,3 +38,23 @@ internal fun V1Context.openCameraStream(playback: Boolean): V1Response {
     val uri = runCatching { URI(url) }.getOrElse { fail(503, "CAMERA_PROVIDER_INVALID_RESPONSE", "URL inválida") }
     if (uri.userInfo != null || (uri.scheme != "https" && System.getenv("APP_ENV") == "production") || uri.scheme !in setOf("https", "http"))
         fail(503, "CAMERA_PROVIDER_INVALID_RESPONSE", "URL do stream não é segura")
+    if (!timestamp(expires).isAfter(now) || timestamp(expires).isAfter(now.plusSeconds(600)))
+        fail(503, "CAMERA_PROVIDER_INVALID_RESPONSE", "Validade do stream inválida")
+    val protocol = response.text("protocol") ?: input.text("protocol") ?: "hls"
+    if (protocol !in setOf("hls", "webrtc")) fail(503, "CAMERA_PROVIDER_INVALID_RESPONSE", "Protocolo de stream inválido")
+    val providerSessionId = response.text("id") ?: fail(503, "CAMERA_PROVIDER_INVALID_RESPONSE", "Provedor não retornou identificador")
+    val row = save("camera_view", obj("cameraId" to camera.id, "providerSessionId" to providerSessionId, "kind" to if (playback) "playback" else "live",
+        "viewerName" to personName(), "viewerKind" to if (membership == null) "staff" else "resident", "node" to node(unitId),
+        "protocol" to protocol, "startedAt" to now.toString(), "closedAt" to null, "expiresAt" to expires))
+    return V1Response(obj("id" to row.id, "cameraId" to camera.id, "protocol" to protocol, "url" to url,
+        "iceServers" to response["iceServers"], "expiresAt" to expires, "maxViewers" to response.number("maxViewers", 1)), 201)
+}
+internal fun V1Context.closeCameraStream(): V1Response {
+    val row = record("camera_view", "sessionId")
+    if (row.data.text("cameraId") != id("cameraId")) fail(404, "NOT_FOUND", "Sessão não encontrada")
+    if (row.data.text("closedAt") == null) {
+        CameraProvider.request(this, "DELETE", "/sessions", obj("id" to row.data["providerSessionId"]))
+        change(row, obj("closedAt" to now.toString()), "camera.session_closed")
+    }
+    return V1Response(status = 204)
+}
