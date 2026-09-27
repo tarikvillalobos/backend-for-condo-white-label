@@ -57,7 +57,8 @@ fun V1Context.page(
             val logical = record.logical()
             val eligible = filters.all { (k,v) -> logical.data.string(k) == v } && predicate(logical)
             if (eligible && result.size == limit) { hasMore = true; break }
-            lastCreated = record.createdAt; lastId = record.id
+            lastCreated = if (sortField == "createdAt") record.createdAt else record.data.string(sortField) ?: record.createdAt
+            lastId = logical.id
             if (eligible) result += transform(logical)
         }
         if (hasMore || rows.size < 200) break
