@@ -58,3 +58,17 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
             it.executeUpdate()
         }
     }
+    fun micros(): Long = if (tx.postgres) tx.connection.createStatement().use {
+        it.executeQuery("SELECT (extract(epoch FROM clock_timestamp()) * 1000000)::bigint").use { rows -> rows.next(); rows.getLong(1) }
+    } else Instant.now().let { it.epochSecond * 1_000_000 + it.nano / 1000 }
+    fun audit(context: V1Context, action: String, record: Record) = appendAudit(context, action, record)
+    internal fun prefix(kind: String): String = if (kind.startsWith("v1_")) kind else "v1_$kind"
+    internal fun physicalId(kind: String, id: String): String = Secrets.hash("$tenantId:$brandId:${prefix(kind)}:$id")
+}
+
+internal fun Record.logical(): Record = copy(id = data.string("_id") ?: id)
+
+internal fun ResultSet.v1Record(): Record = Record(
+    getString("id"), getString("kind"), getString("tenant_id"), getString("location_id"), getString("owner_id"),
+    json.parseToJsonElement(getString("payload")).jsonObject, getString("created_at"), getString("updated_at"), getInt("version"),
+)
