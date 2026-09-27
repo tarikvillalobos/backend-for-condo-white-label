@@ -180,8 +180,9 @@ paths:
       requestBody:
         required: true
         content:
-          "application/json":
-            schema: {"$ref":"#/components/schemas/LoginRequest"}
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         "200":
           description: "Successful operation."
