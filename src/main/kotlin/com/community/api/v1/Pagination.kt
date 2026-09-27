@@ -43,8 +43,11 @@ fun V1Context.page(
         if (locationId != null) { sql.append(" AND location_id = ?"); values += locationId }
         if (ownerId != null) { sql.append(" AND owner_id = ?"); values += ownerId }
         if (tx.postgres) filters.forEach { (key, value) -> sql.append(" AND payload::jsonb ->> ? = ?"); values += key; values += value }
-        sql.append(" AND (created_at > ? OR (created_at = ? AND id > ?)) ORDER BY created_at, id LIMIT 200")
-        values.addAll(listOf(lastCreated, lastCreated, lastId))
+        if (lastId.isNotEmpty()) {
+            sql.append(" AND ($sortColumn ${if (descending) "<" else ">"} ? OR ($sortColumn = ? AND logical_id > ?))")
+            values.addAll(listOf(lastCreated,lastCreated,lastId))
+        }
+        sql.append(" ORDER BY $sortColumn ${if (descending) "DESC" else "ASC"}, logical_id LIMIT 200")
         val rows = tx.connection.prepareStatement(sql.toString()).use { statement ->
             values.forEachIndexed { index, value -> statement.setObject(index + 1, value) }
             statement.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.v1Record()) } }
