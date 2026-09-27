@@ -38,3 +38,23 @@ internal object BookingRules {
                 if (localTime(a.text("closes")).isAfter(localTime(b.text("opens"))))
                     bookingError("VALIDATION_ERROR", "Opening intervals cannot overlap")
             }
+        }
+    }
+
+    fun timeZone(value: String?): ZoneId = try { ZoneId.of(value ?: "America/Sao_Paulo") }
+        catch (_: Exception) { bookingError("VALIDATION_ERROR", "Invalid condominium time zone") }
+
+    fun localTime(value: String?): LocalTime = try { LocalTime.parse(value) }
+        catch (_: Exception) { bookingError("VALIDATION_ERROR", "Opening hours require HH:mm") }
+
+    fun validateWindow(space: JsonObject, input: JsonObject, zone: ZoneId, now: Instant) {
+        val start = timestamp(input.text("startsAt"))
+        val end = timestamp(input.text("endsAt"))
+        val rules = space.objectAt("rules")
+        if (!space.flag("active")) bookingError("SPACE_UNAVAILABLE", "Space is inactive", 409)
+        if (!start.isBefore(end) || !start.isAfter(now)) bookingError("VALIDATION_ERROR", "Reservation must occupy a future interval")
+        if (start.isBefore(now.plusSeconds(rules.number("minAdvanceMinutes")!!.toLong() * 60)))
+            bookingError("MIN_ADVANCE_REQUIRED", "Reservation does not meet the minimum notice")
+        if (start.atZone(zone).toLocalDate().isAfter(now.atZone(zone).toLocalDate().plusDays(rules.number("horizonDays")!!.toLong())))
+            bookingError("OUTSIDE_HORIZON", "Reservation exceeds the booking horizon")
+        val duration = Duration.between(start, end)
