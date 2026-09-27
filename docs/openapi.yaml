@@ -799,6 +799,26 @@ paths:
         estável. Novas entregas exigem atualização da primeira página. Nunca incluir encomendas de coabitantes sem
 
         concessão explícita.'
+      x-required-permission: parcels.read.own
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/ParcelFilter'
+      responses:
+        '200':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParcelPage'
+        '400':
+          $ref: '#/components/responses/Problem'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
