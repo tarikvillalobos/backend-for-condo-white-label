@@ -58,3 +58,23 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
         brandId = headers.entries.firstOrNull { it.key.equals("X-Brand-Id",true) }?.value
         if (!health && brandId.isNullOrBlank()) throw ApiException(400,"VALIDATION_ERROR","X-Brand-Id is required")
         if (health) handler.handle(V1Context(db.scopedTx(null) { it },operation.id,"","",requestId))
+        else {
+            tenantId = db.scopedQuery(null) { it.tenantForBrand(brandId!!) }
+            val scope = db.scopedQuery(null) { tx -> scopeFor(tx,operation,tenantId!!,brandId!!,path,input) }
+            db.scopedQuery(scope) { tx ->
+                val c = authorizeV1(tx,operation,brandId!!,tenantId!!,headers,path,input,query,requestId)
+                context = c
+                tx.requestMetadata(requestId,operation.id,c.principal)
+                val (response,wasReplay) = c.idempotent(operation,handler)
+                replay = wasReplay
+                if (!wasReplay && operation.definition["x-audit"]?.jsonObject?.get("layers")?.jsonArray?.contains(JsonPrimitive("event")) == true) {
+                    appendAudit(c,operation.id,outcome=if (response.status < 400) "success" else "failed")
+                }
+                validateResponse(operation,response)
+                response
+            }
+        }
+    } catch (failure: ApiException) {
+        problem(failure.status,failure.code.uppercase(),failure.message,requestId)
+    } catch (failure: Exception) {
+        if (failure is CancellationException) throw failure
