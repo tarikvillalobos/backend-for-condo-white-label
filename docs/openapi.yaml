@@ -127,9 +127,10 @@ tags:
 paths:
   /configuration:
     get:
-      tags: ["Health"]
-      summary: "Check liveness"
-      operationId: "get_health_live"
+      operationId: getBrandConfiguration
+      tags:
+      - Configuration
+      summary: Consultar capacidades públicas da marca
       security: []
       responses:
         "200":
