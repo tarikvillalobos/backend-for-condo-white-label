@@ -58,3 +58,23 @@ private fun V1Context.requestPasswordRecovery(): V1Response {
     requireEmailChannel(channel)
     if (!identityRate("v1-recovery", value)) return rateLimited()
     val user = findIdentity(type, value)?.takeIf { it.decode<Account>().active }
+    val destination = user?.decode<Account>()?.email ?: value
+    val masked = if (type == "email") maskedContact(value, "email") else "***"
+    return V1Response(issueIdentityChallenge("password_recovery", user, destination, displayDestination = masked), 202)
+}
+
+private fun V1Context.verifyPasswordRecovery(): V1Response {
+    val password = identityInput("newPassword")
+    Passwords.validate(password)
+    val verified = verifyIdentityChallenge(identityPath("challengeId"), "password_recovery")
+    verified.failure?.let { return it }
+    val user = verified.account!!
+    val updated = tx.update(user, body(user.decode<Account>().copy(passwordHash = Passwords.hash(password))))
+    tx.list("session", tenantId, ownerId = user.id).forEach { revokeIdentitySession(it.id) }
+    consumeOtherChallenges(user.id)
+    return V1Response(issueIdentitySession(updated))
+}
+
+internal fun V1Context.consumeOtherChallenges(id: String) {
+    tx.list("auth_challenge", tenantId, ownerId = id).filter { !it.decode<ChallengeData>().consumed }
+        .forEach { tx.consumeChallenge(it) }
