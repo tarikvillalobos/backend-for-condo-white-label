@@ -18,3 +18,23 @@ internal fun V1Context.petAlert(row: Record) = view("PetAlert", row, obj(
     "isMine" to (row.ownerId == principal?.userId && row.data.text("membershipId") == membershipId), "resolvedAt" to row.data["resolvedAt"],
 ))
 private fun V1Context.validatePet(data: JsonObject, currentId: String? = null) {
+    val nodeId = checkedNode(data, true)
+    data.text("birthDate")?.let { if (LocalDate.parse(it).isAfter(LocalDate.now())) fail(422, "PET_RULE_VIOLATION", "Nascimento no futuro") }
+    val rules = store.find("condominium", location())?.data?.get("petRules") as? JsonObject ?: return
+    val species = rules.array("allowedSpecies")
+    if (species.isNotEmpty() && data["species"] !in species) fail(422, "PET_RULE_VIOLATION", "Espécie não permitida")
+    val maximum = rules.text("maxPetsPerNode")?.toIntOrNull()
+    if (maximum != null && store.list("pet", locationId, filters = mapOf("nodeId" to nodeId!!)).count { it.id != currentId } >= maximum)
+        fail(422, "PET_RULE_VIOLATION", "Quantidade máxima de pets por unidade atingida")
+}
+internal fun petHandlers(): Map<String, V1Handler> = mapOf(
+    "listPets" to V1Handler { c -> c.listResponse("pet", true) { c.pet(it) } },
+    "getPet" to V1Handler { c -> V1Response(c.pet(c.record("pet", "petId"))) },
+    "createPet" to V1Handler { c ->
+        c.validatePet(c.input)
+        V1Response(c.pet(c.save("pet", c.input.merge(obj("nodeId" to c.checkedNode(required = true))))), 201)
+    },
+    "updatePet" to V1Handler { c ->
+        val row = c.record("pet", "petId")
+        val data = row.data.merge(c.input)
+        c.validatePet(data, row.id)
