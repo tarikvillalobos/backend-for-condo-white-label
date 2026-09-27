@@ -18,7 +18,7 @@ fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principa
 
 fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: String = "success", details: JsonObject = obj()): JsonObject {
     c.tx.lock("audit:${c.tenantId}:${c.brandId}")
-    val previous = c.tx.connection.prepareStatement("SELECT hash FROM audit_log WHERE tenant_id = ? AND brand_id = ? ORDER BY created_at DESC, id DESC LIMIT 1").use {
+    val previous = c.tx.connection.prepareStatement("SELECT hash FROM audit_log WHERE tenant_id = ? AND brand_id = ? ORDER BY sequence DESC LIMIT 1").use {
         it.setString(1, c.tenantId); it.setString(2, c.brandId)
         it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else "" }
     }
