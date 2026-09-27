@@ -138,3 +138,17 @@ private fun scopeFor(tx: Tx, op: ContractOperation, tenant: String, brand: Strin
     val store = V1Store(tx,tenant,brand)
     val location = path["condominiumId"] ?: path["membershipId"]?.let { store.find("membership",it)?.locationId }
         ?: path["lockerId"]?.let { store.find("locker",it)?.locationId } ?: path["parcelId"]?.let { store.find("parcel",it)?.locationId }
+        ?: input.string("condominiumId") ?: input.string("nodeId")?.let { store.find("node",it)?.locationId }
+    val identity = if (op.path.startsWith("/auth/")) Secrets.hash(input.string("identifier") ?: input.string("refreshToken") ?: path["challengeId"] ?: "public") else null
+    return "v1:$tenant:$brand:${location ?: identity ?: "platform"}"
+}
+
+private fun healthHandlers(): Map<String,V1Handler> = mapOf(
+    "healthLive" to V1Handler { V1Response(obj("status" to "UP")) },
+    "healthReady" to V1Handler { V1Response(obj("status" to "UP")) },
+)
+
+private val documentationHtml = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Community API</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.30.2/swagger-ui.css"></head>
+<body><div id="swagger-ui"></div><script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.30.2/swagger-ui-bundle.js"></script>
+<script>SwaggerUIBundle({url:'/v1/openapi.json',dom_id:'#swagger-ui',persistAuthorization:false,deepLinking:true});</script></body></html>"""
