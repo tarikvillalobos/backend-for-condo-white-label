@@ -38,3 +38,23 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
     }
     fun update(record: Record, data: JsonObject): Record {
         checkOwned(record)
+        val physical = record.copy(id = physicalId(record.kind, record.id))
+        val updated = tx.update(physical, JsonObject(data + obj("_brandId" to brandId, "_id" to record.id)))
+        if (!tx.postgres) history(updated)
+        return updated.logical()
+    }
+    fun delete(record: Record) { update(record, JsonObject(record.data + obj("_deletedAt" to Instant.now().toString()))) }
+    private fun checkOwned(record: Record) {
+        if (record.tenantId != tenantId || record.data.string("_brandId") != brandId) throw ApiException(404, "RESOURCE_NOT_FOUND", "Resource not found")
+    }
+    private fun history(record: Record) {
+        val at = micros()
+        tx.connection.prepareStatement("UPDATE v1_record_versions SET valid_to = ? WHERE id = ? AND valid_to IS NULL").use {
+            it.setLong(1, at); it.setString(2, record.id); it.executeUpdate()
+        }
+        tx.connection.prepareStatement("INSERT INTO v1_record_versions (id,version,kind,tenant_id,location_id,owner_id,brand_id,payload,created_at,updated_at,valid_from,deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").use {
+            listOf(record.id, record.version, record.kind, tenantId, record.locationId, record.ownerId, brandId, record.data.toString(), record.createdAt, record.updatedAt, at, record.data.string("_deletedAt") != null)
+                .forEachIndexed { index, value -> it.setObject(index + 1, value) }
+            it.executeUpdate()
+        }
+    }
