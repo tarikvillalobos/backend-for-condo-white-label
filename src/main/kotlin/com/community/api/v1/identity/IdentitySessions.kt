@@ -78,3 +78,17 @@ internal fun V1Context.refreshIdentitySession(): V1Response {
 internal fun V1Context.listIdentitySessions(): V1Response {
     val items = tx.list("session", tenantId, ownerId = userId).mapNotNull { record ->
         val session = record.decode<SessionData>()
+        val meta = store.find("session", record.id)?.data
+        if (session.revoked || expired(session.expiresAt) || meta?.string("brandId") != brandId) null
+        else obj("id" to record.id, "deviceLabel" to session.device,
+            "channel" to (meta.string("channel") ?: "app"), "staff" to meta["staff"],
+            "current" to (record.id == principal?.sessionId), "createdAt" to record.createdAt,
+            "lastSeenAt" to (meta.string("lastSeenAt") ?: record.updatedAt), "approximateLocation" to null)
+    }
+    return V1Response(obj("items" to items))
+}
+
+internal fun V1Context.revokeOtherIdentitySessions() {
+    tx.list("session", tenantId, ownerId = userId).filter { it.id != principal?.sessionId }
+        .forEach { revokeIdentitySession(it.id) }
+}
