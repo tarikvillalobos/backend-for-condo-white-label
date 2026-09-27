@@ -298,10 +298,16 @@ paths:
             Cache-Control:
               $ref: '#/components/headers/NoStore'
           content:
-            "application/json":
-              schema: {"$ref":"#/components/schemas/Tokens"}
-        default: {"$ref":"#/components/responses/Error"}
-  "/api/v1/auth/activate":
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTokens'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '410':
     post:
       tags: ["Identity"]
       summary: "Activate an invited account"
