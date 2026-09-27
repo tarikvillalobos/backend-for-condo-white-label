@@ -98,3 +98,23 @@ object Contract {
             schema["maximum"]?.jsonPrimitive?.doubleOrNull?.let { if (number > it) errors += "$field is too large" }
         }
         return errors
+    }
+    private fun matchesType(type: String, value: JsonElement): Boolean = when (type) {
+        "null" -> value is JsonNull
+        "object" -> value is JsonObject
+        "array" -> value is JsonArray
+        "string" -> value is JsonPrimitive && value.isString
+        "boolean" -> value is JsonPrimitive && !value.isString && value.booleanOrNull != null
+        "integer" -> value is JsonPrimitive && !value.isString && value.longOrNull != null
+        "number" -> value is JsonPrimitive && !value.isString && value.doubleOrNull != null
+        else -> false
+    }
+    fun project(name: String, value: JsonObject): JsonObject = projectValue(schemas[name]!!.jsonObject, value).jsonObject
+    private fun projectValue(source: JsonObject, value: JsonElement): JsonElement {
+        val schema = resolve(source)
+        if (value is JsonNull) return value
+        if (value is JsonArray) return schema["items"]?.jsonObject?.let { child -> JsonArray(value.map { projectValue(child, it) }) } ?: value
+        if (value !is JsonObject) return value
+        val choices = (schema["anyOf"] ?: schema["oneOf"]) as? JsonArray
+        if (choices != null) {
+            val choice = choices.map { resolve(it.jsonObject) }.firstOrNull { it.string("type") == "object" || "properties" in it }
