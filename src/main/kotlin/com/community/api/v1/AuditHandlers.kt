@@ -58,3 +58,23 @@ fun auditHandlers(): Map<String,V1Handler> = mapOf(
         V1Response(c.project("RetentionHold",updated.document()))
     },
 )
+
+private fun V1Context.ownOrganizations(): Set<String> = store.list("staff_assignment",ownerId=userId)
+    .filter { it.data.string("status") == "active" }.mapNotNull { it.data.string("organizationId") }.toSet()
+private fun V1Context.canReadHold(row: Record): Boolean = "*" in principal!!.permissions || "brand.audit" in principal.permissions || row.data.string("organizationId") in ownOrganizations()
+
+private fun V1Context.auditWhere(table: String, extra: Map<String,String>): Pair<String,List<Any>> {
+    require(table in setOf("audit_log","api_requests","audit_changes"))
+    val sql = StringBuilder("tenant_id = ? AND brand_id = ?")
+    val values = mutableListOf<Any>(tenantId,brandId)
+    if (locationId != null) { sql.append(" AND location_id = ?"); values += locationId }
+    path["organizationId"]?.let { org ->
+        val condos = store.list("organization_condominium",filters=mapOf("organizationId" to org,"status" to "active")).mapNotNull { it.locationId }
+        if (condos.isEmpty()) sql.append(" AND 1 = 0")
+        else { sql.append(" AND location_id IN (${condos.joinToString(",") { "?" }})"); values.addAll(condos) }
+    }
+    extra.forEach { (key,value) ->
+        require(key in setOf("request_id","id","target_type","target_id","row_id"))
+        sql.append(" AND $key = ?"); values += value
+    }
+    return sql.toString() to values
