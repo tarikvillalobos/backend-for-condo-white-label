@@ -43,8 +43,8 @@ internal fun V1Context.parcel(id: String = path.getValue("parcelId"), own: Boole
     store.get("parcel", id, locationId).also { row ->
         if (own && !canReadParcel(row)) fail(404, "NOT_FOUND", "Parcel not found")
     }
-internal fun V1Context.canReadParcel(row: Record): Boolean {
-    if (row.data.text("status") in setOf("returned", "cancelled")) return false
+internal fun V1Context.canReadParcel(row: Record, includeClosed: Boolean = false): Boolean {
+    if (!includeClosed && row.data.text("status") in setOf("returned", "cancelled")) return false
     if (row.data.text("membershipId") == membershipId) return true
     return row.data.array("delegates").any { it.jsonPrimitive.content == membershipId }
 }
