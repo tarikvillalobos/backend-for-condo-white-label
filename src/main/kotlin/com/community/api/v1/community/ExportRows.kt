@@ -38,3 +38,6 @@ internal fun V1Context.exportRows(job: com.community.api.core.Record): List<Map<
 private fun V1Context.exportAudit(): List<JsonObject> = tx.connection.prepareStatement(
     "SELECT payload FROM audit_log WHERE tenant_id = ? AND brand_id = ? AND location_id = ? ORDER BY created_at LIMIT 100001",
 ).use { statement ->
+    statement.setString(1, tenantId); statement.setString(2, brandId); statement.setString(3, locationId)
+    statement.executeQuery().use { rows -> buildList { while (rows.next()) add(json.parseToJsonElement(rows.getString(1)).jsonObject) } }
+}
