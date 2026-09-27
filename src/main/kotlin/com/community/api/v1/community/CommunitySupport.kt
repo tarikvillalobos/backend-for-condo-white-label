@@ -57,9 +57,14 @@ internal fun V1Context.result(schema: String, row: Record, status: Int = 200, ex
     V1Response(view(schema, row, extras), status, mapOf("ETag" to "\"${row.version}\""))
 internal fun V1Context.listResponse(kind: String, own: Boolean = false, filters: Map<String, String> = emptyMap(), transform: (Record) -> JsonElement): V1Response {
     val constraints = filters + if (own) mapOf("membershipId" to (membershipId ?: fail(403, "MEMBERSHIP_REQUIRED", "Vínculo obrigatório"))) else emptyMap()
-    val page = page(kind, locationId, if (own) userId else null, constraints, transform = transform)
-    val items = page["items"] as? JsonArray ?: return V1Response(page)
-    return V1Response(page.merge(obj("items" to JsonArray(items.filter { it != JsonNull }))))
+    val rendered = mutableMapOf<String, JsonElement>()
+    val page = page(kind, locationId, if (own) userId else null, constraints, predicate = { row ->
+        val value = transform(row)
+        val accepts = value != JsonNull && queryMatches(row, value as? JsonObject ?: obj())
+        if (accepts) rendered[row.id] = value
+        accepts
+    }, transform = { row -> rendered.remove(row.id) ?: transform(row) })
+    return V1Response(page)
 }
 internal fun V1Context.simpleList(kind: String, schema: String, predicate: (Record) -> Boolean = { true }) =
     V1Response(obj("items" to JsonArray(store.list(kind, locationId).filter(predicate).map { view(schema, it) })))
