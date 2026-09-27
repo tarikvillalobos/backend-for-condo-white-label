@@ -118,3 +118,8 @@ private fun saveDevice(c: V1Context): V1Response {
 
 private fun revokeDevice(c: V1Context): V1Response {
     val row = c.store.get("device", c.path.getValue("deviceId"), c.condo())
+    if (c.header("If-Match") != null) c.requireVersion(row)
+    val saved = c.store.update(row, row.data.changed("status" to JsonPrimitive("revoked"), "revokedAt" to JsonPrimitive(c.now.toString()), "keyHash" to JsonNull))
+    c.audit("device.revoked", saved)
+    return V1Response(c.deviceView(saved))
+}
