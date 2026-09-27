@@ -38,3 +38,23 @@ private fun V1Context.updatePlatformBrand(): V1Response {
 }
 
 private fun V1Context.accountSummary(user: Record): JsonObject {
+    val account = user.decode<Account>()
+    val profile = profileData(user)
+    val status = when {
+        profile.string("accountStatus") == "blocked" -> "blocked"
+        account.active -> "active"
+        account.passwordHash.isEmpty() -> "pending"
+        else -> "blocked"
+    }
+    return obj("id" to user.id, "name" to account.name,
+        "maskedEmail" to account.email.takeIf { it.isNotEmpty() }?.let { maskedContact(it, "email") },
+        "maskedPhone" to profile.string("phone")?.let { maskedContact(it, "sms") }, "status" to status,
+        "contextsCount" to (store.list("membership", ownerId = user.id, filters = mapOf("status" to "active")).size +
+            store.list("staff_assignment", ownerId = user.id, filters = mapOf("status" to "active")).size),
+        "lastSeenAt" to store.list("session", ownerId = user.id).mapNotNull { it.data.string("lastSeenAt") }.maxOrNull(), "createdAt" to user.createdAt)
+}
+
+private fun V1Context.updatePlatformAccount(): V1Response {
+    requireBrandAdministrator()
+    val id = pathId("userId")
+    if (id == userId) fail(403, "SELF_ACCOUNT_CHANGE", "Não é permitido bloquear a própria conta")
