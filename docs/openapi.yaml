@@ -177,14 +177,6 @@ paths:
       parameters:
       - $ref: '#/components/parameters/BrandId'
       - $ref: '#/components/parameters/IdempotencyKey'
-            "application/json":
-              schema: {"$ref":"#/components/schemas/HealthResponse"}
-  "/api/v1/auth/login":
-    post:
-      tags: ["Identity"]
-      summary: "Sign in with a password"
-      operationId: "post_api_v1_auth_login"
-      security: []
       requestBody:
         required: true
         content:
