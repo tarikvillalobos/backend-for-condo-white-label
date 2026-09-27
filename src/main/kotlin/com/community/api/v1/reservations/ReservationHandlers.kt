@@ -44,7 +44,7 @@ internal fun nodeReference(c: V1Context, id: String?): JsonElement {
 
 internal fun spaceView(c: V1Context, row: Record): JsonObject = obj(
     "id" to row.id, "node" to nodeReference(c, row.data.text("nodeId")), "name" to row.data.text("name"),
-    "description" to row.data["description"], "photoUrl" to row.data["photoUrl"],
+    "description" to row.data["description"], "photoUrl" to row.data.text("photoKey")?.let(c::fileUrl),
     "active" to row.data.flag("active"), "rules" to row.data.objectAt("rules"), "openingHours" to row.data.arrayAt("openingHours"),
 )
 
