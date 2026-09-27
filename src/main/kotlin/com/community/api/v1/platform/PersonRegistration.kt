@@ -38,3 +38,18 @@ internal fun V1Context.membershipAdminView(record: Record): JsonObject {
     val node = record.data.string("nodeId")!!
     return project("MembershipAdmin", record.document().plusFields("user" to obj("id" to account.id, "name" to user.name,
         "maskedEmail" to user.email.takeIf { it.isNotBlank() }?.let { maskedContact(it, "email") },
+        "maskedPhone" to phone?.let { maskedContact(it, "sms") }), "node" to nodeRef(this, node),
+        "nodePath" to nodePathView(this, node), "canManageNode" to record.data.bool("canManageNode"),
+        "permissions" to record.data.arr("permissions"), "startedAt" to (record.data.string("startedAt") ?: record.createdAt),
+        "endedAt" to record.data["endedAt"], "lastSeenAt" to store.list("session", ownerId = account.id)
+            .mapNotNull { it.data.string("lastSeenAt") }.maxOrNull()))
+}
+
+internal fun V1Context.checkAddressableNode(id: String): Record {
+    val node = store.get("node", id, condominiumId())
+    val type = store.get("node_type", node.data.string("typeId")!!, condominiumId())
+    if (!node.data.bool("active", true) || !type.data.bool("addressable")) {
+        fail(422, "NODE_NOT_ADDRESSABLE", "O nó precisa estar ativo e permitir vínculos")
+    }
+    return node
+}
