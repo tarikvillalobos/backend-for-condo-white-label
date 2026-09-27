@@ -38,3 +38,23 @@ internal fun V1Context.camera(row: Record, admin: Boolean = false): JsonObject {
 internal fun V1Context.requireCamera(recordings: Boolean = false): Record {
     val row = store.get("camera", id("cameraId"), locationId)
     val permissions = cameraAccess(row)
+    if (!(if (recordings) permissions.second else permissions.first)) fail(403, "CAMERA_ACCESS_DENIED", "Acesso à câmera não permitido")
+    return row
+}
+private fun V1Context.validateCamera(data: JsonObject) {
+    checkedNode(data)
+    if (data.text("providerRef")?.contains("://") == true) fail(422, "CAMERA_PROVIDER_REF_INVALID", "Informe o identificador do provedor, sem URL ou credenciais")
+    data.text("gatewayDeviceId")?.let { store.get("device", it, locationId) }
+}
+internal fun cameraHandlers(): Map<String, V1Handler> = mapOf(
+    "listCameras" to V1Handler { c -> c.listResponse("camera") { row ->
+        val access = c.cameraAccess(row)
+        if (access.first || access.second) c.camera(row) else JsonNull
+    } },
+    "getCamera" to V1Handler { c ->
+        val row = c.store.get("camera", c.id("cameraId"), c.locationId)
+        val access = c.cameraAccess(row)
+        if (!access.first && !access.second) c.fail(404, "NOT_FOUND", "Câmera não encontrada")
+        V1Response(c.camera(row))
+    },
+    "adminListCameras" to V1Handler { c -> c.listResponse("camera") { c.camera(it, true) } },
