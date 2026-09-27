@@ -68,6 +68,11 @@ internal fun Tx.claimAuthDelivery(): Record? {
 }
 
 private fun AuthDelivery.asMessage(id: String): MailMessage {
+    val plaintext = if (credential.startsWith("sealed:")) Secrets.unseal(credential.removePrefix("sealed:")) else credential
+    if (type == "v1_message") {
+        val message = json.parseToJsonElement(plaintext).jsonObject
+        return MailMessage(email, message.string("subject")!!, message.string("text")!!, id)
+    }
     val purpose = when (type) {
         "otp" -> "sign-in code"
         "recovery" -> "password recovery token"
