@@ -528,8 +528,9 @@ paths:
       requestBody:
         required: true
         content:
-          "application/json":
-            schema: {"$ref":"#/components/schemas/EmailRequest"}
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencesUpdate'
       responses:
         "200":
           description: "Successful operation."
