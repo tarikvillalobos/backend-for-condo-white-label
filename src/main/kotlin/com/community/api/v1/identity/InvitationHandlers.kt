@@ -98,3 +98,16 @@ private fun V1Context.createInvitationMembership(invitation: Record, user: Recor
     val condoId = invitation.locationId!!
     val nodeId = invitation.data.string("nodeId")!!
     val condo = store.get("condominium", condoId)
+    val node = store.get("node", nodeId, condoId)
+    if (condo.data.string("status") == "inactive" || node.data.string("status") == "inactive") {
+        fail(409, "LOCATION_UNAVAILABLE", "O local do convite não está disponível")
+    }
+    if (store.list("membership", condoId, user.id).any {
+            it.data.string("nodeId") == nodeId && it.data.string("status") == "active"
+        }) fail(409, "ALREADY_LINKED", "Este vínculo já existe")
+    val membership = store.create("membership", obj("userId" to user.id, "brandId" to brandId,
+        "condominiumId" to condoId, "nodeId" to nodeId, "role" to invitation.data["role"],
+        "status" to "active", "startedAt" to now.toString(), "permissions" to emptyList<String>()), condoId, user.id)
+    store.update(invitation, invitation.data.with("status" to "accepted", "acceptedAt" to now.toString(), "acceptedBy" to user.id))
+    return membership
+}
