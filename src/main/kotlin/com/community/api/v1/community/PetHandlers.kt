@@ -58,3 +58,23 @@ internal fun petHandlers(): Map<String, V1Handler> = mapOf(
     "deleteVaccination" to V1Handler { c ->
         val pet = c.record("pet", "petId")
         val row = c.record("vaccination", "vaccinationId")
+        if (row.data.text("petId") != pet.id) c.fail(404, "NOT_FOUND", "Vacina não encontrada")
+        c.remove(row)
+    },
+    "listPetAlerts" to V1Handler { c -> c.listResponse("pet_alert") { c.petAlert(it) } },
+    "adminListPetAlerts" to V1Handler { c -> c.listResponse("pet_alert") { c.petAlert(it) } },
+    "getPetAlert" to V1Handler { c -> V1Response(c.petAlert(c.store.get("pet_alert", c.id("alertId"), c.locationId))) },
+    "createPetAlert" to V1Handler { c ->
+        val petId = c.input.text("petId")
+        if (c.input.text("kind") == "lost" && petId == null) c.fail(422, "PET_REQUIRED", "Informe o pet desaparecido")
+        petId?.let { c.owned(c.store.get("pet", it, c.locationId)) }
+        if (petId != null && c.store.list("pet_alert", c.locationId, filters = mapOf("petId" to petId, "status" to "open")).isNotEmpty())
+            c.fail(409, "PET_ALERT_ALREADY_OPEN", "O pet já tem um alerta aberto")
+        val row = c.save("pet_alert", c.input.merge(obj("nodeId" to c.unitId, "status" to "open")))
+        c.broadcast("pet_alert", row.id, "Alerta de pet", c.input.text("description"))
+        V1Response(c.petAlert(row), 201)
+    },
+    "resolvePetAlert" to V1Handler { c ->
+        val row = c.record("pet_alert", "alertId")
+        if (row.data.text("status") != "open") c.fail(409, "PET_ALERT_NOT_OPEN", "Alerta não está aberto")
+        V1Response(c.petAlert(c.change(row, obj("status" to "resolved", "resolvedAt" to now()))))
