@@ -38,3 +38,23 @@ internal fun V1Context.issueIdentityChallenge(
 internal fun challengeView(id: String, metadata: JsonObject): JsonObject = obj(
     "id" to id, "expiresAt" to metadata["expiresAt"], "resendAt" to metadata["resendAt"],
     "channel" to metadata["channel"], "maskedDestination" to metadata["maskedDestination"],
+    "codeLength" to 6, "purpose" to metadata["purpose"],
+)
+
+internal fun V1Context.challengeMetadata(id: String, purpose: String, owned: Boolean): Record {
+    val record = store.find("challenge", id)
+        ?: fail(404, "CHALLENGE_NOT_FOUND", "Desafio não encontrado")
+    if (record.data.string("brandId") != brandId || record.data.string("purpose") != purpose ||
+        owned && (record.ownerId != userId || record.data.string("sessionId") != principal?.sessionId)) {
+        fail(404, "CHALLENGE_NOT_FOUND", "Desafio não encontrado")
+    }
+    return record
+}
+
+internal fun V1Context.verifyIdentityChallenge(id: String, purpose: String, owned: Boolean = false): VerifiedChallenge {
+    val metadata = challengeMetadata(id, purpose, owned)
+    val challenge = tx.get("auth_challenge", id, tenantId)
+        ?: fail(404, "CHALLENGE_NOT_FOUND", "Desafio não encontrado")
+    val data = challenge.decode<ChallengeData>()
+    if (data.consumed) fail(410, "CHALLENGE_CONSUMED", "Este desafio já foi utilizado")
+    if (!Instant.parse(data.expiresAt).isAfter(now)) fail(410, "CHALLENGE_EXPIRED", "Este desafio expirou")
