@@ -58,3 +58,15 @@ class IdentitySessionChangesTest {
         }
     }
 
+    @Test fun `installation proof remains mandatory after logout`() = IdentityFixture().use { f ->
+        val token = f.login().string("accessToken")!!
+        val path = mapOf("installationId" to java.util.UUID.randomUUID().toString())
+        val input = obj("platform" to "ios", "provider" to "apns", "token" to "push-token",
+            "permission" to "authorized", "appVersion" to "1")
+        f.invoke("registerPushDevice", input, token, path, mapOf("X-Installation-Key" to Secrets.token()))
+        val denied = assertFailsWith<ApiException> {
+            f.invoke("registerPushDevice", input, token, path, mapOf("X-Installation-Key" to Secrets.token()))
+        }
+        assertEquals(403, denied.status)
+    }
+}
