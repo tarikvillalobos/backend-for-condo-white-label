@@ -18,3 +18,23 @@ internal fun V1Context.atCondominium(id: String, operation: String = operationId
 internal fun V1Context.organizationDashboard(): V1Response {
     val rows = organizationCondos().map { condo -> obj("condominiumId" to condo.id, "name" to condo.data["name"],
         "dashboard" to atCondominium(condo.id).adminDashboard()) }
+    val sections = listOf("parcels", "access", "tickets", "reservations", "lockers", "cameras", "memberships")
+    val zero = mapOf("parcels" to listOf("waiting", "overdue", "receivedToday", "collectedToday"), "access" to listOf("entriesToday", "activeInvites"),
+        "tickets" to listOf("open", "supportIssues", "serviceRequests", "occurrences"), "reservations" to listOf("today", "pendingApproval"),
+        "lockers" to listOf("total", "offline", "compartments", "occupied", "faulty"), "cameras" to listOf("total", "offline"), "memberships" to listOf("active", "pending"))
+    val totals = buildJsonObject {
+        put("generatedAt", now.toString())
+        sections.forEach { section -> put(section, buildJsonObject {
+            zero.getValue(section).forEach { field -> put(field, rows.sumOf { it["dashboard"]!!.jsonObject[section]!!.jsonObject.number(field) }) }
+        }) }
+    }
+    return V1Response(obj("generatedAt" to now.toString(), "totals" to totals, "byCondominium" to JsonArray(rows)))
+}
+internal fun V1Context.organizationQueue(): V1Response {
+    val rows = organizationCondos().flatMap { condo -> atCondominium(condo.id).workItems(condo) }
+    val counts = rows.groupingBy { it.text("kind")!! }.eachCount()
+    val sorted = rows.filter { query["kind"]?.let { kind -> it.text("kind") == kind } ?: true }.sortedWith(
+        compareBy<JsonObject> { if (it.text("kind") == "arrival_pending") 0 else 1 }
+            .thenBy { when (it.text("priority")) { "urgent" -> 0; "high" -> 1; else -> 2 } }
+            .thenBy { it.text("dueAt") ?: "9999" }.thenBy { it.text("createdAt") },
+    )
