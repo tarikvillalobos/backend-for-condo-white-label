@@ -43,7 +43,7 @@ internal fun V1Context.visible(data: JsonObject): Boolean = membershipId == null
 internal fun V1Context.save(kind: String, data: JsonObject, owner: String? = principal?.userId): Record =
     store.create(kind, if ("membershipId" in data) data else data.merge(obj("membershipId" to membershipId)), locationId, owner).also { audit("$kind.created", it) }
 internal fun V1Context.change(row: Record, data: JsonObject, action: String = "${row.kind.removePrefix("v1_")}.updated"): Record {
-    requireVersion(row)
+    if (header("If-Match") != null || operationId in setOf("updateVehicle", "updatePet", "updateVisitor", "updateAccessInvite", "adminUpdateWorkOrder")) requireVersion(row)
     return store.update(row, row.data.merge(data)).also { audit(action, it) }
 }
 internal fun V1Context.remove(row: Record): V1Response {
