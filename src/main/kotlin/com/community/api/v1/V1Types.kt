@@ -18,3 +18,23 @@ data class V1Principal(
     val sessionId: String? = actor?.sessionId,
     val staff: Boolean = false,
     val deviceId: String? = null,
+    val permissions: Set<String> = emptySet(),
+)
+
+class V1Context(
+    val tx: Tx,
+    val operationId: String,
+    val tenantId: String,
+    val brandId: String,
+    val requestId: String,
+    val input: JsonObject = obj(),
+    val path: Map<String, String> = emptyMap(),
+    val query: Map<String, String> = emptyMap(),
+    val headers: Map<String, String> = emptyMap(),
+    val principal: V1Principal? = null,
+    val locationId: String? = path["condominiumId"],
+    val membership: Record? = null,
+    val now: Instant = Instant.now(),
+) {
+    val store = V1Store(tx, tenantId, brandId)
+    val userId: String get() = principal?.userId ?: fail(401, "SESSION_EXPIRED", "Authentication required")
