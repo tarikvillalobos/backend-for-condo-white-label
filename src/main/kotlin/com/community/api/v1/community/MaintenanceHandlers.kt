@@ -38,3 +38,23 @@ private fun V1Context.contractor(row: Record) = view("Contractor", row, obj("doc
 internal fun maintenanceHandlers(): Map<String, V1Handler> = mapOf(
     "adminListContractors" to V1Handler { c -> V1Response(obj("items" to JsonArray(c.store.list("contractor", c.locationId).map { c.contractor(it) }))) },
     "adminCreateContractor" to V1Handler { c -> V1Response(c.contractor(c.save("contractor", c.input)), 201) },
+    "adminUpdateContractor" to V1Handler { c -> V1Response(c.contractor(c.change(c.store.get("contractor", c.id("contractorId"), c.locationId), c.input))) },
+    "adminListEquipment" to V1Handler { c -> V1Response(obj("items" to JsonArray(c.store.list("equipment", c.locationId).filter {
+        c.query["nodeId"]?.let { scope -> c.inSubtree(it.data.text("nodeId"), scope) } ?: true
+    }.map { c.equipment(it) }))) },
+    "adminCreateEquipment" to V1Handler { c ->
+        c.checkedNode()
+        V1Response(c.equipment(c.save("equipment", c.input.merge(obj("active" to c.input.flag("active", true))))), 201)
+    },
+    "adminUpdateEquipment" to V1Handler { c ->
+        val row = c.store.get("equipment", c.id("equipmentId"), c.locationId)
+        c.checkedNode(row.data.merge(c.input))
+        V1Response(c.equipment(c.change(row, c.input)))
+    },
+    "adminListWorkOrders" to V1Handler { c -> c.listResponse("work_order") { c.workOrder(it) } },
+    "adminCreateWorkOrder" to V1Handler { c -> V1Response(c.workOrder(c.createWorkOrder(c.input)), 201) },
+    "adminGetWorkOrder" to V1Handler { c ->
+        val row = c.store.get("work_order", c.id("workOrderId"), c.locationId)
+        V1Response(c.workOrder(row), headers = mapOf("ETag" to "\"${row.version}\""))
+    },
+    "adminUpdateWorkOrder" to V1Handler { c ->
