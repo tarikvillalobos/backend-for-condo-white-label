@@ -249,6 +249,26 @@ paths:
         '404':
           $ref: '#/components/responses/Problem'
         '409':
+          $ref: '#/components/responses/Problem'
+        '410':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: auth
+        action: resendLoginChallenge
+        severity: notice
+        layers:
+        - request
+        - event
+        - changes
+        logsDenied: true
+  /auth/challenges/{challengeId}/verify:
+    parameters:
       requestBody:
         required: true
         content:
