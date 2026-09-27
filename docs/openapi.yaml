@@ -328,9 +328,16 @@ paths:
         logsDenied: true
   /auth/refresh:
     post:
-      tags: ["Identity"]
-      summary: "Activate an invited account"
-      operationId: "post_api_v1_auth_activate"
+      operationId: refreshSession
+      tags:
+      - Authentication
+      summary: Renovar e rotacionar a sessão
+      description: 'Rotacionar refresh token a cada sucesso. A sessão e a marca devem corresponder ao token. O cliente
+        serializa
+
+        renovações; reuso com chave diferente após consumo revoga a família e retorna 401 REFRESH_REVOKED. Mesma
+        chave
+
       security: []
       requestBody:
         required: true
