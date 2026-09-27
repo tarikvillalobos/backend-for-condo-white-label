@@ -58,3 +58,23 @@ fun staffAssignmentsView(c: V1Context, userId: String): JsonArray = JsonArray(c.
 fun contextHandlers(): Map<String,V1Handler> = mapOf(
     "getBrandConfiguration" to V1Handler { c ->
         val brand = c.store.get("brand",c.brandId)
+        V1Response(obj("brandId" to c.brandId,"appName" to brand.data.string("name"),"capabilities" to capabilitiesView(),
+            "supportEmail" to brand.data["support"]?.jsonObject?.get("email"),"termsUrl" to brand.data["termsUrl"],
+            "privacyUrl" to brand.data["privacyUrl"],"modules" to modulesView(c),"authMethods" to brand.data["authMethods"],"support" to brand.data["support"]))
+    },
+    "listMemberships" to V1Handler { c -> V1Response(obj("items" to c.store.list("membership",ownerId=c.userId,filters=mapOf("status" to "active")).map { membershipView(c,it) })) },
+    "listMyStaffAssignments" to V1Handler { c -> V1Response(obj("items" to staffAssignmentsView(c,c.userId))) },
+    "listMyContexts" to V1Handler { c ->
+        val residents = c.store.list("membership",ownerId=c.userId,filters=mapOf("status" to "active")).map { member ->
+            val view = membershipView(c,member)
+            obj("kind" to "resident","id" to member.id,"label" to view["locationName"],"condominiumId" to member.locationId,
+                "condominiumName" to view["condominiumName"],"organizationId" to null,"role" to member.data["role"],"scope" to "node",
+                "node" to member.data.string("nodeId")?.let { nodeRef(c,it) },"permissions" to view["permissions"],"modules" to view["modules"],"requiresMfa" to false,"badges" to obj())
+        }
+        val staff = staffAssignmentsView(c,c.userId).map { it.jsonObject }.filter { it.string("status") == "active" }.map { assignment ->
+            obj("kind" to "staff","id" to assignment["id"],"label" to (assignment.string("condominiumName") ?: assignment.string("organizationName") ?: "Administração da marca"),
+                "condominiumId" to assignment["condominiumId"],"condominiumName" to assignment["condominiumName"],"organizationId" to assignment["organizationId"],
+                "role" to assignment["role"],"scope" to assignment["scope"],"node" to null,"permissions" to assignment["permissions"],
+                "modules" to modulesView(c,assignment.string("condominiumId")),"requiresMfa" to (assignment["mfaRequired"] == JsonPrimitive(true) && c.principal?.staff != true),"badges" to obj())
+        }
+        V1Response(obj("items" to (residents+staff),"defaultContextId" to (residents+staff).firstOrNull()?.get("id")))
