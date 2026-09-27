@@ -358,10 +358,16 @@ paths:
             Cache-Control:
               $ref: '#/components/headers/NoStore'
           content:
-            "application/json":
-              schema: {"$ref":"#/components/schemas/Accepted"}
-        default: {"$ref":"#/components/responses/Error"}
-  "/api/v1/auth/recovery/request":
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTokens'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
     post:
       tags: ["Identity"]
       summary: "Request password recovery"
