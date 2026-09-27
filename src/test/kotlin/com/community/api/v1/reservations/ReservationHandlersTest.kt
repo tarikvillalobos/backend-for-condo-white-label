@@ -78,3 +78,23 @@ class ReservationHandlersTest {
         assertEquals("cancelled", cancelled.string("status"))
         assertEquals("cancelled", call(db, "cancelReservation", path = path).body.jsonObject.string("status"))
         assertEquals(201, call(db, "createReservation", input(space), user = "bob").status)
+    }
+
+    @Test fun `blocks cancel conflicting bookings only when explicitly requested`() = database().use { db ->
+        val space = space(db)
+        val created = call(db, "createReservation", input(space)).body.jsonObject
+        val block = obj("startsAt" to "2030-01-02T12:00:00Z", "endsAt" to "2030-01-02T13:00:00Z", "cancelConflicting" to false, "reason" to "Maintenance")
+        assertEquals(409, assertFailsWith<ApiException> { call(db, "adminBlockSpace", block, mapOf("spaceId" to space), staff = true) }.status)
+        val blocked = call(db, "adminBlockSpace", JsonObject(block + obj("cancelConflicting" to true)), mapOf("spaceId" to space), staff = true).body.jsonObject
+        val current = call(db, "getReservation", path = mapOf("reservationId" to created.string("id")!!)).body.jsonObject
+        assertEquals("cancelled", current.string("status"))
+        assertEquals("Maintenance", current.string("cancellationReason"))
+        assertEquals(409, assertFailsWith<ApiException> { call(db, "createReservation", input(space)) }.status)
+        call(db, "adminUnblockSpace", path = mapOf("spaceId" to space, "blockId" to blocked.string("id")!!), staff = true)
+        assertEquals(201, call(db, "createReservation", input(space)).status)
+    }
+
+    @Test fun `opening hours slot alignment capacity and cancellation deadline are enforced`() = database().use { db ->
+        val space = space(db)
+        for (invalid in listOf(
+            JsonObject(input(space) + obj("startsAt" to "2030-01-02T12:10:00Z", "endsAt" to "2030-01-02T13:10:00Z")),
