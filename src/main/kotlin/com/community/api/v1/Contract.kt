@@ -78,3 +78,23 @@ object Contract {
         if (value is JsonArray) {
             if (value.size < schema.int("minItems", 0) || value.size > schema.int("maxItems", Int.MAX_VALUE)) errors += "$field has an invalid number of items"
             if (schema["uniqueItems"] == JsonPrimitive(true) && value.distinct().size != value.size) errors += "$field must contain unique items"
+            (schema["items"] as? JsonObject)?.let { child -> value.forEachIndexed { index, item -> errors += errors(child, item, "$field[$index]") } }
+        }
+        if (value is JsonPrimitive && value.isString) {
+            val text = value.content
+            if (text.length < schema.int("minLength", 0) || text.length > schema.int("maxLength", Int.MAX_VALUE)) errors += "$field has an invalid length"
+            schema.string("pattern")?.let { if (!Regex(it).containsMatchIn(text)) errors += "$field has an invalid format" }
+            val valid = when (schema.string("format")) {
+                "date-time" -> runCatching { Instant.parse(text) }.isSuccess
+                "date" -> runCatching { LocalDate.parse(text) }.isSuccess
+                "uuid" -> runCatching { UUID.fromString(text) }.isSuccess && text.length == 36
+                "email" -> Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(text)
+                else -> true
+            }
+            if (!valid) errors += "$field has an invalid format"
+        }
+        if (value is JsonPrimitive && !value.isString) value.doubleOrNull?.let { number ->
+            schema["minimum"]?.jsonPrimitive?.doubleOrNull?.let { if (number < it) errors += "$field is too small" }
+            schema["maximum"]?.jsonPrimitive?.doubleOrNull?.let { if (number > it) errors += "$field is too large" }
+        }
+        return errors
