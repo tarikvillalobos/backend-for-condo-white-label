@@ -38,3 +38,23 @@ internal fun availability(c: V1Context): V1Response {
 internal fun blockSpace(c: V1Context): V1Response {
     val facility = space(c)
     val start = timestamp(c.input.text("startsAt"))
+    val end = timestamp(c.input.text("endsAt"))
+    if (!start.isBefore(end)) c.fail(422, "VALIDATION_ERROR", "Block must have a positive duration")
+    val conflicts = c.store.list("reservation", condominium(c)).filter {
+        it.data.text("spaceId") == facility.id && BookingRules.active(it.data) && BookingRules.overlaps(it.data, start, end)
+    }
+    if (conflicts.isNotEmpty() && !c.input.flag("cancelConflicting"))
+        c.fail(409, "RESERVATION_CONFLICT", "Block overlaps existing reservations")
+    conflicts.forEach { previous ->
+        val updated = c.store.update(previous, previous.data.changed("status" to JsonPrimitive("cancelled"),
+            "cancelledAt" to JsonPrimitive(c.now.toString()), "cancellationReason" to (c.input["reason"] ?: JsonNull)))
+        c.audit("reservation.cancelled_by_block", updated)
+        notifyReservation(c, updated)
+    }
+    val row = c.store.create("space_block", c.input.changed("spaceId" to JsonPrimitive(facility.id)), condominium(c), c.userId)
+    c.audit("space.blocked", row)
+    return V1Response(obj("id" to row.id, "startsAt" to start.toString(), "endsAt" to end.toString(), "reason" to c.input["reason"]), 201)
+}
+
+internal fun unblockSpace(c: V1Context): V1Response {
+    val facility = space(c)
