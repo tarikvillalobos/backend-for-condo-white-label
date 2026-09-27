@@ -18,3 +18,15 @@ fun bootstrapV1(tx: Tx, tenantId: String, userId: String, name: String, brandId:
     store.create("brand",obj("name" to name,"active" to true,"primaryColor" to "#2563EB","logoFileKey" to null,"logoUrl" to null,
         "apps" to listOf(obj("application" to "condo","name" to name,"bundleId" to null,"storeUrl" to null),obj("application" to "smartlocker","name" to name,"bundleId" to null,"storeUrl" to null)),
         "authMethods" to listOf("password","otp","invitation"),"modules" to modules,"support" to obj("email" to null,"phone" to null,"whatsapp" to null),
+        "termsVersion" to null,"auditRetentionMonths" to 60),id=brandId)
+    store.create("staff_assignment",obj("userId" to userId,"brandId" to brandId,"role" to "brand_admin","scope" to "brand",
+        "permissions" to listOf("*"),"status" to "active","mfaRequired" to false,"startedAt" to Instant.now(),"endedAt" to null),ownerId=userId)
+    indexIdentityAccount(tx,tx.get("account",userId,tenantId)!!)
+}
+
+fun migrateLegacyBrands(db: Database) {
+    db.tx { tx -> tx.clients().forEach { client ->
+        val admin = tx.list("membership",client.id).firstOrNull { it.data.string("role") == "client_admin" }?.ownerId
+        if (admin != null) bootstrapV1(tx,client.id,admin,client.data.string("name") ?: "Community")
+    } }
+}
