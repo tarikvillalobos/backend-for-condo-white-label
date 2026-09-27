@@ -18,3 +18,23 @@ fun indexIdentityAccount(tx: Tx, account: Record, cpf: String? = null, phone: St
             data = obj("type" to type), id = id)
     }
 }
+
+internal fun identityIndexId(tenantId: String, type: String, value: String): String =
+    digest("$tenantId:$type:$value")
+
+internal fun V1Context.findIdentity(type: String, value: String): Record? {
+    val index = tx.get("v1_identifier", identityIndexId(tenantId, type, value), tenantId) ?: return null
+    return index.ownerId?.let { tx.get("account", it, tenantId) }
+}
+
+internal fun V1Context.account(): Record =
+    tx.get("account", userId, tenantId) ?: fail(401, "SESSION_REVOKED", "A conta não está disponível")
+
+internal fun V1Context.profileData(user: Record): JsonObject =
+    store.find("profile", user.id)?.data ?: obj("phone" to null, "phoneVerifiedAt" to null,
+        "emailVerifiedAt" to null, "preferences" to obj("inApp" to true, "sms" to false, "whatsapp" to false),
+        "privacy" to obj("marketingConsent" to false, "cameraAccessConsent" to false,
+            "shareContactWithNeighbors" to false, "analytics" to false,
+            "termsVersion" to "", "consentUpdatedAt" to user.createdAt))
+
+internal fun V1Context.saveProfile(user: Record, data: JsonObject): Record {
