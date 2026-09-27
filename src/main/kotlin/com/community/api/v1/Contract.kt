@@ -38,3 +38,23 @@ object Contract {
         val reference = schema.string("\$ref") ?: return schema
         require(reference.startsWith("#/")) { "Only local contract references are supported" }
         val target = reference.removePrefix("#/").split('/').fold(document as JsonElement) { current, key ->
+            current.jsonObject[key.replace("~1", "/").replace("~0", "~")] ?: error("Unresolved contract reference")
+        }.jsonObject
+        return JsonObject(resolve(target) + (schema - "\$ref"))
+    }
+    fun validate(schema: JsonObject, value: JsonElement, field: String = "body") {
+        val errors = errors(schema, value, field)
+        if (errors.isNotEmpty()) throw ApiException(422, "VALIDATION_ERROR", errors.take(5).joinToString("; "))
+    }
+    fun errors(source: JsonObject, value: JsonElement, field: String = "body"): List<String> {
+        val schema = resolve(source)
+        val errors = mutableListOf<String>()
+        schema["allOf"]?.jsonArray?.forEach { errors += errors(it.jsonObject, value, field) }
+        schema["anyOf"]?.jsonArray?.let { choices ->
+            if (choices.none { errors(it.jsonObject, value, field).isEmpty() }) errors += "$field has an invalid value"
+        }
+        schema["oneOf"]?.jsonArray?.let { choices ->
+            if (choices.count { errors(it.jsonObject, value, field).isEmpty() } != 1) errors += "$field must match exactly one permitted form"
+        }
+        schema["not"]?.jsonObject?.let { if (errors(it, value, field).isEmpty()) errors += "$field has a forbidden combination" }
+        schema["enum"]?.jsonArray?.let { if (value !in it) errors += "$field is not an allowed value" }
