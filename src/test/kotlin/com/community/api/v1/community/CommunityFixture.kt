@@ -38,3 +38,23 @@ internal class CommunityFixture : AutoCloseable {
         val membership = if (staff || device != null) null else V1Store(tx, tenant, brand).get("membership", selectedMember, condo)
         val path = ids + if (membership == null) mapOf("condominiumId" to condo) else mapOf("membershipId" to selectedMember)
         val principal = if (device == null) V1Principal(Actor(selectedUser, tenant, "session"), staff = staff,
+            permissions = if (staff) setOf("*") else emptySet()) else V1Principal(deviceId = device, permissions = setOf("visitors.checkin"))
+        val c = V1Context(tx, operation, tenant, brand, UUID.randomUUID().toString(), input, path, query, headers, principal, condo, membership)
+        val response = communityHandlers().getValue(operation).handle(c)
+        val op = Contract.operations.single { it.id == operation }
+        val schema = op.definition["responses"]!!.jsonObject[response.status.toString()]?.jsonObject?.get("content")
+            ?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject
+        if (schema != null) {
+            val errors = Contract.errors(schema, response.body)
+            assertTrue(errors.isEmpty(), "$operation: ${errors.joinToString()}\n${response.body}")
+        }
+        response
+    }
+    fun seed(kind: String, data: JsonObject, ownerId: String? = user): Record = db.tx {
+        V1Store(it, tenant, brand).create(kind, data, condo, ownerId)
+    }
+    override fun close() = db.close()
+}
+internal fun V1Response.id() = body.jsonObject["id"]!!.jsonPrimitive.content
+internal fun V1Response.items() = body.jsonObject["items"]!!.jsonArray
+internal fun future(seconds: Long) = Instant.now().plusSeconds(seconds).toString()
