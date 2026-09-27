@@ -18,3 +18,23 @@ private val publicBase: String get() = (System.getenv("PUBLIC_BASE_URL") ?: "htt
 private fun V1Context.fileTicket(id: String, action: String, seconds: Long = 900): String = seal(obj(
     "tenant" to tenantId,"brand" to brandId,"id" to id,"action" to action,"owner" to principal?.userId,
     "expires" to now.plusSeconds(seconds)).toString())
+
+fun signedFileUrl(c: V1Context, fileKey: String): String {
+    val file = c.store.get("upload",fileKey)
+    if (file.data.string("status") != "complete") c.fail(409,"UPLOAD_INCOMPLETE","Complete the upload first")
+    return "$publicBase/v1/files/$fileKey?ticket=${c.fileTicket(fileKey,"download")}" 
+}
+
+fun writePrivateFile(c: V1Context, filename: String, contentType: String, bytes: ByteArray): Record {
+    require(bytes.size <= 50 * 1024 * 1024) { "Generated file exceeds 50 MiB; use a narrower period" }
+    val id = UUID.randomUUID().toString()
+    persistFile(id,bytes)
+    return c.store.create("upload",obj("filename" to filename,"contentType" to contentType,"size" to bytes.size,
+        "sizeBytes" to bytes.size,"checksum" to java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) },
+        "status" to "complete","purpose" to "export","completedAt" to c.now),ownerId=c.principal?.userId,id=id)
+}
+
+private fun persistFile(id: String, bytes: ByteArray) {
+    require(runCatching { UUID.fromString(id) }.isSuccess)
+    Files.createDirectories(fileDirectory)
+    val temporary = Files.createTempFile(fileDirectory,"upload-",".tmp")
