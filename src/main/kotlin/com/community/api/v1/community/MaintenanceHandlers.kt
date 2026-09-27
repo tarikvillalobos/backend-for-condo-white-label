@@ -58,3 +58,23 @@ internal fun maintenanceHandlers(): Map<String, V1Handler> = mapOf(
         V1Response(c.workOrder(row), headers = mapOf("ETag" to "\"${row.version}\""))
     },
     "adminUpdateWorkOrder" to V1Handler { c ->
+        val row = c.store.get("work_order", c.id("workOrderId"), c.locationId)
+        if (row.data.text("status") in setOf("completed", "cancelled")) c.fail(409, "WORK_ORDER_CLOSED", "Ordem encerrada")
+        c.validateWorkOrder(row.data.merge(c.input))
+        V1Response(c.workOrder(c.change(row, c.input)))
+    },
+    "adminTransitionWorkOrder" to V1Handler { c -> c.transitionWorkOrder() },
+    "listShiftNotes" to V1Handler { c -> c.listResponse("shift_note") { row ->
+        if (c.query["incidentOnly"] == "true" && !row.data.flag("incident")) JsonNull else c.view("ShiftNote", row)
+    } },
+    "createShiftNote" to V1Handler { c ->
+        val nodeId = c.checkedNode()
+        val row = c.save("shift_note", c.input.merge(obj("node" to c.node(nodeId), "nodeId" to nodeId,
+            "relatedId" to c.input["relatedId"], "authorName" to c.personName(), "organizationName" to null)))
+        c.result("ShiftNote", row, 201)
+    },
+)
+private fun V1Context.transitionWorkOrder(): V1Response {
+    val row = store.get("work_order", id("workOrderId"), locationId)
+    if (principal?.permissions?.let { "*" !in it && "maintenance.manage" !in it } == true && row.data.text("assigneeUserId") != userId)
+        fail(403, "WORK_ORDER_NOT_ASSIGNED", "Esta ordem não está atribuída a você")
