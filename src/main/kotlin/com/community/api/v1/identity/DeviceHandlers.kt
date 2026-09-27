@@ -18,3 +18,23 @@ private fun V1Context.installation(): Pair<String, String> {
     return installationId to hash(key)
 }
 
+private fun V1Context.registerIdentityDevice(): V1Response {
+    val (id, keyHash) = installation()
+    val ownership = store.find("installation", id)
+    if (ownership != null && !sameSecret(ownership.data.string("keyHash").orEmpty(), keyHash)) {
+        fail(403, "INSTALLATION_KEY_MISMATCH", "A prova de posse da instalação não confere")
+    }
+    val platform = identityInput("platform")
+    val provider = identityInput("provider")
+    if (platform == "android" && provider != "fcm" || platform == "ios" && provider != "apns") {
+        fail(422, "INVALID_PUSH_PROVIDER", "O provedor não corresponde à plataforma")
+    }
+    if (ownership == null) store.create("installation", obj("keyHash" to keyHash), id = id)
+    val current = store.find("push_registration", id)
+    val token = identityInput("token")
+    val sameRegistration = current != null && current.data.string("userId") == userId && current.data.string("status") == "active" &&
+        current.data.string("sessionId") == principal!!.sessionId &&
+        current.data.string("tokenHash") == hash(token) &&
+        current.data.string("appVersion") == input.string("appVersion") &&
+        current.data.string("permission") == input.string("permission")
+    if (sameRegistration) return V1Response(obj("installationId" to id, "registeredAt" to current!!.data["registeredAt"]))
