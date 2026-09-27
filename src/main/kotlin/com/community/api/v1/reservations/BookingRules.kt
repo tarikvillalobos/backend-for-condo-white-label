@@ -78,3 +78,9 @@ internal object BookingRules {
 
     fun overlaps(a: JsonObject, startsAt: Instant, endsAt: Instant): Boolean =
         timestamp(a.text("startsAt")).isBefore(endsAt) && timestamp(a.text("endsAt")).isAfter(startsAt)
+
+    fun active(reservation: JsonObject): Boolean = reservation.text("status") in setOf("pending", "confirmed")
+
+    fun cancellable(reservation: JsonObject, rules: JsonObject, now: Instant): Boolean = active(reservation) &&
+        timestamp(reservation.text("startsAt")).minusSeconds((rules.number("cancelDeadlineMinutes") ?: 0).toLong() * 60).isAfter(now)
+}
