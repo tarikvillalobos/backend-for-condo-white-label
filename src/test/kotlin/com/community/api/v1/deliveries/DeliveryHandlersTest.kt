@@ -78,3 +78,23 @@ class DeliveryHandlersTest {
         val handed = call(db, "handoverParcel", obj("code" to replacement.string("code"), "identityChecked" to false), path, staff = true).body.jsonObject
         assertEquals("bob", handed["collectedBy"]!!.jsonObject.string("membershipId"))
     }
+
+    @Test fun `hardware scope deduplication credential checks and physical occupancy are enforced`() = database().use { db ->
+        val device = call(db, "adminCreateDevice", obj("kind" to "locker", "name" to "Terminal"), staff = true).body.jsonObject
+        val deviceId = device["device"]!!.jsonObject.string("id")!!
+        assertTrue(device.string("apiKey")!!.startsWith("$deviceId."))
+        val lockerId = call(db, "adminCreateLocker", obj("name" to "Locker", "deviceId" to deviceId), staff = true).body.jsonObject.string("id")!!
+        val lockerPath = mapOf("lockerId" to lockerId)
+        call(db, "adminSetCompartments", obj("compartments" to listOf(obj("code" to "A1", "size" to "M"))), lockerPath, staff = true)
+        val parcel = call(db, "registerParcel", obj("condominiumId" to "condo", "carrier" to "Postal", "storage" to "locker",
+            "recipientMembershipId" to "alice", "lockerId" to lockerId, "compartmentCode" to "A1"), staff = true).body.jsonObject
+        val parcelPath = mapOf("parcelId" to parcel.string("id")!!)
+        assertEquals(503, assertFailsWith<ApiException> { call(db, "getPickupCredential", path = parcelPath) }.status)
+        val heartbeat = obj("events" to listOf(obj("eventId" to UUID.randomUUID().toString(), "type" to "heartbeat", "occurredAt" to now.toString())))
+        call(db, "ingestLockerEvents", heartbeat, lockerPath, deviceId = deviceId)
+        assertEquals(404, assertFailsWith<ApiException> { call(db, "ingestLockerEvents", heartbeat, lockerPath, deviceId = "foreign-device") }.status)
+        val code = call(db, "getPickupCredential", path = parcelPath).body.jsonObject.string("code")!!
+        val validation = call(db, "validatePickupCredential", obj("code" to code, "direction" to "exit"), lockerPath, deviceId = deviceId).body.jsonObject
+        assertEquals(JsonPrimitive(true), validation["valid"])
+        assertEquals(JsonPrimitive(false), validation["consumedNow"])
+        val event = obj("events" to listOf(obj("eventId" to UUID.randomUUID().toString(), "type" to "pickup",
