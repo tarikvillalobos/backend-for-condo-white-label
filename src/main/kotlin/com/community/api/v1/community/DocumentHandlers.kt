@@ -58,3 +58,17 @@ internal fun documentHandlers(): Map<String, V1Handler> = mapOf(
         val revision = row.data.number("currentRevision", 1) + 1
         c.save("document_version", obj("documentId" to row.id, "revision" to revision, "fileKey" to c.input["fileKey"], "notes" to c.input["notes"]))
         val updated = c.change(row, obj("currentRevision" to revision,
+            "ackRequiredRevision" to if (c.input.flag("requireNewAcknowledgment")) revision else row.data.number("ackRequiredRevision", 1)), "document.version_published")
+        V1Response(c.document(updated), 201)
+    },
+    "adminListDocumentVersions" to V1Handler { c ->
+        val row = c.documentRecord()
+        V1Response(obj("items" to JsonArray(c.store.list("document_version", c.locationId, filters = mapOf("documentId" to row.id))
+            .sortedByDescending { it.data.number("revision") }.map { c.documentVersion(it) })))
+    },
+    "adminListDocumentAcknowledgments" to V1Handler { c ->
+        val row = c.documentRecord()
+        c.receipts(row, row.data.number("ackRequiredRevision", 1))
+    },
+    "adminArchiveDocument" to V1Handler { c -> V1Response(c.document(c.change(c.documentRecord(), obj("archived" to true), "document.archived"))) },
+)
