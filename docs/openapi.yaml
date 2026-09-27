@@ -220,9 +220,14 @@ paths:
     parameters:
     - $ref: '#/components/parameters/ChallengeId'
     post:
-      tags: ["Identity"]
-      summary: "Rotate access and refresh tokens"
-      operationId: "post_api_v1_auth_refresh"
+      operationId: resendLoginChallenge
+      tags:
+      - Authentication
+      summary: Reenviar código de login
+      description: 'Respeitar resendAt. O servidor reenviará ao contato original; retorna novo desafio e invalida
+        o anterior.
+
+        Reenviar não remove limites globais contra abuso.'
       security: []
       requestBody:
         required: true
