@@ -97,7 +97,6 @@ private fun reservations(c: V1Context): V1Response {
     val admin = c.operationId.startsWith("admin")
     val matches: (Record) -> Boolean = { row ->
         val data = row.data
-        val status = data.text("status")
         val ended = !timestamp(data.text("endsAt")).isAfter(c.now)
         (admin || data.text("membershipId") == c.membershipId) &&
             (c.query["spaceId"] == null || data.text("spaceId") == c.query["spaceId"]) &&
