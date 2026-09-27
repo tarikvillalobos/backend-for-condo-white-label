@@ -29,7 +29,11 @@ fun deliveryHandlers(): Map<String, V1Handler> = (mapOf(
 
 private fun listParcels(c: V1Context): V1Response {
     val admin = c.operationId != "listParcels"
-    val rows = c.store.list("parcel", c.locationId).filter { row ->
+    val organization = c.path["organizationId"]
+    organization?.let { c.store.get("organization", it) }
+    val served = organization?.let { c.store.list("organization_condominium", filters = mapOf("organizationId" to it))
+        .filter { link -> link.data.text("status") == "active" }.mapNotNull { link -> link.locationId ?: link.data.text("condominiumId") }.toSet() }
+    val matches: (Record) -> Boolean = { row ->
         val data = row.data
         val status = data.text("status")
         val filter = c.query["status"] ?: if (admin) "waiting" else "all"
