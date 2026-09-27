@@ -78,3 +78,23 @@ private fun V1Context.acceptIdentityInvitation(): V1Response {
     return V1Response(issueIdentitySession(user), 201)
 }
 
+private fun V1Context.linkIdentityInvitation(): V1Response {
+    val invitation = identityInvitation()
+    if (invitation.data.string("purpose") != "link_membership") {
+        fail(409, "FIRST_ACCESS_REQUIRED", "Este convite é destinado ao primeiro acesso")
+    }
+    val user = account()
+    val cpf = invitation.data.string("cpf")
+    val cpfHash = invitation.data.string("cpfHash")
+    if (cpf != null && findIdentity("cpf", cpf)?.id != user.id ||
+        cpfHash != null && profileData(user).string("cpfHash") != cpfHash) {
+        fail(403, "INVITATION_IDENTITY_MISMATCH", "O convite pertence a outra pessoa")
+    }
+    val membership = createInvitationMembership(invitation, user)
+    return V1Response(membershipView(this, membership), 201)
+}
+
+private fun V1Context.createInvitationMembership(invitation: Record, user: Record): Record {
+    val condoId = invitation.locationId!!
+    val nodeId = invitation.data.string("nodeId")!!
+    val condo = store.get("condominium", condoId)
