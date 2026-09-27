@@ -56,7 +56,11 @@ private fun saveSpace(c: V1Context): V1Response {
     val data = JsonObject((old?.data ?: JsonObject(emptyMap())) + c.input)
     BookingRules.validate(data)
     listOf("nodeId", "visibleFromNodeId").forEach { key -> data.text(key)?.let { c.store.get("node", it, condominium(c)) } }
-    if (data.text("photoKey") != null) c.store.get("upload", data.text("photoKey")!!, condominium(c))
+    c.input.text("photoKey")?.let { key ->
+        val upload = c.store.get("upload", key)
+        if (upload.ownerId != c.userId) c.fail(404, "NOT_FOUND", "Upload not found")
+        if (upload.data.text("status") != "complete") c.fail(409, "UPLOAD_INCOMPLETE", "Complete the upload first")
+    }
     val saved = if (old == null) c.store.create("space", data, condominium(c)) else c.store.update(old, data)
     c.audit(if (old == null) "space.created" else "space.updated", saved)
     return V1Response(spaceView(c, saved), if (old == null) 201 else 200)
