@@ -38,3 +38,23 @@ internal fun eventHandlers(): Map<String, V1Handler> = mapOf(
         val row = c.store.get("event", c.id("eventId"), c.locationId)
         val data = row.data.merge(c.input)
         window(data)
+        val attendance = c.store.list("attendance", c.locationId, filters = mapOf("eventId" to row.id))
+        if (data.text("capacity")?.toIntOrNull()?.let { it < attendance.size } == true)
+            c.fail(409, "EVENT_CAPACITY_CONFLICT", "Capacidade menor que o número de confirmações")
+        val updated = c.change(row, data)
+        if (c.input.flag("notify")) c.broadcast("system", row.id, data.text("title")!!, "Evento atualizado")
+        V1Response(c.event(updated))
+    },
+    "adminDeleteEvent" to V1Handler { c -> c.remove(c.store.get("event", c.id("eventId"), c.locationId)) },
+    "adminCancelEvent" to V1Handler { c ->
+        val row = c.store.get("event", c.id("eventId"), c.locationId)
+        val updated = c.change(row, obj("cancelledAt" to now(), "cancellationReason" to c.input["reason"]), "event.cancelled")
+        c.broadcast("system", row.id, row.data.text("title")!!, "Evento cancelado")
+        V1Response(c.event(updated))
+    },
+    "attendEvent" to V1Handler { c -> c.changeAttendance(true) },
+    "unattendEvent" to V1Handler { c -> c.changeAttendance(false) },
+    "adminListAttendance" to V1Handler { c ->
+        c.store.get("event", c.id("eventId"), c.locationId)
+        c.listResponse("attendance", filters = mapOf("eventId" to c.id("eventId"))) { c.view("Attendance", it) }
+    },
