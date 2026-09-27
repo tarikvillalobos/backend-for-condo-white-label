@@ -58,3 +58,10 @@ private fun V1Context.completeIdentityDeletion(request: Record) {
     if (!otherBrands) {
         val user = account()
         tx.update(user, body(Account("", "Conta removida", "", false)))
+        tx.list("v1_identifier", tenantId, ownerId = userId).forEach { tx.delete(it) }
+        tx.revokeSessions(tenantId, userId)
+        consumeOtherChallenges(userId)
+    }
+    val completed = store.update(request, request.data.with("status" to "completed", "completedAt" to now.toString()))
+    audit("privacy.deletion_completed", completed)
+}
