@@ -60,7 +60,7 @@ private fun metrics(c: V1Context): V1Response {
     if ((c.query["since"] == null) != (c.query["until"] == null) || !since.isBefore(until) || until.isAfter(c.now) || Duration.between(since, until).toDays() > 366)
         c.fail(422, "VALIDATION_ERROR", "Use a positive period of at most 366 days ending no later than now")
     val rows = c.store.list("parcel", c.locationId).filter {
-        c.canReadParcel(it) && !instant(it.data.text("depositedAt")).isBefore(since) && instant(it.data.text("depositedAt")).isBefore(until)
+        c.canReadParcel(it, includeClosed = true) && !instant(it.data.text("depositedAt")).isBefore(since) && instant(it.data.text("depositedAt")).isBefore(until)
     }
     val durations = rows.mapNotNull { row -> row.data.text("collectedAt")?.let(::instant)?.takeIf { it.isBefore(until) }?.let {
         Duration.between(instant(row.data.text("depositedAt")), it).seconds.toDouble()
