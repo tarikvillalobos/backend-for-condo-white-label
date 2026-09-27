@@ -589,8 +589,13 @@ paths:
             schema:
               $ref: '#/components/schemas/ContactChangeRequest'
       responses:
-        "200":
-          description: "Successful operation."
+        '202':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/Accepted"}
