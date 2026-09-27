@@ -38,3 +38,23 @@ internal fun lockerEvents(c: V1Context): V1Response {
             val reason = try { applyLockerEvent(c, c.store.get("locker", locker.id), input); null }
                 catch (failure: ApiException) { failure.code.lowercase() }
             val result = if (reason == null) "accepted" else "rejected"
+            val stored = c.store.create("locker_event", obj("eventId" to eventId, "lockerId" to locker.id, "fingerprint" to fingerprint,
+                "type" to input.text("type"), "occurredAt" to input.text("occurredAt"), "compartmentCode" to input["compartmentCode"],
+                "result" to result, "reason" to reason, "parcelExternalRef" to input["parcelExternalRef"],
+                "payloadEncrypted" to c.seal((input["payload"] ?: JsonNull).toString())), locker.locationId, id = key)
+            c.audit("locker.event_$result", stored)
+            obj("eventId" to eventId, "result" to result, "reason" to reason)
+        }
+    }
+    return V1Response(obj("results" to acknowledgements))
+}
+
+private fun applyLockerEvent(c: V1Context, locker: Record, event: JsonObject) {
+    val at = instant(event.text("occurredAt"))
+    if (at.isAfter(c.now.plusSeconds(300))) c.fail(422, "CLOCK_SKEW", "Hardware event timestamp is in the future")
+    val type = event.text("type")!!
+    if (type == "heartbeat") {
+        val previous = locker.data.text("lastHeartbeatAt")?.let(::instant)
+        if (previous == null || at.isAfter(previous)) c.store.update(locker, locker.data.changed("lastHeartbeatAt" to JsonPrimitive(at.toString())))
+        c.principal?.deviceId?.let { id ->
+            val device = c.store.get("device", id, locker.locationId)
