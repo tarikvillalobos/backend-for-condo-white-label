@@ -38,3 +38,23 @@ fun auditHandlers(): Map<String,V1Handler> = mapOf(
         val rows = c.store.list("retention_hold").filter { c.canReadHold(it) }
         V1Response(obj("items" to rows.map { c.project("RetentionHold",it.document()) }))
     },
+    "createRetentionHold" to V1Handler { c ->
+        val since = Instant.parse(c.input.string("since")); val until = Instant.parse(c.input.string("until"))
+        if (!since.isBefore(until)) c.fail(422,"VALIDATION_ERROR","since must precede until")
+        c.input.string("condominiumId")?.let { c.store.get("condominium",it) }
+        c.input.string("organizationId")?.let { c.store.get("organization",it) }
+        if ("*" !in c.principal!!.permissions && "brand.audit" !in c.principal.permissions) {
+            val org = c.input.string("organizationId") ?: c.fail(403,"ACCESS_DENIED","Organization scope required")
+            if (org !in c.ownOrganizations()) c.fail(403,"ACCESS_DENIED","Organization scope required")
+            c.input.string("condominiumId")?.let { condo -> if (c.store.list("organization_condominium",filters=mapOf("organizationId" to org,"status" to "active")).none { it.locationId==condo }) c.fail(404,"RESOURCE_NOT_FOUND","Condominium not found") }
+        }
+        val row = c.store.create("retention_hold",JsonObject(c.input+obj("createdByName" to c.userId,"releasedAt" to null,"releasedByName" to null,"releaseReason" to null)),c.input.string("condominiumId"),c.userId)
+        V1Response(c.project("RetentionHold",row.document()),201)
+    },
+    "releaseRetentionHold" to V1Handler { c ->
+        val row = c.store.get("retention_hold",c.path.getValue("holdId"))
+        if (row.data.string("releasedAt") != null) c.fail(409,"VERSION_CONFLICT","Hold already released")
+        val updated = c.store.update(row,JsonObject(row.data+obj("releasedAt" to c.now,"releasedByName" to c.userId,"releaseReason" to c.input["reason"])))
+        V1Response(c.project("RetentionHold",updated.document()))
+    },
+)
