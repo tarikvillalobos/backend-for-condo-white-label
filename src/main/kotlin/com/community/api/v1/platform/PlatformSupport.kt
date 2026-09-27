@@ -58,3 +58,12 @@ internal fun V1Context.checkedPermissions(values: JsonArray, baseRole: String? =
     }
     return permissions
 }
+
+internal fun V1Context.ensureRoleAuthority(role: String) {
+    val own = store.list("staff_assignment", ownerId = userId).filter { it.data.string("status") == "active" }
+        .filter { it.locationId == null || it.locationId == locationId }
+        .maxOfOrNull { roleRanks[it.data.string("role")] ?: 0 } ?: 0
+    if ((roleRanks[role] ?: 0) > own || role == "brand_admin" || role == "condo_admin" && own < 5) {
+        fail(403, "ROLE_ABOVE_OWN", "Não é permitido conceder este papel")
+    }
+}
