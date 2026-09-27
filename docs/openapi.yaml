@@ -153,6 +153,26 @@ paths:
         '429':
           $ref: '#/components/responses/Problem'
         '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: system
+        action: getBrandConfiguration
+        severity: info
+        layers:
+        - request
+        logsDenied: true
+  /auth/challenges:
+    post:
+      operationId: requestLoginChallenge
+      tags:
+      - Authentication
+      summary: Solicitar código de login
+      description: 'Sempre responder de forma equivalente para contas existentes e inexistentes. A aceitação não
+        confirma entrega
+
+        do canal. Aplicar limites por contato, CPF, marca e origem. CPF nunca autentica sozinho.'
       security: []
       responses:
         "200":
