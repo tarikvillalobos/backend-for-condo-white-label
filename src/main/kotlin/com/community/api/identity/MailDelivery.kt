@@ -50,7 +50,7 @@ internal fun Tx.claimAuthDelivery(): Record? {
         for (record in list("auth_delivery", client.id)) {
             val data = record.decode<AuthDelivery>()
             val challenge = record.ownerId?.let { get("auth_challenge", it, record.tenantId) }?.decode<ChallengeData>()
-            if (expired(data.expiresAt) || challenge == null || challenge.consumed || !tenantAvailable(record.tenantId)) {
+            if (expired(data.expiresAt) || (data.type != "v1_message" && (challenge == null || challenge.consumed)) || !tenantAvailable(record.tenantId)) {
                 delete(record)
                 continue
             }
