@@ -18,3 +18,23 @@ internal fun availability(c: V1Context): V1Response {
             buildList {
                 while (!current.plusSeconds(minutes * 60).isAfter(close)) {
                     val end = current.plusSeconds(minutes * 60)
+                    val reason = when {
+                        !facility.data.flag("active") -> "closed"
+                        current.isBefore(c.now.plusSeconds(rules.number("minAdvanceMinutes")!!.toLong() * 60)) -> "past"
+                        date.isAfter(c.now.atZone(zone).toLocalDate().plusDays(rules.number("horizonDays")!!.toLong())) -> "closed"
+                        blocked(c, facility.id, current, end) -> "blocked"
+                        occupied(c, facility.id, current, end) -> "reserved"
+                        else -> null
+                    }
+                    add(obj("startsAt" to current.toString(), "endsAt" to end.toString(), "available" to (reason == null), "reason" to reason))
+                    current = end
+                }
+            }
+        }
+    return V1Response(obj("spaceId" to facility.id, "date" to date.toString(), "timeZone" to zone.id,
+        "slots" to JsonArray(slots), "generatedAt" to c.now.toString()))
+}
+
+internal fun blockSpace(c: V1Context): V1Response {
+    val facility = space(c)
+    val start = timestamp(c.input.text("startsAt"))
