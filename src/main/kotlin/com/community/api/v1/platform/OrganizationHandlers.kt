@@ -78,3 +78,12 @@ private fun V1Context.unlinkOrganizationCondominium(): V1Response {
 }
 
 internal fun V1Context.issueOrganizationStaffInvitation(account: Record, assignment: Record, organizationId: String) {
+    if (MailConfig.fromEnvironment() == null) fail(503, "CHANNEL_UNAVAILABLE", "E-mail não está configurado")
+    val id = UUID.randomUUID().toString()
+    val code = "${id}_${Secrets.token()}"
+    store.create("invitation", obj("brandId" to brandId, "nodeId" to null, "role" to assignment.data["role"],
+        "organizationId" to organizationId, "userId" to account.id, "assignmentId" to assignment.id,
+        "name" to account.data["name"], "email" to account.data["email"], "codeHash" to hash(code), "purpose" to "first_access",
+        "status" to "pending", "expiresAt" to now.plusSeconds(7 * 86400).toString(), "acceptedAt" to null), ownerId = account.id, id = id)
+    enqueueMail(account.data.string("email")!!, "Community: convite de equipe", "Seu código de convite é:\n$code\nExpira em sete dias.")
+}
