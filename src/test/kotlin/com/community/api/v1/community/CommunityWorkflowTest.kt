@@ -18,3 +18,23 @@ class CommunityWorkflowTest {
     }
     @Test fun `announcement targets and receipts respect audience`() = CommunityFixture().use { f ->
         val announcement = f.run("publishAnnouncement", obj("title" to "Aviso importante", "body" to "Texto", "category" to "general",
+            "pinned" to false, "pushNotify" to true, "targetNodeIds" to JsonArray(listOf(JsonPrimitive(f.unit)))), staff = true)
+        assertEquals(1, f.run("listAnnouncements").items().size)
+        assertEquals(0, f.run("listAnnouncements", other = true).items().size)
+        assertEquals(404, assertFailsWith<ApiException> { f.run("getAnnouncement", ids = mapOf("announcementId" to announcement.id()), other = true) }.status)
+        f.run("markAnnouncementRead", ids = mapOf("announcementId" to announcement.id()))
+        assertEquals(0, f.run("adminListAnnouncementReceipts", ids = mapOf("announcementId" to announcement.id()), staff = true, query = mapOf("pending" to "true")).items().size)
+        assertEquals(1, f.run("listInbox").items().size)
+        assertEquals(0, f.run("listInbox", other = true).items().size)
+    }
+    @Test fun `internal staff comments never reach resident`() = CommunityFixture().use { f ->
+        val ticket = f.run("createServiceRequest", obj("title" to "Vazamento", "description" to "Cano vazando", "category" to "maintenance"))
+        val ids = mapOf("ticketId" to ticket.id())
+        f.run("adminCommentTicket", obj("body" to "Informação interna", "internal" to true), ids, staff = true)
+        f.run("adminCommentTicket", obj("body" to "Equipe a caminho", "internal" to false), ids, staff = true)
+        val resident = f.run("getServiceRequest", ids = mapOf("requestId" to ticket.id())).body.jsonObject["comments"]!!.jsonArray
+        assertEquals(1, resident.size)
+        assertFalse(resident.toString().contains("interna"))
+        assertEquals(2, f.run("adminGetTicket", ids = ids, staff = true).body.jsonObject["comments"]!!.jsonArray.size)
+        assertEquals(409, assertFailsWith<ApiException> { f.run("updateTicket", obj("status" to "resolved"), ids, staff = true) }.status)
+        f.run("updateTicket", obj("status" to "in_progress"), ids, staff = true)
