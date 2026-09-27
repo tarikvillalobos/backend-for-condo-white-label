@@ -158,3 +158,6 @@ private fun transition(c: V1Context): V1Response {
 }
 
 internal fun notifyReservation(c: V1Context, row: Record) {
+    c.store.create("notification", obj("membershipId" to row.data.text("membershipId"), "title" to "Reserva atualizada",
+        "body" to "Status da reserva: ${row.data.text("status")}", "kind" to "reservation", "referenceId" to row.id, "readAt" to null), condominium(c), row.ownerId)
+}
