@@ -38,3 +38,23 @@ fun membershipView(c: V1Context, member: Record): JsonObject {
     val permissions = Contract.document["x-permission-catalog"]!!.jsonArray.filter { it.jsonObject.string("audience") == "resident" }
         .map { it.jsonObject.string("code")!! }.filter { it != "unit.manage" || member.data.string("role") in setOf("owner","tenant") }
     return obj("id" to member.id,"locationId" to (location?.id ?: member.data.string("lockerId")),
+        "locationName" to (location?.data?.string("name") ?: member.data.string("locationName")),"unitId" to nodeId,
+        "unitLabel" to ancestors.lastOrNull()?.string("label"),"timeZone" to (location?.data?.string("timeZone") ?: "America/Sao_Paulo"),
+        "capabilities" to capabilitiesView(),"condominiumId" to location?.id,"condominiumName" to location?.data?.string("name"),
+        "blockLabel" to ancestors.firstOrNull { it.string("type") in setOf("block","tower") }?.string("label"),
+        "role" to member.data.string("role"),"nodeId" to nodeId,"nodePath" to ancestors,
+        "modules" to modulesView(c,member.locationId,member),"permissions" to permissions)
+}
+
+fun staffAssignmentsView(c: V1Context, userId: String): JsonArray = JsonArray(c.store.list("staff_assignment",ownerId=userId).map { row ->
+    val condo = row.locationId?.let { c.store.find("condominium",it) }
+    val org = row.data.string("organizationId")?.let { c.store.find("organization",it) }
+    c.project("StaffAssignment",JsonObject(row.data + obj("id" to row.id,"condominiumId" to row.locationId,
+        "condominiumName" to condo?.data?.string("name"),"organizationName" to org?.data?.string("name"),
+        "startedAt" to (row.data.string("startedAt") ?: row.createdAt),"endedAt" to row.data["endedAt"],
+        "scope" to (row.data.string("scope") ?: if (org != null) "organization" else if (row.locationId == null) "brand" else "condominium"))))
+})
+
+fun contextHandlers(): Map<String,V1Handler> = mapOf(
+    "getBrandConfiguration" to V1Handler { c ->
+        val brand = c.store.get("brand",c.brandId)
