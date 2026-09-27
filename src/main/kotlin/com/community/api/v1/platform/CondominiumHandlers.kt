@@ -58,3 +58,23 @@ private fun V1Context.createCondominium(): V1Response {
             "permissions" to platformRolePermissions(this, "property_manager"), "status" to "active",
             "mfaRequired" to true, "startedAt" to now.toString(), "endedAt" to null), record.id, it)
     }
+    return V1Response(obj("condominium" to condominiumView(updated), "rootNodeId" to root.id,
+        "nodeTypes" to types.map { project("NodeType", it.document()) }), 201)
+}
+
+private fun V1Context.updateCondominium(): V1Response {
+    val record = store.get("condominium", condominiumId())
+    input.string("timeZone")?.let(::checkedTimeZone)
+    (input["modules"] as? JsonObject)?.let { checkedModules(it) }
+    val updated = platformUpdate(record, JsonObject(record.data + input))
+    return V1Response(condominiumView(updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+private fun V1Context.updateCondominiumModules(): V1Response {
+    checkedModules(input)
+    val record = store.get("condominium", condominiumId())
+    val modules = JsonObject(record.data["modules"]!!.jsonObject + input)
+    platformUpdate(record, record.data.plusFields("modules" to modules))
+    return V1Response(modules)
+}
+
