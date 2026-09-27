@@ -78,3 +78,8 @@ internal fun visitorHandlers(): Map<String, V1Handler> = mapOf(
 private fun V1Context.inviteList(own: Boolean) = listResponse("access_invite", own) { row ->
     if (query["status"]?.let { it != inviteStatus(row) } == true) JsonNull else invite(row)
 }
+private fun V1Context.revokeInvite(): V1Response {
+    val row = record("access_invite", "inviteId")
+    return V1Response(invite(if (row.data.text("revokedAt") == null)
+        change(row, obj("revokedAt" to now(), "revokeReason" to input["reason"]), "access_invite.revoked") else row))
+}
