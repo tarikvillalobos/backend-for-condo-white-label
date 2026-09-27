@@ -18,3 +18,23 @@ internal fun V1Context.condo(): String = locationId ?: input.text("condominiumId
 internal fun V1Context.member(id: String): Record = store.get("membership", id, condo()).also {
     if (it.data.text("status") != "active") fail(422, "DELEGATE_NOT_ELIGIBLE", "An active membership in the same condominium is required")
 }
+internal fun V1Context.person(id: String?): JsonElement {
+    if (id == null) return JsonNull
+    val member = store.find("membership", id) ?: return JsonNull
+    val account = member.ownerId?.let { tx.get("account", it, tenantId) }
+    return obj("membershipId" to member.id, "name" to (member.data.text("name") ?: account?.data?.text("name").orEmpty()))
+}
+internal fun V1Context.node(id: String?): JsonElement {
+    if (id == null) return JsonNull
+    val row = store.get("node", id)
+    return obj("id" to row.id, "type" to (row.data.text("type") ?: row.data.text("typeCode")), "label" to row.data.text("label"))
+}
+internal fun V1Context.nodePath(id: String?): JsonArray {
+    val result = mutableListOf<JsonElement>()
+    val seen = mutableSetOf<String>()
+    var current = id
+    while (current != null && seen.add(current)) {
+        result.add(0, node(current))
+        current = store.get("node", current).data.text("parentId")
+    }
+    return JsonArray(result)
