@@ -125,7 +125,7 @@ tags:
     equipamentos, jobs) e toda alteração no banco, automaticamente. CONSULTA: só administração, no próprio escopo
     (síndico → condomínio; organização → condomínios atendidos; marca → tudo). Morador nunca consulta auditoria.'
 paths:
-  "/health/live":
+  /configuration:
     get:
       tags: ["Health"]
       summary: "Check liveness"
