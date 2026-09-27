@@ -18,3 +18,23 @@ internal fun V1Context.platformUpdate(record: Record, data: JsonObject): Record 
     if (header("If-Match") != null) requireVersion(record)
     return store.update(record, data)
 }
+internal fun V1Context.brandAdministrator(): Boolean = store.list("staff_assignment", ownerId = userId)
+    .any { it.data.string("role") == "brand_admin" && it.data.string("status") == "active" }
+internal fun V1Context.requireBrandAdministrator() {
+    if (!brandAdministrator()) fail(403, "BRAND_ADMIN_REQUIRED", "Esta operação exige administrador da marca")
+}
+
+internal val roleRanks = mapOf("brand_admin" to 7, "org_admin" to 6, "property_manager" to 5,
+    "condo_admin" to 4, "manager" to 3, "porter" to 2, "support" to 1)
+
+fun platformRolePermissions(c: V1Context, role: String): Set<String> {
+    val customized = c.store.find("role", role)?.data?.arr("permissions")
+    if (customized != null) return customized.map { it.jsonPrimitive.content }.toSet()
+    val catalog = Contract.document["x-permission-catalog"]!!.jsonArray.map { it.jsonObject }
+    val residents = catalog.filter { it.string("audience") == "resident" }.map { it.string("code")!! }.toSet()
+    val staff = catalog.filter { it.string("audience") in setOf("resident", "staff") }.map { it.string("code")!! }.toSet()
+    return when (role) {
+        "brand_admin" -> catalog.map { it.string("code")!! }.toSet()
+        "org_admin" -> staff + catalog.filter { it.string("audience") == "organization" }.map { it.string("code")!! } - "roles.manage"
+        "property_manager" -> staff - "roles.manage"
+        "condo_admin" -> staff - setOf("roles.manage", "condominiums.create")
