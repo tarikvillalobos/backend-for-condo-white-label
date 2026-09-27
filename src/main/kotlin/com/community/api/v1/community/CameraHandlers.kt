@@ -98,3 +98,14 @@ internal fun cameraHandlers(): Map<String, V1Handler> = mapOf(
     "listRecordings" to V1Handler { c -> c.recordings() },
 )
 private fun V1Context.setCameraGrant(): V1Response {
+    val cameraId = id("cameraId")
+    store.get("camera", cameraId, locationId)
+    if (input.text("membershipId") != id("membershipId")) fail(422, "MEMBERSHIP_MISMATCH", "Vínculo no corpo difere da URL")
+    val member = store.get("membership", id("membershipId"), locationId)
+    input.text("expiresAt")?.let { if (!timestamp(it).isAfter(now)) fail(422, "INVALID_GRANT_EXPIRY", "Validade precisa estar no futuro") }
+    val data = input.merge(obj("cameraId" to cameraId, "residentName" to personName(member.data.text("userId")),
+        "node" to node(member.data.text("nodeId")), "expiresAt" to input["expiresAt"], "grantedByName" to personName(), "reason" to input["reason"]))
+    val previous = store.list("camera_grant", locationId, filters = mapOf("cameraId" to cameraId, "membershipId" to member.id)).firstOrNull()
+    val row = if (previous == null) save("camera_grant", data, member.data.text("userId")) else change(previous, data)
+    return result("CameraGrant", row)
+}
