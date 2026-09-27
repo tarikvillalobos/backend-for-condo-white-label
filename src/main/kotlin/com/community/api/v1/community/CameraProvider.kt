@@ -58,3 +58,10 @@ internal fun V1Context.closeCameraStream(): V1Response {
     }
     return V1Response(status = 204)
 }
+internal fun V1Context.recordings(): V1Response {
+    val camera = requireCamera(true)
+    val response = CameraProvider.request(this, "POST", "/recordings/search", obj("cameraRef" to camera.data["providerRef"],
+        "since" to query["since"], "until" to query["until"], "cursor" to query["cursor"], "limit" to (query["limit"]?.toIntOrNull() ?: 50)))
+    audit("camera.recordings_listed", camera)
+    return V1Response(project("RecordingPage", response))
+}
