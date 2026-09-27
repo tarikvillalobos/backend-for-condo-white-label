@@ -516,6 +516,15 @@ paths:
   /me/preferences:
     patch:
       operationId: updateCommunicationPreferences
+      tags:
+      - Profile
+      summary: Atualizar preferências de comunicação
+      description: Aplicar apenas campos enviados. Uma preferência não habilita um canal indisponível nem concede
+        permissão do sistema.
+      x-required-permission: profile.manage
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
