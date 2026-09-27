@@ -98,3 +98,4 @@ private fun applyLockerEvent(c: V1Context, locker: Record, event: JsonObject) {
     c.store.update(locker, locker.data.changed("compartments" to JsonArray(locker.data.array("compartments").map {
         if (it.jsonObject.text("code") == code) next else it
     })))
+}
