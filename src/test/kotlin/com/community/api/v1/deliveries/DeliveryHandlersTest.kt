@@ -118,3 +118,23 @@ class DeliveryHandlersTest {
         call(db, "markManualPickup", path = mapOf("parcelId" to manual), at = now.plusSeconds(300))
         val metrics = call(db, "getParcelMetrics", at = now.plusSeconds(900), query = mapOf("since" to now.minusSeconds(1).toString(), "until" to now.plusSeconds(900).toString())).body.jsonObject
         assertEquals(JsonPrimitive(2), metrics["totalReceived"])
+        assertEquals(JsonPrimitive(1), metrics["physicalPickupCount"])
+        assertEquals(600.0, metrics["averagePickupDurationSeconds"]!!.jsonPrimitive.double)
+        assertEquals(JsonPrimitive(true), metrics["complete"])
+    }
+
+    @Test fun `parcel snapshots exclude new deliveries and cohabitants need explicit delegation`() = database().use { db ->
+        val firstId = frontDesk(db).string("id")!!
+        val secondId = frontDesk(db).string("id")!!
+        val page = call(db, "listParcels", query = mapOf("limit" to "1")).body.jsonObject
+        val first = page["items"]!!.jsonArray.single().jsonObject.string("id")!!
+        val cursor = page["page"]!!.jsonObject.string("nextCursor")!!
+        frontDesk(db)
+        val next = call(db, "listParcels", query = mapOf("limit" to "1", "cursor" to cursor)).body.jsonObject
+        val second = next["items"]!!.jsonArray.single().jsonObject.string("id")!!
+        assertEquals(setOf(firstId, secondId), setOf(first, second))
+        assertEquals(JsonNull, next["page"]!!.jsonObject["nextCursor"])
+        assertTrue(call(db, "listParcels", user = "bob").body.jsonObject["items"]!!.jsonArray.isEmpty())
+        call(db, "addParcelDelegate", obj("membershipId" to "bob"), mapOf("parcelId" to firstId))
+        assertEquals(firstId, call(db, "listParcels", user = "bob").body.jsonObject["items"]!!.jsonArray.single().jsonObject.string("id"))
+    }
