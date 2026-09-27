@@ -58,3 +58,23 @@ class ReservationHandlersTest {
                 try { call(db, "createReservation", input, user = user).status } catch (failure: ApiException) { failure.status }
             } }
             gate.countDown()
+            assertEquals(listOf(201, 409), futures.map { it.get(15, TimeUnit.SECONDS) }.sorted())
+            assertEquals(1, db.tx { V1Store(it, "tenant", "brand").list("reservation").size })
+        } finally { pool.shutdownNow() }
+    }
+
+    @Test fun `pending reservation blocks slots then approval and cancellation preserve state`() = database().use { db ->
+        val space = space(db)
+        val created = call(db, "createReservation", input(space)).body.jsonObject
+        assertEquals("pending", created.string("status"))
+        val reservationId = created.string("id")!!
+        val path = mapOf("reservationId" to reservationId)
+        val approved = call(db, "adminApproveReservation", path = path, staff = true).body.jsonObject
+        assertEquals("confirmed", approved["reservation"]!!.jsonObject.string("status"))
+        val slots = call(db, "getAvailability", path = mapOf("spaceId" to space), query = mapOf("date" to "2030-01-02")).body.jsonObject["slots"]!!.jsonArray
+        assertEquals(2, slots.count { it.jsonObject.string("reason") == "reserved" })
+        assertEquals(404, assertFailsWith<ApiException> { call(db, "getReservation", path = path, user = "bob") }.status)
+        val cancelled = call(db, "cancelReservation", path = path).body.jsonObject
+        assertEquals("cancelled", cancelled.string("status"))
+        assertEquals("cancelled", call(db, "cancelReservation", path = path).body.jsonObject.string("status"))
+        assertEquals(201, call(db, "createReservation", input(space), user = "bob").status)
