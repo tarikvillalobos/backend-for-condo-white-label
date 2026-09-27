@@ -58,3 +58,23 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
     if (principal?.deviceId != null && location != store.get("device",principal.deviceId).locationId) c.fail(404,"RESOURCE_NOT_FOUND","Resource not found")
     operation.definition.string("x-required-permission")?.let { c.requirePermission(*it.split('|').map(String::trim).toTypedArray()) }
     if ("x-step-up" in operation.definition) {
+        val actor = principal?.actor ?: c.fail(403,"VERIFICATION_REQUIRED","Verify your identity")
+        try { tx.requireRecentAuthentication(actor) } catch (_: ApiException) { c.fail(403,"VERIFICATION_REQUIRED","Verify your identity within the last ten minutes") }
+    }
+    enforceModule(c,operation)
+    return c
+}
+
+fun effectivePermissions(c: V1Context, userId: String): Set<String> {
+    val grants = mutableSetOf("profile.read","profile.manage","sessions.manage","devices.register")
+    c.membership?.let { member ->
+        grants += Contract.document["x-permission-catalog"]!!.jsonArray.filter { it.jsonObject.string("audience") == "resident" }.map { it.jsonObject.string("code")!! }
+        if (member.data.string("role") !in setOf("owner","tenant")) grants -= "unit.manage"
+        (member.data["permissions"] as? JsonArray)?.forEach { grants += it.jsonPrimitive.content }
+    }
+    if (c.principal?.staff == true) c.store.list("staff_assignment",ownerId=userId).filter { it.data.string("status") == "active" }.forEach { assignment ->
+        val orgId = assignment.data.string("organizationId")
+        val authorized = when {
+            assignment.data.string("scope") == "brand" -> true
+            orgId != null -> (c.path["organizationId"] == orgId && c.locationId == null) ||
+                c.store.list("organization_condominium",filters=mapOf("organizationId" to orgId,"status" to "active")).any { it.locationId == c.locationId && c.locationId != null }
