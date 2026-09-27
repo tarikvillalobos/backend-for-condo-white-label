@@ -38,3 +38,23 @@ fun V1Context.page(
             statement.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.v1Record()) } }
         }
         if (rows.isEmpty()) break
+        for (record in rows) {
+            val logical = record.logical()
+            val eligible = filters.all { (k,v) -> logical.data.string(k) == v } && predicate(logical)
+            if (eligible && result.size == limit) { hasMore = true; break }
+            lastCreated = record.createdAt; lastId = record.id
+            if (eligible) result += transform(logical)
+        }
+        if (hasMore || rows.size < 200) break
+    }
+    return obj("items" to result, "page" to obj(
+        "nextCursor" to if (hasMore) cursor(snapshot.copy(lastCreated = lastCreated, lastId = lastId)) else null,
+        "snapshotAt" to microInstant(snapshot.at), "snapshotExpiresAt" to microInstant(snapshot.expires),
+    ))
+}
+
+private fun V1Context.snapshot(binding: String): Snapshot {
+    val cursor = query["cursor"]
+    if (cursor != null) {
+        val parts = cursor.split('.')
+        if (parts.size != 2 || !Secrets.verifies(parts[0], parts[1])) fail(422, "VALIDATION_ERROR", "Invalid cursor")
