@@ -138,3 +138,23 @@ private fun transition(c: V1Context): V1Response {
     val row = reservation(c)
     c.requireVersion(row)
     val facility = c.store.get("space", row.data.text("spaceId")!!, condominium(c))
+    val action = when (c.operationId) { "adminApproveReservation" -> "confirmed"; "adminRejectReservation" -> "rejected"; else -> "cancelled" }
+    if (action == "cancelled" && row.data.text("status") == "cancelled")
+        return V1Response(if (c.operationId.startsWith("admin")) adminView(c, row) else reservationView(c, row))
+    if (!BookingRules.active(row.data) || !timestamp(row.data.text("endsAt")).isAfter(c.now))
+        c.fail(409, "RESERVATION_CLOSED", "Reservation cannot be changed in this state")
+    if (c.operationId == "cancelReservation" && !BookingRules.cancellable(row.data, facility.data.objectAt("rules"), c.now))
+        c.fail(422, "CANCELLATION_DEADLINE", "Cancellation deadline has passed")
+    if (action in setOf("confirmed", "rejected") && row.data.text("status") != "pending")
+        c.fail(409, "RESERVATION_NOT_PENDING", "Only pending reservations can be approved or rejected")
+    if (action == "confirmed" && (!facility.data.flag("active") || occupied(c, facility.id, timestamp(row.data.text("startsAt")), timestamp(row.data.text("endsAt")), row.id) ||
+            blocked(c, facility.id, timestamp(row.data.text("startsAt")), timestamp(row.data.text("endsAt")))))
+        c.fail(409, "RESERVATION_CONFLICT", "The requested period is unavailable")
+    val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive(action),
+        "cancelledAt" to (if (action == "cancelled") JsonPrimitive(c.now.toString()) else JsonNull), "cancellationReason" to (c.input["reason"] ?: JsonNull)))
+    c.audit("reservation.$action", updated)
+    notifyReservation(c, updated)
+    return V1Response(if (c.operationId.startsWith("admin")) adminView(c, updated) else reservationView(c, updated))
+}
+
+internal fun notifyReservation(c: V1Context, row: Record) {
