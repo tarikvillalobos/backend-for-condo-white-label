@@ -82,7 +82,7 @@ private fun V1Context.snapshot(binding: String): Snapshot {
                 if (!rows.next()) fail(410, "CURSOR_EXPIRED", "Cursor is unavailable for this context")
                 val expires = rows.getLong("expires_at")
                 if (expires <= store.micros()) fail(410, "CURSOR_EXPIRED", "Snapshot expired; restart pagination")
-                Snapshot(rows.getString("id"), rows.getLong("snapshot_at"), expires, decoded.string("created") ?: "", decoded.string("last") ?: "")
+                Snapshot(rows.getString("id"), rows.getLong("snapshot_at"), expires, decoded.string("created") ?: "", decoded.string("last") ?: "",rows.getString("visibility"),rows.getString("creator_tx"))
             }
         }
     }
