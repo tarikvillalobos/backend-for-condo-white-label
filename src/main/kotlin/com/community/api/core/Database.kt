@@ -82,7 +82,16 @@ class Database(url: String, user: String = "sa", password: String = "") : AutoCl
     }
 }
 
-class Tx internal constructor(private val connection: Connection) {
+class Tx internal constructor(internal val connection: Connection) {
+    val postgres: Boolean = connection.metaData.databaseProductName == "PostgreSQL"
+    fun lock(scope: String) {
+        if (postgres) connection.prepareStatement("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))").use {
+            it.setString(1, scope); it.queryTimeout = 15; it.execute()
+        } else {
+            connection.prepareStatement("MERGE INTO v1_scope_locks (scope_id) KEY(scope_id) VALUES (?)").use {
+                it.setString(1, scope); it.executeUpdate()
+            }
+            connection.prepareStatement("SELECT scope_id FROM v1_scope_locks WHERE scope_id = ? FOR UPDATE").use {
     // Only bootstrap/maintenance workers may enumerate tenants. Never expose this over HTTP.
     fun clients(): List<Record> = connection.prepareStatement("SELECT * FROM app_records WHERE kind = 'client' ORDER BY id").use {
         it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.record()) } }
