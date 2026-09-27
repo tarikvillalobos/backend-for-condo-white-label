@@ -58,3 +58,23 @@ internal object BookingRules {
         if (start.atZone(zone).toLocalDate().isAfter(now.atZone(zone).toLocalDate().plusDays(rules.number("horizonDays")!!.toLong())))
             bookingError("OUTSIDE_HORIZON", "Reservation exceeds the booking horizon")
         val duration = Duration.between(start, end)
+        val slot = rules.number("slotMinutes")!!.toLong()
+        if (duration > Duration.ofMinutes(rules.number("maxDurationMinutes")!!.toLong()) || duration.seconds % (slot * 60) != 0L)
+            bookingError("INVALID_DURATION", "Reservation duration must follow the space slots and limit")
+        val guests = input.number("guestsCount") ?: 0
+        if (guests < 0 || rules.number("capacity")?.let { guests > it } == true)
+            bookingError("CAPACITY_EXCEEDED", "Guest count exceeds space capacity")
+        val localStart = start.atZone(zone)
+        val localEnd = end.atZone(zone)
+        if (localStart.toLocalDate() != localEnd.toLocalDate()) bookingError("OUTSIDE_OPENING_HOURS", "Reservation crosses local dates")
+        val opening = space.arrayAt("openingHours").map { it.jsonObject }.firstOrNull {
+            it.number("weekday") == localStart.dayOfWeek.value % 7 &&
+                !localStart.toLocalTime().isBefore(localTime(it.text("opens"))) &&
+                !localEnd.toLocalTime().isAfter(localTime(it.text("closes")))
+        } ?: bookingError("OUTSIDE_OPENING_HOURS", "Reservation is outside opening hours")
+        val offset = Duration.between(localTime(opening.text("opens")), localStart.toLocalTime()).seconds
+        if (offset % (slot * 60) != 0L) bookingError("INVALID_SLOT", "Reservation start must align with a slot")
+    }
+
+    fun overlaps(a: JsonObject, startsAt: Instant, endsAt: Instant): Boolean =
+        timestamp(a.text("startsAt")).isBefore(endsAt) && timestamp(a.text("endsAt")).isAfter(startsAt)
