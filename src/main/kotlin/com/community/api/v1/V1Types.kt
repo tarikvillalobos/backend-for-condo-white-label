@@ -38,3 +38,23 @@ class V1Context(
 ) {
     val store = V1Store(tx, tenantId, brandId)
     val userId: String get() = principal?.userId ?: fail(401, "SESSION_EXPIRED", "Authentication required")
+    val membershipId: String? get() = membership?.id ?: path["membershipId"]
+    val unitId: String? get() = membership?.data?.string("nodeId")
+
+    fun fail(status: Int, code: String, message: String): Nothing = throw ApiException(status, code, message)
+    fun requirePermission(vararg codes: String) {
+        val permissions = principal?.permissions.orEmpty()
+        if ("*" !in permissions && codes.none { it in permissions }) fail(403, "ACCESS_DENIED", "Permission required")
+    }
+    fun requireVersion(record: Record) {
+        val supplied = header("If-Match") ?: fail(428, "VERSION_REQUIRED", "Supply the current ETag in If-Match")
+        if (supplied != "\"${record.version}\"") fail(412, "VERSION_CONFLICT", "Resource changed; reload before retrying")
+    }
+    fun header(name: String): String? = headers.entries.firstOrNull { it.key.equals(name, true) }?.value
+    fun project(schema: String, value: JsonObject): JsonObject = Contract.project(schema, value)
+    fun seal(value: String): String = Secrets.seal(value)
+    fun unseal(value: String): String = Secrets.unseal(value)
+    fun hash(value: String): String = Secrets.hash(value)
+    fun audit(action: String, record: Record) { store.audit(this, action, record) }
+    fun fileUrl(fileKey: String): String = signedFileUrl(this, fileKey)
+}
