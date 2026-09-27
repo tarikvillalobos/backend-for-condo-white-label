@@ -115,6 +115,15 @@ tags:
 - name: Admin · Documentos e contatos
   description: Publicar documentos e revisões, acompanhar ciência, manter contatos.
 - name: Admin · Manutenção
+  description: Prestadores, equipamentos com inspeção, ordens de serviço com evidência.
+- name: Admin · Plataforma
+  description: Configuração da marca, contas e catálogo de permissões (brand_admin).
+- name: Health
+  description: Sondas de infraestrutura. Sem autenticação e fora da auditoria.
+- name: Auditoria
+  description: 'Serviço transversal. CAPTURA: toda requisição de todos os atores (morador, equipe, portaria remota,
+    equipamentos, jobs) e toda alteração no banco, automaticamente. CONSULTA: só administração, no próprio escopo
+    (síndico → condomínio; organização → condomínios atendidos; marca → tudo). Morador nunca consulta auditoria.'
 paths:
   "/health/live":
     get:
