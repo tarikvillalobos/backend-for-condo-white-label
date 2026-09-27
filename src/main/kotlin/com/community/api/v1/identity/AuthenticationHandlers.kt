@@ -38,3 +38,23 @@ private fun V1Context.requestLoginChallenge(): V1Response {
     val cpf = checkedCpf(identityInput("cpf"))
     requireEmailChannel(channel)
     if (!identityRate("v1-challenge", contact) || !identityRate("v1-cpf", cpf)) return rateLimited()
+    val user = findIdentity(if (channel == "email") "email" else "phone", contact)?.takeIf {
+        it.decode<Account>().active && findIdentity("cpf", cpf)?.id == it.id
+    }
+    return V1Response(issueIdentityChallenge("login", user, contact), 202)
+}
+
+private fun V1Context.verifyLoginChallenge(): V1Response {
+    val verified = verifyIdentityChallenge(identityPath("challengeId"), "login")
+    verified.failure?.let { return it }
+    val user = verified.account!!
+    saveProfile(user, profileData(user).with("emailVerifiedAt" to now.toString()))
+    return V1Response(issueIdentitySession(user))
+}
+
+private fun V1Context.requestPasswordRecovery(): V1Response {
+    val (type, value) = checkedIdentifier(identityInput("identifier"))
+    val channel = identityInput("channel")
+    requireEmailChannel(channel)
+    if (!identityRate("v1-recovery", value)) return rateLimited()
+    val user = findIdentity(type, value)?.takeIf { it.decode<Account>().active }
