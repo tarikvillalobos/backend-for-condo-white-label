@@ -38,3 +38,23 @@ private fun V1Context.registerIdentityDevice(): V1Response {
         current.data.string("appVersion") == input.string("appVersion") &&
         current.data.string("permission") == input.string("permission")
     if (sameRegistration) return V1Response(obj("installationId" to id, "registeredAt" to current!!.data["registeredAt"]))
+    val registration = obj("brandId" to brandId, "sessionId" to principal!!.sessionId,
+        "userId" to userId, "status" to "active",
+        "platform" to platform, "provider" to provider, "tokenEncrypted" to seal(token), "tokenHash" to hash(token),
+        "permission" to input["permission"], "appVersion" to input["appVersion"], "registeredAt" to now.toString())
+    if (current != null) store.update(current, registration)
+    else store.create("push_registration", registration, id = id)
+    return V1Response(obj("installationId" to id, "registeredAt" to now.toString()))
+}
+
+private fun V1Context.unregisterIdentityDevice(): V1Response {
+    val (id, keyHash) = installation()
+    val ownership = store.find("installation", id)
+    if (ownership != null && !sameSecret(ownership.data.string("keyHash").orEmpty(), keyHash)) {
+        fail(403, "INSTALLATION_KEY_MISMATCH", "A prova de posse da instalação não confere")
+    }
+    val registration = store.find("push_registration", id)
+    if (registration != null && registration.data.string("userId") == userId && registration.data.string("sessionId") == principal!!.sessionId) {
+        store.update(registration, registration.data.with("status" to "inactive", "tokenEncrypted" to null, "tokenHash" to null))
+    }
+    return V1Response(status = 204)
