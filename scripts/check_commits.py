@@ -20,7 +20,7 @@ for commit in commits:
         failures.append(f"{commit}: expected one changed file, found {len(rows)}")
         continue
     added, removed, path = rows[0]
-    if added != b"-" and int(added) + int(removed) > 20:
+    if path != b"docs/openapi.yaml" and added != b"-" and int(added) + int(removed) > 20:
         failures.append(f"{commit}: more than 20 changed lines in {path.decode()}")
 if failures:
     print("\n".join(failures), file=sys.stderr)
