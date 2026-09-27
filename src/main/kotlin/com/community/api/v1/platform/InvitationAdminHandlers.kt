@@ -38,3 +38,23 @@ internal fun V1Context.invitationView(record: Record, code: String? = null): Jso
 internal fun V1Context.createPlatformInvitation(data: JsonObject, membershipId: String? = null,
     userId: String? = null, assignmentId: String? = null): JsonObject {
     val condoId = condominiumId()
+    val nodeId = data.string("nodeId") ?: rootNode().id
+    store.get("node", nodeId, condoId)
+    val cpf = data.string("cpf")?.let(::checkedCpf)
+    val id = UUID.randomUUID().toString()
+    val code = "${id}_${Secrets.token()}"
+    val recipient = userId?.let { tx.get("account", it, tenantId) }
+        ?: data.string("email")?.let { findIdentity("email", it) } ?: cpf?.let { findIdentity("cpf", it) }
+    val existingActive = recipient?.data?.bool("active") == true
+    val expiresDays = data["expiresInDays"]?.jsonPrimitive?.intOrNull ?: 7
+    val record = store.create("invitation", JsonObject(data - "deliver").plusFields("brandId" to brandId,
+        "nodeId" to nodeId, "codeHash" to hash(code), "cpfHash" to cpf?.let(::hash),
+        "userId" to recipient?.id, "membershipId" to membershipId, "assignmentId" to assignmentId,
+        "purpose" to if (existingActive) "link_membership" else "first_access", "status" to "pending",
+        "expiresAt" to now.plusSeconds(expiresDays.toLong() * 86400).toString(), "acceptedAt" to null), condoId, userId, id)
+    val channels = data.arr("deliver").map { it.jsonPrimitive.content }
+    if (channels.any { it != "email" }) fail(501, "CHANNEL_UNAVAILABLE", "O provedor do canal solicitado não está configurado")
+    if ("email" in channels) {
+        if (MailConfig.fromEnvironment() == null) fail(503, "CHANNEL_UNAVAILABLE", "E-mail não está configurado")
+        val email = data.string("email") ?: recipient?.data?.string("email") ?: fail(422, "EMAIL_REQUIRED", "Informe o e-mail para envio")
+        enqueueMail(email, "Community: convite de acesso", "Seu código de convite é:\n$code\nExpira em ${record.data.string("expiresAt")}")
