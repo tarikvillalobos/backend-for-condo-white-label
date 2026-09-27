@@ -18,3 +18,23 @@ class IdentitySessionChangesTest {
     }
 
     @Test fun `step up requires exactly one proof and challenge cannot cross sessions`() = IdentityFixture().use { f ->
+        val current = f.login().string("accessToken")!!
+        val other = f.login().string("accessToken")!!
+        assertEquals(422, assertFailsWith<ApiException> { f.invoke("verifyStepUp", token = current) }.status)
+        val (challenge, otp) = f.challenge("step_up", current)
+        val input = obj("challengeId" to challenge["id"], "code" to otp)
+        assertEquals(404, assertFailsWith<ApiException> { f.invoke("verifyStepUp", input, other) }.status)
+        val verified = f.invoke("verifyStepUp", input, current)
+        assertEquals(200, verified.status)
+        Contract.validate(Contract.schemas.getValue("StepUpResult").jsonObject, verified.body)
+    }
+
+    @Test fun `contact OTP cannot create a login session`() = IdentityFixture().use { f ->
+        val current = f.login().string("accessToken")!!
+        val (challenge, otp) = f.challenge("contact_change", current)
+        val mismatch = assertFailsWith<ApiException> {
+            f.invoke("verifyLoginChallenge", obj("code" to otp), path = mapOf("challengeId" to challenge.string("id")!!))
+        }
+        assertEquals(404, mismatch.status)
+    }
+
