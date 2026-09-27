@@ -38,3 +38,23 @@ fun nodePathView(c: V1Context, id: String): JsonArray {
     while (current != null) {
         if (!seen.add(current) || seen.size > 64) c.fail(409, "STRUCTURE_CYCLE", "A estrutura contém um ciclo")
         val node = c.store.get("node", current)
+        result.add(0, nodeRef(c, current))
+        current = node.data.string("parentId")
+    }
+    return JsonArray(result)
+}
+
+internal fun V1Context.nodeDescendants(id: String): Set<String> {
+    val rows = store.list("node", condominiumId())
+    val result = mutableSetOf(id)
+    var changed: Boolean
+    do {
+        changed = false
+        rows.filter { it.data.string("parentId") in result }.forEach { if (result.add(it.id)) changed = true }
+    } while (changed)
+    return result
+}
+
+internal fun V1Context.nodeCounts(ids: Set<String>): JsonObject {
+    fun records(kind: String) = store.list(kind, condominiumId()).filter { it.data.string("nodeId") in ids }
+    val residents = records("membership")
