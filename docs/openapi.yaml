@@ -679,6 +679,21 @@ paths:
         - request
         - event
         - changes
+        logsDenied: true
+  /me/contact-challenges/{challengeId}/verify:
+    parameters:
+    - $ref: '#/components/parameters/ChallengeId'
+    post:
+      operationId: verifyContactChange
+      tags:
+      - Profile
+      summary: Confirmar alteração do contato
+      description: Consumir desafio contact_change e atualizar apenas o canal verificado; não criar outra sessão
+        de login.
+      x-required-permission: profile.manage
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
