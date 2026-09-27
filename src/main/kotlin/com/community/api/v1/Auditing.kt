@@ -58,3 +58,19 @@ fun redact(value: JsonElement): JsonElement = when (value) {
 
 fun recordRequest(db: Database, requestId: String, operation: ContractOperation?, tenantId: String?, brandId: String?, locationId: String?, actor: V1Principal?, method: String, route: String, status: Int, duration: Long, code: String?, replay: Boolean = false) {
     db.scopedTx(null) { tx ->
+        val at = Instant.now().toString()
+        fun count(table: String): Int = tx.connection.prepareStatement("SELECT COUNT(*) FROM $table WHERE request_id = ?").use {
+            it.setString(1, requestId); it.executeQuery().use { rows -> rows.next(); rows.getInt(1) }
+        }
+        val payload = obj("requestId" to requestId, "createdAt" to at, "actor" to auditActor(actor), "onBehalfOf" to null,
+            "organizationId" to null, "condominiumId" to locationId, "channel" to if (actor?.deviceId != null) "device" else "api",
+            "method" to method, "route" to route, "operationId" to operation?.id, "pathParams" to obj(), "statusCode" to status,
+            "outcome" to if (status < 400) "success" else if (status in setOf(401,403)) "denied" else if (status >= 500) "error" else "failed",
+            "problemCode" to code, "durationMs" to duration, "idempotentReplay" to replay, "appVersion" to null,
+            "eventCount" to count("audit_log"), "changeCount" to count("audit_changes"))
+        tx.connection.prepareStatement("INSERT INTO api_requests (request_id,tenant_id,brand_id,location_id,actor_id,operation_id,created_at,status_code,payload) VALUES (?,?,?,?,?,?,?,?,?)").use {
+            listOf(requestId,tenantId,brandId,locationId,actor?.userId,operation?.id,at,status,payload.toString()).forEachIndexed { index, value -> it.setObject(index + 1, value) }
+            it.executeUpdate()
+        }
+    }
+}
