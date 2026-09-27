@@ -38,3 +38,23 @@ internal fun V1Context.identityProfile(user: Record = account()): JsonObject {
 }
 
 private fun V1Context.updatePreferences(): V1Response {
+    val user = account()
+    val data = profileData(user)
+    val current = data["preferences"] as JsonObject
+    saveProfile(user, data.with("preferences" to JsonObject(current + input)))
+    return V1Response(identityProfile(user))
+}
+
+private fun V1Context.changeIdentityPassword(): V1Response {
+    if (!identityRate("v1-login", userId)) return rateLimited()
+    val user = account()
+    val account = user.decode<Account>()
+    if (!Passwords.verify(identityInput("currentPassword"), account.passwordHash)) {
+        return identityError(401, "INVALID_CREDENTIALS", "Senha inválida")
+    }
+    tx.update(user, body(account.copy(passwordHash = Passwords.hash(identityInput("newPassword")))))
+    revokeOtherIdentitySessions()
+    consumeOtherChallenges(user.id)
+    return V1Response(status = 204)
+}
+
