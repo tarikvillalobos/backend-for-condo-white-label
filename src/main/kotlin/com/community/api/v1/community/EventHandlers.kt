@@ -58,3 +58,4 @@ internal fun eventHandlers(): Map<String, V1Handler> = mapOf(
         c.store.get("event", c.id("eventId"), c.locationId)
         c.listResponse("attendance", filters = mapOf("eventId" to c.id("eventId"))) { c.view("Attendance", it) }
     },
+)
