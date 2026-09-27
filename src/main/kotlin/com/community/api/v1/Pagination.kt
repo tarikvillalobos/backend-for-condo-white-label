@@ -30,8 +30,16 @@ fun V1Context.page(
     val result = mutableListOf<JsonElement>()
     var hasMore = false
     while (result.size <= limit) {
-        val values = mutableListOf<Any>(tenantId, brandId, store.prefix(kind), snapshot.at, snapshot.at)
-        val sql = StringBuilder("SELECT * FROM v1_record_versions WHERE tenant_id = ? AND brand_id = ? AND kind = ? AND valid_from <= ? AND (valid_to IS NULL OR valid_to > ?) AND deleted = FALSE")
+        val values = mutableListOf<Any>(tenantId, brandId, store.prefix(kind))
+        val sql = StringBuilder("SELECT * FROM v1_record_versions WHERE tenant_id = ? AND brand_id = ? AND kind = ?")
+        if (tx.postgres && snapshot.visibility != null) {
+            sql.append(" AND (created_tx = ? OR pg_visible_in_snapshot(created_tx::xid8, ?::pg_snapshot)) AND (closed_tx IS NULL OR (closed_tx <> ? AND NOT pg_visible_in_snapshot(closed_tx::xid8, ?::pg_snapshot)))")
+            values.addAll(listOf(snapshot.creator!!,snapshot.visibility,snapshot.creator,snapshot.visibility))
+        } else {
+            sql.append(" AND valid_from <= ? AND (valid_to IS NULL OR valid_to > ?)")
+            values.addAll(listOf(snapshot.at,snapshot.at))
+        }
+        sql.append(" AND deleted = FALSE")
         if (locationId != null) { sql.append(" AND location_id = ?"); values += locationId }
         if (ownerId != null) { sql.append(" AND owner_id = ?"); values += ownerId }
         if (tx.postgres) filters.forEach { (key, value) -> sql.append(" AND payload::jsonb ->> ? = ?"); values += key; values += value }
