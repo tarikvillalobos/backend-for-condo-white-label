@@ -80,5 +80,5 @@ private fun AuthDelivery.asMessage(id: String): MailMessage {
         else -> error("Unsupported authentication delivery")
     }
     return MailMessage(email, "Community: your $purpose",
-        "Your $purpose is:\n\n$credential\n\nExpires at $expiresAt (UTC).\nIf you did not request this, ignore this message.", id)
+        "Your $purpose is:\n\n$plaintext\n\nExpires at $expiresAt (UTC).\nIf you did not request this, ignore this message.", id)
 }
