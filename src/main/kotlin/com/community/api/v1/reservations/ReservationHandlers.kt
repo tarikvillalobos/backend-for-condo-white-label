@@ -95,7 +95,7 @@ private fun adminView(c: V1Context, row: Record): JsonObject {
 
 private fun reservations(c: V1Context): V1Response {
     val admin = c.operationId.startsWith("admin")
-    val rows = c.store.list("reservation", condominium(c)).filter { row ->
+    val matches: (Record) -> Boolean = { row ->
         val data = row.data
         val status = data.text("status")
         val ended = !timestamp(data.text("endsAt")).isAfter(c.now)
