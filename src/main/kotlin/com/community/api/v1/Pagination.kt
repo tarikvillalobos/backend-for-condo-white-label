@@ -87,9 +87,12 @@ private fun V1Context.snapshot(binding: String): Snapshot {
         }
     }
     val at = store.micros()
-    val snapshot = Snapshot(UUID.randomUUID().toString(), at, at + 900_000_000)
-    tx.connection.prepareStatement("INSERT INTO v1_snapshots (id,tenant_id,brand_id,fingerprint,snapshot_at,expires_at) VALUES (?,?,?,?,?,?)").use {
-        listOf(snapshot.id, tenantId, brandId, binding, at, snapshot.expires).forEachIndexed { index, value -> it.setObject(index + 1, value) }
+    val visibility = if (tx.postgres) tx.connection.createStatement().use {
+        it.executeQuery("SELECT pg_current_snapshot()::text, pg_current_xact_id()::text").use { rows -> rows.next(); rows.getString(1) to rows.getString(2) }
+    } else null
+    val snapshot = Snapshot(UUID.randomUUID().toString(), at, at + 900_000_000,visibility=visibility?.first,creator=visibility?.second)
+    tx.connection.prepareStatement("INSERT INTO v1_snapshots (id,tenant_id,brand_id,fingerprint,snapshot_at,expires_at,visibility,creator_tx) VALUES (?,?,?,?,?,?,?,?)").use {
+        listOf(snapshot.id, tenantId, brandId, binding, at, snapshot.expires,snapshot.visibility,snapshot.creator).forEachIndexed { index, value -> it.setObject(index + 1, value) }
         it.executeUpdate()
     }
     return snapshot
