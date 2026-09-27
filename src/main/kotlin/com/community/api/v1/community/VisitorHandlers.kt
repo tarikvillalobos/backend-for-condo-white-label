@@ -58,3 +58,23 @@ internal fun visitorHandlers(): Map<String, V1Handler> = mapOf(
     "adminListVisitors" to V1Handler { c -> c.listResponse("visitor") { row ->
         val latest = c.store.list("access_event", c.locationId, filters = mapOf("visitorId" to row.id)).maxByOrNull { it.data.text("occurredAt").orEmpty() }
         obj("visitor" to c.visitor(row), "hostName" to c.personName(row.ownerId), "node" to c.node(row.data.text("nodeId")), "lastAccessAt" to latest?.data?.get("occurredAt"))
+    } },
+    "listAccessInvites" to V1Handler { c -> c.inviteList(true) },
+    "adminListAccessInvites" to V1Handler { c -> c.inviteList(false) },
+    "listCondoInvites" to V1Handler { c -> c.inviteList(false) },
+    "createAccessInvite" to V1Handler { c -> c.createInvite() },
+    "getAccessInvite" to V1Handler { c -> V1Response(c.invite(c.record("access_invite", "inviteId"))) },
+    "updateAccessInvite" to V1Handler { c ->
+        val row = c.record("access_invite", "inviteId")
+        if (c.inviteStatus(row) !in setOf("scheduled", "active")) c.fail(409, "INVITE_NOT_EDITABLE", "Convite indisponível para edição")
+        val data = row.data.merge(c.input)
+        c.validateInvite(data)
+        V1Response(c.invite(c.change(row, data)))
+    },
+    "revokeAccessInvite" to V1Handler { c -> c.revokeInvite() },
+    "adminRevokeAccessInvite" to V1Handler { c -> c.revokeInvite() },
+    "getAccessCredential" to V1Handler { c -> c.accessCredential(c.record("access_invite", "inviteId")) },
+)
+private fun V1Context.inviteList(own: Boolean) = listResponse("access_invite", own) { row ->
+    if (query["status"]?.let { it != inviteStatus(row) } == true) JsonNull else invite(row)
+}
