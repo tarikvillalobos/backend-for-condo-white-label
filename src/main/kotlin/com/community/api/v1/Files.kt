@@ -98,3 +98,23 @@ private fun fileClaims(id: String, encrypted: String?, action: String): JsonObje
     return claims
 }
 private fun fileContext(tx: Tx, claims: JsonObject, operation: String): V1Context = V1Context(tx,operation,
+    claims.string("tenant")!!,claims.string("brand")!!,UUID.randomUUID().toString(),principal=V1Principal(userId=claims.string("owner")))
+
+private fun validateFile(type: String, bytes: ByteArray) {
+    val valid = when(type) {
+        "image/png" -> bytes.take(8) == listOf(137,80,78,71,13,10,26,10).map(Int::toByte)
+        "image/jpeg" -> bytes.size > 3 && bytes[0] == 0xff.toByte() && bytes[1] == 0xd8.toByte()
+        "image/webp" -> bytes.size >= 12 && String(bytes,0,4) == "RIFF" && String(bytes,8,4) == "WEBP"
+        "application/pdf" -> bytes.size >= 5 && String(bytes,0,5) == "%PDF-"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> bytes.size >= 4 && bytes[0] == 80.toByte() && bytes[1] == 75.toByte()
+        "text/csv" -> bytes.none { it == 0.toByte() }
+        else -> false
+    }
+    if (!valid) throw ApiException(422,"VALIDATION_ERROR","File content does not match declared type")
+}
+
+fun V1Context.enqueueMail(to: String, subject: String, text: String) {
+    val data = obj("type" to "v1_message","email" to to,"credential" to "sealed:${seal(obj("subject" to subject,"text" to text).toString())}",
+        "expiresAt" to now.plusSeconds(86400),"attempts" to 0,"nextAttemptAt" to null,"leaseId" to null,"leaseUntil" to null,"lastFailure" to null,"status" to "pending")
+    tx.create("auth_delivery",tenantId,data=data)
+}
