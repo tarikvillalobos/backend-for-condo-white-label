@@ -142,7 +142,7 @@ private fun createReservation(c: V1Context): V1Response {
 
 private fun transition(c: V1Context): V1Response {
     val row = reservation(c)
-    c.requireVersion(row)
+    if (c.header("If-Match") != null) c.requireVersion(row)
     val facility = c.store.get("space", row.data.text("spaceId")!!, condominium(c))
     val action = when (c.operationId) { "adminApproveReservation" -> "confirmed"; "adminRejectReservation" -> "rejected"; else -> "cancelled" }
     if (action == "cancelled" && row.data.text("status") == "cancelled")
