@@ -7,7 +7,7 @@ import java.time.Instant
 import java.util.Base64
 import java.util.UUID
 
-private data class Snapshot(val id: String, val at: Long, val expires: Long, val lastCreated: String = "", val lastId: String = "")
+private data class Snapshot(val id: String, val at: Long, val expires: Long, val lastCreated: String = "", val lastId: String = "", val visibility: String? = null, val creator: String? = null)
 
 fun V1Context.page(
     kind: String,
