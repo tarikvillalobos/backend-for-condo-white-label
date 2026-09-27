@@ -118,3 +118,23 @@ private fun validateRequest(op: ContractOperation, path: Map<String,String>, que
                 "integer" -> raw.toLongOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
                 "boolean" -> raw.toBooleanStrictOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
                 else -> JsonPrimitive(raw)
+            }
+            Contract.validate(schema,parsed,name)
+        }
+    }
+    op.definition["requestBody"]?.jsonObject?.get("content")?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject?.let { Contract.validate(it,input) }
+}
+
+private fun validateResponse(op: ContractOperation, response: V1Response) {
+    if (response.status >= 400 || response.status == 204) return
+    val definition = op.definition["responses"]!!.jsonObject[response.status.toString()]?.jsonObject ?: error("Undocumented success status ${op.id} ${response.status}")
+    val schema = definition["content"]?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject ?: return
+    val errors = Contract.errors(schema,response.body,"response")
+    check(errors.isEmpty()) { "Response contract violation ${op.id}: ${errors.take(6)}" }
+}
+
+private fun scopeFor(tx: Tx, op: ContractOperation, tenant: String, brand: String, path: Map<String,String>, input: JsonObject): String? {
+    if (op.method == "get") return null
+    val store = V1Store(tx,tenant,brand)
+    val location = path["condominiumId"] ?: path["membershipId"]?.let { store.find("membership",it)?.locationId }
+        ?: path["lockerId"]?.let { store.find("locker",it)?.locationId } ?: path["parcelId"]?.let { store.find("parcel",it)?.locationId }
