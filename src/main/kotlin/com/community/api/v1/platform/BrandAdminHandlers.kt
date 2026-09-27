@@ -58,3 +58,12 @@ private fun V1Context.updatePlatformAccount(): V1Response {
     requireBrandAdministrator()
     val id = pathId("userId")
     if (id == userId) fail(403, "SELF_ACCOUNT_CHANGE", "Não é permitido bloquear a própria conta")
+    store.get("profile", id)
+    val user = tx.get("account", id, tenantId) ?: fail(404, "USER_NOT_FOUND", "Conta não encontrada")
+    if (!user.decode<Account>().active && user.decode<Account>().passwordHash.isEmpty()) {
+        fail(409, "ACCOUNT_PENDING", "A conta precisa concluir o primeiro acesso")
+    }
+    saveProfile(user, profileData(user).with("accountStatus" to required("status")))
+    if (required("status") == "blocked") store.list("session", ownerId = id).forEach { revokeIdentitySession(it.id) }
+    return V1Response(accountSummary(user))
+}
