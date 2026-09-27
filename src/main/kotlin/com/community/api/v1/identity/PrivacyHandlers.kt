@@ -18,3 +18,23 @@ private fun V1Context.updateIdentityPrivacy(): V1Response {
     val user = account()
     val data = profileData(user)
     val privacy = JsonObject((data["privacy"] as JsonObject) + input).with("consentUpdatedAt" to now.toString())
+    saveProfile(user, data.with("privacy" to privacy))
+    return V1Response(privacy)
+}
+
+private fun V1Context.createIdentityDataRequest(): V1Response {
+    val kind = identityInput("kind")
+    if (kind == "deletion") {
+        tx.requireRecentAuthentication(principal!!.actor!!)
+        val otpAt = store.get("session", principal.sessionId!!).data.string("otpVerifiedAt")?.let(Instant::parse)
+        if (otpAt == null || otpAt.isBefore(now.minusSeconds(600))) {
+            fail(403, "OTP_VERIFICATION_REQUIRED", "Confirme um código em /me/verify antes de solicitar exclusão")
+        }
+    }
+    if (store.list("data_request", ownerId = userId).any {
+            it.data.string("kind") == kind && it.data.string("status") in setOf("received", "processing")
+        }) fail(409, "DATA_REQUEST_PENDING", "Já existe uma solicitação pendente")
+    val graceDays = (store.find("brand", brandId)?.data?.get("deletionGraceDays") as? JsonPrimitive)?.intOrNull?.coerceIn(1, 90) ?: 7
+    val requested = store.create("data_request", obj("kind" to kind, "status" to "received",
+        "requestedAt" to now.toString(), "completedAt" to null, "downloadUrl" to null,
+        "downloadExpiresAt" to null, "executeAfter" to if (kind == "deletion") now.plusSeconds(graceDays.toLong() * 86400).toString() else null),
