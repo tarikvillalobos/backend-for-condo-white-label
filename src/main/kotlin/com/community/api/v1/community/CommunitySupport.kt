@@ -58,3 +58,15 @@ internal fun V1Context.result(schema: String, row: Record, status: Int = 200, ex
 internal fun V1Context.listResponse(kind: String, own: Boolean = false, filters: Map<String, String> = emptyMap(), transform: (Record) -> JsonElement): V1Response {
     val constraints = filters + if (own) mapOf("membershipId" to (membershipId ?: fail(403, "MEMBERSHIP_REQUIRED", "Vínculo obrigatório"))) else emptyMap()
     val page = page(kind, locationId, if (own) userId else null, constraints, transform = transform)
+    val items = page["items"] as? JsonArray ?: return V1Response(page)
+    return V1Response(page.merge(obj("items" to JsonArray(items.filter { it != JsonNull }))))
+}
+internal fun V1Context.simpleList(kind: String, schema: String, predicate: (Record) -> Boolean = { true }) =
+    V1Response(obj("items" to JsonArray(store.list(kind, locationId).filter(predicate).map { view(schema, it) })))
+internal fun V1Context.validateTargets(data: JsonObject) { data.array("targetNodeIds").forEach { store.get("node", it.jsonPrimitive.content, locationId) } }
+internal fun V1Context.requireStaffUser(id: String?) {
+    if (id == null) return
+    val assigned = store.list("staff_assignment", locationId).any { it.data.text("userId") == id && it.data.text("status") != "revoked" }
+    val legacy = tx.activeMemberships(tenantId, id).any { it.locationId == locationId || it.locationId == null }
+    if (!assigned && !legacy) fail(422, "INVALID_ASSIGNEE", "Responsável sem vínculo ativo no condomínio")
+}
