@@ -5,7 +5,7 @@ import com.community.api.v1.*
 import kotlinx.serialization.json.*
 import java.time.Duration
 
-fun deliveryHandlers(): Map<String, V1Handler> = mapOf(
+fun deliveryHandlers(): Map<String, V1Handler> = (mapOf(
     "listParcels" to V1Handler(::listParcels), "adminListParcels" to V1Handler(::listParcels),
     "organizationListParcels" to V1Handler(::listParcels),
     "getParcel" to V1Handler { c -> V1Response(c.parcelView(c.parcel())) },
