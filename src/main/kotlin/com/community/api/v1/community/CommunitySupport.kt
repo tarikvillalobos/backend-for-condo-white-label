@@ -69,6 +69,19 @@ internal fun V1Context.listResponse(kind: String, own: Boolean = false, filters:
 internal fun V1Context.simpleList(kind: String, schema: String, predicate: (Record) -> Boolean = { true }) =
     V1Response(obj("items" to JsonArray(store.list(kind, locationId).filter(predicate).map { view(schema, it) })))
 internal fun V1Context.validateTargets(data: JsonObject) { data.array("targetNodeIds").forEach { store.get("node", it.jsonPrimitive.content, locationId) } }
+private fun V1Context.queryMatches(row: Record, output: JsonObject): Boolean {
+    for (field in listOf("status", "kind", "category", "species", "area")) {
+        val expected = query[field] ?: continue
+        if ((output.text(field) ?: row.data.text(field)) != expected) return false
+    }
+    if (query["nodeId"]?.let { !inSubtree(row.data.text("nodeId"), it) } == true) return false
+    if (query["q"]?.let { !output.toString().contains(it, ignoreCase = true) } == true) return false
+    if (query["incident"] == "true" && !row.data.flag("incident")) return false
+    val date = row.data.text("occurredAt") ?: row.data.text("startsAt") ?: row.data.text("scheduledAt") ?: row.createdAt
+    if (query["since"]?.let { timestamp(date).isBefore(timestamp(it)) } == true) return false
+    if (query["until"]?.let { timestamp(date).isAfter(timestamp(it)) } == true) return false
+    return true
+}
 internal fun V1Context.requireStaffUser(id: String?) {
     if (id == null) return
     val assigned = store.list("staff_assignment", locationId).any { it.data.text("userId") == id && it.data.text("status") != "revoked" }
