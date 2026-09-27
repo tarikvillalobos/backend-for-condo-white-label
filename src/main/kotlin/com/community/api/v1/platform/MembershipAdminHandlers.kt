@@ -98,3 +98,7 @@ private fun V1Context.resolveNodePath(value: String): String {
     val segments = value.split('/').filter { it.isNotBlank() }.toMutableList()
     if (segments.firstOrNull() == current.data.string("label")) segments.removeAt(0)
     for (segment in segments) current = store.list("node", condominiumId(), filters = mapOf("parentId" to current.id))
+        .singleOrNull { it.data.string("label") == segment && it.data.bool("active", true) }
+        ?: fail(422, "NODE_PATH_NOT_FOUND", "Caminho do nó não encontrado")
+    return current.id
+}
