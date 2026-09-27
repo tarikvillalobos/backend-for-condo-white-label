@@ -939,6 +939,26 @@ paths:
         action: getParcel
         severity: info
         layers:
+        - request
+        logsDenied: true
+  /memberships/{membershipId}/parcels/{parcelId}/pickup-credential:
+    parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    - $ref: '#/components/parameters/ParcelId'
+    get:
+      operationId: getPickupCredential
+      tags:
+      - Parcels
+      summary: Obter código e payload QR autorizados
+      description: 'Consultar autorização e validade atuais. GET não emite nem renova credencial por efeito colateral.
+        Se
+
+        expirada, revogada ou consumida, responder 410 sem código/payload; locker indisponível retorna 503. O
+
+        aplicativo não persiste nem reativa credenciais a partir de cache.'
+      x-required-permission: parcels.credential
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
