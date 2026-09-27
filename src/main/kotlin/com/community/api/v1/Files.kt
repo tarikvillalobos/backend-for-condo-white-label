@@ -58,3 +58,23 @@ fun Route.fileRoutes(db: Database) {
         put {
             val ticket = fileClaims(call.parameters["fileId"]!!,call.request.queryParameters["ticket"],"upload")
             val bytes = call.receive<ByteArray>()
+            db.scopedQuery("file:${ticket.string("id")}") { tx ->
+                val c = fileContext(tx,ticket,"uploadFile")
+                val file = c.store.get("upload",ticket.string("id")!!)
+                if (file.data.string("status") != "pending") c.fail(409,"UPLOAD_COMPLETE","Upload ticket already consumed")
+                if (bytes.size.toLong() != file.data["sizeBytes"]!!.jsonPrimitive.long) c.fail(422,"VALIDATION_ERROR","File size does not match upload ticket")
+                val type = file.data.string("contentType")!!
+                if (call.request.contentType().withoutParameters().toString() != type) c.fail(415,"VALIDATION_ERROR","Content type does not match upload ticket")
+                validateFile(type,bytes)
+                persistFile(file.id,bytes)
+                tx.requestMetadata(c.requestId,c.operationId,c.principal)
+                val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+                val updated = c.store.update(file,JsonObject(file.data+obj("status" to "complete","completedAt" to c.now,"checksum" to checksum)))
+                c.audit("file.uploaded",updated)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+        get {
+            val ticket = fileClaims(call.parameters["fileId"]!!,call.request.queryParameters["ticket"],"download")
+            val file = db.scopedQuery(null) { tx ->
+                val c = fileContext(tx,ticket,"downloadFile")
