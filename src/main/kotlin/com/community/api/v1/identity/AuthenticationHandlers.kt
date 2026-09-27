@@ -18,3 +18,23 @@ fun identityHandlers(): Map<String, V1Handler> = mapOf(
     "logoutSession" to V1Handler { c -> c.revokeIdentitySession(c.principal!!.sessionId!!); V1Response(status = 204) },
 ) + profileHandlers() + invitationHandlers() + privacyHandlers() + deviceHandlers()
 
+private fun V1Context.passwordLogin(): V1Response {
+    val identifier = identityInput("identifier")
+    if (!identityRate("v1-login", identifier.lowercase())) return rateLimited()
+    val (type, value) = checkedIdentifier(identifier)
+    val user = findIdentity(type, value)
+    val account = user?.decode<Account>()
+    val valid = Passwords.verify(identityInput("password"), account?.passwordHash)
+    val methods = store.find("brand", brandId)?.data?.get("authMethods") as? JsonArray
+    if (!valid || account?.active != true || methods != null && JsonPrimitive("password") !in methods) {
+        return identityError(401, "INVALID_CREDENTIALS", "Identificador ou senha inválidos")
+    }
+    return V1Response(issueIdentitySession(user!!))
+}
+
+private fun V1Context.requestLoginChallenge(): V1Response {
+    val channel = identityInput("channel")
+    val contact = checkedContact(identityInput("contact"), channel)
+    val cpf = checkedCpf(identityInput("cpf"))
+    requireEmailChannel(channel)
+    if (!identityRate("v1-challenge", contact) || !identityRate("v1-cpf", cpf)) return rateLimited()
