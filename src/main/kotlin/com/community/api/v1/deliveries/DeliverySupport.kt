@@ -78,3 +78,4 @@ internal fun V1Context.releaseCompartment(row: Record) {
             "updatedAt" to JsonPrimitive(now.toString())) else compartment
     }
     store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
+}
