@@ -58,3 +58,7 @@ private fun V1Context.metricValues(metric: String, rows: List<Record>): JsonObje
             "avgPickupHours" to if (pickup.isEmpty()) 0.0 else pickup.average())
     }
     "access" -> obj("entries" to rows.count { it.data.text("direction") == "entry" }, "exits" to rows.count { it.data.text("direction") == "exit" })
+    "reservations" -> obj("created" to rows.size, "confirmed" to rows.count { it.data.text("status") == "confirmed" }, "cancelled" to rows.count { it.data.text("status") == "cancelled" })
+    "tickets" -> obj("created" to rows.size, "open" to rows.count { it.data.text("status") !in closedTicketStates }, "resolved" to rows.count { it.data.text("status") == "resolved" })
+    else -> obj("created" to rows.size, "active" to rows.count { it.data.text("status") == "active" })
+}
