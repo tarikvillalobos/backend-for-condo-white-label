@@ -779,6 +779,26 @@ paths:
         default:
           $ref: '#/components/responses/Problem'
       x-audit:
+        category: privacy
+        action: listRecipients
+        severity: info
+        layers:
+        - request
+        logsDenied: true
+  /memberships/{membershipId}/parcels:
+    parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    get:
+      operationId: listParcels
+      tags:
+      - Parcels
+      summary: Listar encomendas autorizadas com paginação
+      description: 'Ordenação fixa depositedAt descendente, id ascendente como desempate; todas as páginas seguem
+        um snapshot
+
+        estável. Novas entregas exigem atualização da primeira página. Nunca incluir encomendas de coabitantes sem
+
+        concessão explícita.'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
