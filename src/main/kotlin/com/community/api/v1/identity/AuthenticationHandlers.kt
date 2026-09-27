@@ -78,3 +78,22 @@ private fun V1Context.verifyPasswordRecovery(): V1Response {
 internal fun V1Context.consumeOtherChallenges(id: String) {
     tx.list("auth_challenge", tenantId, ownerId = id).filter { !it.decode<ChallengeData>().consumed }
         .forEach { tx.consumeChallenge(it) }
+}
+
+private fun V1Context.verifyStaffMfa(): V1Response {
+    val verified = verifyIdentityChallenge(identityPath("challengeId"), "staff_mfa", true)
+    verified.failure?.let { return it }
+    val user = verified.account!!
+    if (identityStaff(user).isEmpty()) fail(403, "STAFF_ASSIGNMENT_REQUIRED", "Atribuição de equipe indisponível")
+    val id = principal!!.sessionId!!
+    val metadata = store.get("session", id)
+    store.update(metadata, metadata.data.with("staff" to true, "mfaVerifiedAt" to now.toString()))
+    val session = tx.get("session", id, tenantId)!!
+    val old = session.decode<SessionData>()
+    val access = "$tenantId.$id.${secretToken()}"
+    val refresh = "$tenantId.$id.${secretToken()}"
+    tx.update(session, body(old.copy(accessHash = digest(access), refreshHash = digest(refresh),
+        accessExpiresAt = now.plusSeconds(900).toString(), verifiedAt = now.toString(),
+        usedRefreshHashes = old.usedRefreshHashes + old.refreshHash)))
+    return V1Response(identityTokens(user, Tokens(access, refresh)))
+}
