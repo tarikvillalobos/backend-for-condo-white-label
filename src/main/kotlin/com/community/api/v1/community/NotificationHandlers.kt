@@ -38,3 +38,12 @@ internal fun notificationHandlers(): Map<String, V1Handler> = mapOf(
     "listDeliveryNotices" to V1Handler { c -> c.listResponse("notification", true, mapOf("kind" to "parcel")) { c.notification(it, true) } },
     "markNoticeRead" to V1Handler { c ->
         val row = c.record("notification", "noticeId")
+        if (row.data.text("kind") != "parcel") c.fail(404, "NOT_FOUND", "Aviso não encontrado")
+        V1Response(c.notification(if (row.data.text("readAt") == null) c.change(row, obj("readAt" to now()), "notification.read") else row, true))
+    },
+    "getNotificationDelivery" to V1Handler { c ->
+        val row = c.record("notification", "notificationId")
+        val deliveries = c.store.list("notification_delivery", c.locationId, filters = mapOf("notificationId" to row.id))
+        V1Response(obj("notificationId" to row.id, "channels" to JsonArray(deliveries.map { it.data })))
+    },
+)
