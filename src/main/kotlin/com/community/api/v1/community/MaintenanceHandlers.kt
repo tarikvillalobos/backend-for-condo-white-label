@@ -78,3 +78,18 @@ private fun V1Context.transitionWorkOrder(): V1Response {
     val row = store.get("work_order", id("workOrderId"), locationId)
     if (principal?.permissions?.let { "*" !in it && "maintenance.manage" !in it } == true && row.data.text("assigneeUserId") != userId)
         fail(403, "WORK_ORDER_NOT_ASSIGNED", "Esta ordem não está atribuída a você")
+    val next = input.text("status")!!
+    if (next !in workOrderTransitions[row.data.text("status")].orEmpty()) fail(409, "WORK_ORDER_INVALID_TRANSITION", "Transição inválida")
+    val keys = input.array("evidenceKeys")
+    if (next == "completed" && keys.isEmpty()) fail(422, "WORK_ORDER_EVIDENCE_REQUIRED", "Conclusão exige evidência")
+    val evidence = JsonArray(keys.map { JsonPrimitive(fileUrl(it.jsonPrimitive.content)) })
+    val entry = obj("status" to next, "notes" to input["notes"], "evidenceKeys" to keys, "byName" to personName(), "at" to now.toString())
+    val updated = change(row, obj("status" to next, "completedAt" to if (next == "completed") now.toString() else null,
+        "history" to JsonArray(row.data.array("history") + entry)), "work_order.status_changed")
+    if (next == "completed") row.data.text("equipmentId")?.let { id ->
+        val equipment = store.get("equipment", id, locationId)
+        val day = LocalDate.now()
+        change(equipment, obj("lastInspectionAt" to day.toString(), "nextInspectionAt" to equipment.data.text("inspectionIntervalDays")?.toLongOrNull()?.let { day.plusDays(it).toString() }), "equipment.inspected")
+    }
+    return V1Response(workOrder(updated))
+}
