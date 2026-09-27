@@ -92,6 +92,10 @@ class Tx internal constructor(internal val connection: Connection) {
                 it.setString(1, scope); it.executeUpdate()
             }
             connection.prepareStatement("SELECT scope_id FROM v1_scope_locks WHERE scope_id = ? FOR UPDATE").use {
+                it.setString(1, scope); it.execute()
+            }
+        }
+    }
     // Only bootstrap/maintenance workers may enumerate tenants. Never expose this over HTTP.
     fun clients(): List<Record> = connection.prepareStatement("SELECT * FROM app_records WHERE kind = 'client' ORDER BY id").use {
         it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.record()) } }
