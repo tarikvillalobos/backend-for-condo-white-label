@@ -38,3 +38,23 @@ fun Route.v1Routes(db: Database) {
     fileRoutes(db)
 }
 
+private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractOperation, handler: V1Handler) {
+    val requestId = callId ?: UUID.randomUUID().toString()
+    val started = System.nanoTime()
+    var tenantId: String? = null
+    var brandId: String? = null
+    var context: V1Context? = null
+    var replay = false
+    val result = try {
+        val path = parameters.names().associateWith { parameters[it]!! }
+        val query = request.queryParameters.names().associateWith { request.queryParameters[it]!! }
+        val headers = request.headers.names().associateWith { request.headers[it]!! } + ("X-Remote-Host" to request.local.remoteHost)
+        val input = if (operation.definition.containsKey("requestBody")) {
+            val text = receiveText()
+            if (text.isBlank()) obj() else json.parseToJsonElement(text) as? JsonObject ?: throw ApiException(422,"VALIDATION_ERROR","JSON object required")
+        } else obj()
+        validateRequest(operation,path,query,headers,input)
+        val health = operation.id in setOf("healthLive","healthReady")
+        brandId = headers.entries.firstOrNull { it.key.equals("X-Brand-Id",true) }?.value
+        if (!health && brandId.isNullOrBlank()) throw ApiException(400,"VALIDATION_ERROR","X-Brand-Id is required")
+        if (health) handler.handle(V1Context(db.scopedTx(null) { it },operation.id,"","",requestId))
