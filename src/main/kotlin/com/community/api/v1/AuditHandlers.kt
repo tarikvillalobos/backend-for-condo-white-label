@@ -18,3 +18,23 @@ fun auditHandlers(): Map<String,V1Handler> = mapOf(
         V1Response(JsonObject(entry+obj("notes" to notes)))
     },
     "getRequestTrace" to V1Handler { c ->
+        val id = c.path.getValue("requestId")
+        V1Response(obj("request" to c.auditRow("api_requests",id),"events" to c.auditRows("audit_log",mapOf("request_id" to id)),"changes" to c.auditRows("audit_changes",mapOf("request_id" to id))))
+    },
+    "getObjectHistory" to V1Handler { c ->
+        val rows = c.auditRows("audit_log",mapOf("target_type" to c.path.getValue("targetType"),"target_id" to c.path.getValue("targetId")))
+        val history = rows.map { row -> obj("at" to row["createdAt"],"layer" to "event","requestId" to row["requestId"],"actor" to row["actor"],"summary" to row["action"],"data" to row) }
+        V1Response(c.pageItems(history))
+    },
+    "verifyAuditIntegrity" to V1Handler { c -> V1Response(c.verifyChain()) },
+    "reportAuditEvents" to V1Handler { c -> V1Response(obj("items" to c.input["events"]!!.jsonArray.mapIndexed { index,event -> c.acceptClientEvent(index,event.jsonObject) }),202) },
+    "addAuditNote" to V1Handler { c ->
+        c.auditRow("audit_log",c.path.getValue("entryId"))
+        val row = c.store.create("audit_note",obj("auditEntryId" to c.path.getValue("entryId"),"authorName" to c.userId,
+            "authorRole" to "staff","body" to c.input["body"]),c.locationId,c.userId)
+        V1Response(c.project("AuditNote",row.document()),201)
+    },
+    "listRetentionHolds" to V1Handler { c ->
+        val rows = c.store.list("retention_hold").filter { c.canReadHold(it) }
+        V1Response(obj("items" to rows.map { c.project("RetentionHold",it.document()) }))
+    },
