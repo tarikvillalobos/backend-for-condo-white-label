@@ -75,6 +75,26 @@ tags:
   description: URL pré-assinada para fotos, anexos e planilhas (morador e equipe).
 - name: Portaria
   description: 'Operação do dia a dia na portaria (StaffBearer: porter/manager) e catracas (DeviceKey).'
+- name: Hardware
+  description: Lockers e leitores físicos (DeviceKey). Sem usuário humano.
+- name: Admin · Organizações
+  description: 'Administradoras e portarias remotas: condomínios atendidos, operadores, papéis customizados, fila
+    de trabalho.'
+- name: Admin · Condomínios
+  description: Criar e configurar condomínios; carteira da administradora.
+- name: Admin · Estrutura
+  description: 'Árvore de recursos: tipos de nó, blocos, alas, unidades, salas; ficha do nó.'
+- name: Admin · Pessoas
+  description: 'Moradores: cadastro, importação, convites, suspensão, mudança de unidade.'
+- name: Admin · Equipe e papéis
+  description: Síndico, porteiros, suporte; catálogo de permissões.
+- name: Admin · Encomendas
+  description: Encomendas por condomínio/bloco/apartamento; corrigir, prorrogar, devolver.
+- name: Admin · Acesso
+  description: Visitantes, convites, histórico de entradas, portões.
+- name: Admin · Reservas
+  description: Espaços, regras, bloqueios, aprovação de reservas, agenda.
+- name: Admin · Câmeras
 paths:
   "/health/live":
     get:
