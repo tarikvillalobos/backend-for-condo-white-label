@@ -38,3 +38,23 @@ private fun V1Context.previewIdentityInvitation(): V1Response {
         "requiresCpf" to (invitation.data.string("cpf") != null || invitation.data.string("cpfHash") != null),
         "maskedName" to name?.let { it.take(1) + "***" }))
 }
+
+private fun V1Context.checkInvitationCpf(invitation: Record, cpf: String) {
+    val expected = invitation.data.string("cpf")
+    val hash = invitation.data.string("cpfHash")
+    if (expected != null && expected != cpf || hash != null && hash != hash(cpf)) {
+        fail(422, "INVITATION_IDENTITY_MISMATCH", "Os dados não correspondem ao convite")
+    }
+}
+
+private fun V1Context.acceptIdentityInvitation(): V1Response {
+    val invitation = identityInvitation()
+    if (invitation.data.string("purpose") == "link_membership") {
+        fail(409, "EXISTING_ACCOUNT_REQUIRED", "Entre em sua conta para vincular este convite")
+    }
+    if (!identityRate("v1-invitation", invitation.id)) return rateLimited()
+    val cpf = checkedCpf(identityInput("cpf"))
+    checkInvitationCpf(invitation, cpf)
+    val email = (input.string("email") ?: invitation.data.string("email"))?.let(::checkedEmail)
+    val phone = (input.string("phone") ?: invitation.data.string("phone"))?.let(::checkedPhone)
+    if (email == null && phone == null) fail(422, "CONTACT_REQUIRED", "Informe pelo menos um contato")
