@@ -38,3 +38,9 @@ internal class IdentityFixture : AutoCloseable {
         val context = context(tx, token = token)
         val challenge = context.issueIdentityChallenge(purpose, user, email, context.principal?.sessionId)
         val id = challenge.string("id")!!
+        val delivery = tx.list("auth_delivery", tenant, ownerId = id).single().decode<AuthDelivery>()
+        challenge to Secrets.unseal(delivery.credential.removePrefix("sealed:"))
+    }
+
+    override fun close() = db.close()
+}
