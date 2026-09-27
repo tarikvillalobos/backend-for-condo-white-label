@@ -18,3 +18,13 @@ internal fun vehicleHandlers(): Map<String, V1Handler> = mapOf(
     },
     "updateVehicle" to V1Handler { c -> V1Response(c.vehicle(c.change(c.record("vehicle", "vehicleId"), c.input))) },
     "deleteVehicle" to V1Handler { c -> c.remove(c.record("vehicle", "vehicleId")) },
+    "adminListVehicles" to V1Handler { c -> c.listResponse("vehicle") { row ->
+        obj("vehicle" to c.vehicle(row), "node" to c.node(row.data.text("nodeId")), "ownerName" to c.personName(row.ownerId))
+    } },
+    "vehicleMovements" to V1Handler { c -> c.vehicleMovements() },
+    "adminVehicleMovements" to V1Handler { c -> c.vehicleMovements() },
+)
+private fun V1Context.vehicleMovements(): V1Response {
+    val vehicle = record("vehicle", "vehicleId")
+    return listResponse("access_event", filters = mapOf("vehiclePlate" to vehicle.data.text("plate")!!)) { view("AccessEvent", it) }
+}
