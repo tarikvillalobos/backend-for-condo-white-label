@@ -78,3 +78,23 @@ fun effectivePermissions(c: V1Context, userId: String): Set<String> {
             assignment.data.string("scope") == "brand" -> true
             orgId != null -> (c.path["organizationId"] == orgId && c.locationId == null) ||
                 c.store.list("organization_condominium",filters=mapOf("organizationId" to orgId,"status" to "active")).any { it.locationId == c.locationId && c.locationId != null }
+            else -> c.locationId != null && assignment.locationId == c.locationId
+        }
+        if (authorized) {
+            val role = assignment.data.string("customRoleId")?.let { c.store.find("custom_role",it) }
+            ((role?.data?.get("permissions") ?: assignment.data["permissions"]) as? JsonArray)?.forEach { grants += it.jsonPrimitive.content }
+        }
+    }
+    return grants
+}
+
+private fun enforceModule(c: V1Context, operation: ContractOperation) {
+    val tag = operation.definition["tags"]?.jsonArray?.firstOrNull()?.jsonPrimitive?.content ?: return
+    val module = when {
+        tag.contains("Parcels",true) || tag.contains("Encomendas",true) -> "parcels"
+        tag.contains("Reservations",true) || tag.contains("Reservas",true) -> "reservations"
+        tag.contains("Cameras",true) || tag.contains("Câmeras",true) -> "cameras"
+        tag == "Pets" -> "pets"
+        tag == "Access" -> "visitors"
+        tag == "Documents" -> "documents"
+        else -> return
