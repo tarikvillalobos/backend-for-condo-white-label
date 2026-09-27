@@ -90,7 +90,7 @@ private fun delegate(c: V1Context): V1Response {
     val row = c.parcel()
     c.recipient(row)
     c.outstanding(row)
-    c.requireVersion(row)
+    if (c.header("If-Match") != null) c.requireVersion(row)
     val id = c.path["delegateMembershipId"] ?: c.input.text("membershipId")!!
     val removing = c.operationId == "removeParcelDelegate"
     if (!removing) { c.member(id); if (id == c.membershipId) c.fail(422, "DELEGATE_NOT_ELIGIBLE", "Recipient does not need delegation") }
