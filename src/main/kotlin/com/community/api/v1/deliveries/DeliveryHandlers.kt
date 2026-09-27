@@ -38,3 +38,23 @@ private fun listParcels(c: V1Context): V1Response {
                 .any { it?.contains(c.query.getValue("q"), true) == true })
     }.sortedWith(compareByDescending<Record> { it.data.text("depositedAt") }.thenBy { it.id })
     var page = c.pageItems(rows.map { c.parcelView(it, admin) })
+    if (admin) page = page.changed("totals" to obj("waiting" to rows.count { it.data.text("status") == "waiting" },
+        "overdue" to rows.count { it.data.text("status") in setOf("waiting", "manual") && instant(it.data.text("deadline")).isBefore(c.now) }))
+    return V1Response(page)
+}
+
+private fun metrics(c: V1Context): V1Response {
+    val until = c.query["until"]?.let(::instant) ?: c.now
+    val since = c.query["since"]?.let(::instant) ?: until.minusSeconds(30L * 86400)
+    if ((c.query["since"] == null) != (c.query["until"] == null) || !since.isBefore(until) || until.isAfter(c.now) || Duration.between(since, until).toDays() > 366)
+        c.fail(422, "VALIDATION_ERROR", "Use a positive period of at most 366 days ending no later than now")
+    val rows = c.store.list("parcel", c.locationId).filter {
+        c.canReadParcel(it) && !instant(it.data.text("depositedAt")).isBefore(since) && instant(it.data.text("depositedAt")).isBefore(until)
+    }
+    val durations = rows.mapNotNull { row -> row.data.text("collectedAt")?.let(::instant)?.takeIf { it.isBefore(until) }?.let {
+        Duration.between(instant(row.data.text("depositedAt")), it).seconds.toDouble()
+    } }.filter { it >= 0 }
+    return V1Response(obj("since" to since.toString(), "until" to until.toString(), "generatedAt" to c.now.toString(), "complete" to true,
+        "totalReceived" to rows.size, "physicalPickupCount" to durations.size, "averagePickupDurationSeconds" to durations.takeIf { it.isNotEmpty() }?.average()))
+}
+
