@@ -38,3 +38,23 @@ private fun V1Context.report(): V1Response {
             "month" -> day.withDayOfMonth(1).toString()
             else -> fail(422, "INVALID_GROUP", "Agrupamento inválido")
         }
+    }
+    val grouped = reportRows(kind).filter { recordAt(it) >= since && recordAt(it) <= until }.groupBy(::key)
+    val buckets = grouped.toSortedMap().map { (key, rows) ->
+        val nodeId = key.takeIf { group == "node" && it != "unassigned" }
+        obj("key" to key, "label" to if (nodeId != null) (node(nodeId) as JsonObject).text("label") else key,
+            "nodeId" to nodeId, "values" to metricValues(metric, rows))
+    }
+    return V1Response(obj("metric" to metric, "groupBy" to group, "since" to since.toString(), "until" to until.toString(),
+        "scopeNodeId" to scope, "buckets" to JsonArray(buckets), "generatedAt" to now.toString()))
+}
+private fun V1Context.metricValues(metric: String, rows: List<Record>): JsonObject = when (metric) {
+    "parcels" -> {
+        val pickup = rows.mapNotNull { row -> row.data.text("collectedAt")?.let {
+            Duration.between(timestamp(row.data.text("depositedAt")!!), timestamp(it)).toMinutes() / 60.0
+        } }
+        obj("received" to rows.size, "collected" to rows.count { it.data.text("status") == "collected" },
+            "overdue" to rows.count { it.data.text("status") == "waiting" && timestamp(it.data.text("deadline")!!).isBefore(now) },
+            "avgPickupHours" to if (pickup.isEmpty()) 0.0 else pickup.average())
+    }
+    "access" -> obj("entries" to rows.count { it.data.text("direction") == "entry" }, "exits" to rows.count { it.data.text("direction") == "exit" })
