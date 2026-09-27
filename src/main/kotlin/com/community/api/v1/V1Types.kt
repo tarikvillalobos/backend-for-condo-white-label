@@ -58,3 +58,20 @@ class V1Context(
     fun audit(action: String, record: Record) { store.audit(this, action, record) }
     fun fileUrl(fileKey: String): String = signedFileUrl(this, fileKey)
 }
+
+fun JsonObject.string(name: String): String? = (get(name) as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content
+fun obj(vararg pairs: Pair<String, Any?>): JsonObject = JsonObject(pairs.associate { it.first to element(it.second) })
+fun element(value: Any?): JsonElement = when (value) {
+    null -> JsonNull
+    is JsonElement -> value
+    is String -> JsonPrimitive(value)
+    is Boolean -> JsonPrimitive(value)
+    is Number -> JsonPrimitive(value)
+    is Instant -> JsonPrimitive(value.toString())
+    is Map<*, *> -> JsonObject(value.entries.associate { it.key.toString() to element(it.value) })
+    is Iterable<*> -> JsonArray(value.map(::element))
+    is Array<*> -> JsonArray(value.map(::element))
+    else -> error("Unsupported JSON value ${value.javaClass.simpleName}")
+}
+
+fun Record.document(): JsonObject = JsonObject(data + obj("id" to id, "version" to version, "createdAt" to createdAt, "updatedAt" to updatedAt))
