@@ -396,6 +396,26 @@ paths:
         confirmação da revogação remota só ocorre com resposta 204. Repetição com a mesma chave após revogação mantém
 
         204.'
+      x-required-permission: sessions.manage
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '204':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
       requestBody:
         required: true
         content:
