@@ -38,3 +38,23 @@ internal fun nodeReference(c: V1Context, id: String?): JsonElement {
     val node = c.store.get("node", id, condominium(c))
     return obj("id" to node.id, "type" to (node.data.text("type") ?: node.data.text("typeCode")), "label" to node.data.text("label"))
 }
+
+internal fun spaceView(c: V1Context, row: Record): JsonObject = obj(
+    "id" to row.id, "node" to nodeReference(c, row.data.text("nodeId")), "name" to row.data.text("name"),
+    "description" to row.data["description"], "photoUrl" to row.data["photoUrl"],
+    "active" to row.data.flag("active"), "rules" to row.data.objectAt("rules"), "openingHours" to row.data.arrayAt("openingHours"),
+)
+
+private fun spaces(c: V1Context): V1Response = V1Response(c.pageItems(
+    c.store.list("space", condominium(c)).filter { visible(c, it) }.map { spaceView(c, it) },
+))
+
+private fun saveSpace(c: V1Context): V1Response {
+    val old = c.path["spaceId"]?.let { space(c, it) }
+    old?.let(c::requireVersion)
+    val data = JsonObject((old?.data ?: JsonObject(emptyMap())) + c.input)
+    BookingRules.validate(data)
+    listOf("nodeId", "visibleFromNodeId").forEach { key -> data.text(key)?.let { c.store.get("node", it, condominium(c)) } }
+    if (data.text("photoKey") != null) c.store.get("upload", data.text("photoKey")!!, condominium(c))
+    val saved = if (old == null) c.store.create("space", data, condominium(c)) else c.store.update(old, data)
+    c.audit(if (old == null) "space.created" else "space.updated", saved)
