@@ -38,3 +38,23 @@ private fun V1Context.saveNodeType(update: Boolean): V1Response {
     if (store.list("node_type", condominiumId()).any { it.id != id && it.data.string("code") == code }) {
         fail(409, "NODE_TYPE_EXISTS", "Já existe um tipo com esse código")
     }
+    val known = store.list("node_type", condominiumId()).map { it.data.string("code") }.toSet() + code
+    if (input.arr("allowedParents").any { it.jsonPrimitive.content !in known }) fail(422, "INVALID_PARENT_TYPE", "Tipo de pai desconhecido")
+    val data = JsonObject(obj("allowedParents" to emptyList<String>(), "sortOrder" to 0) + input)
+    val record = if (existing == null) store.create("node_type", data, condominiumId()) else platformUpdate(existing, data)
+    return platformResult("NodeType", record, if (update) 200 else 201)
+}
+
+internal fun V1Context.createStructureNode(data: JsonObject): Record {
+    val type = store.get("node_type", data.string("typeId")!!, condominiumId())
+    val parentId = data.string("parentId")
+    checkNodeParent(type, parentId)
+    val label = data.string("label")!!.trim()
+    checkSiblingLabel(parentId, label)
+    return store.create("node", JsonObject(obj("code" to null, "attributes" to obj(), "sortOrder" to 0,
+        "receivesAsEntity" to false, "active" to true) + data).plusFields("label" to label,
+        "typeCode" to type.data.string("code")), condominiumId())
+}
+
+private fun V1Context.checkNodeParent(type: Record, parentId: String?) {
+    if (parentId == null) {
