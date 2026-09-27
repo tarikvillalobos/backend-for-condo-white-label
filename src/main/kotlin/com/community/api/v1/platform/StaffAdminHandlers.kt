@@ -78,3 +78,14 @@ private fun V1Context.updatePlatformRole(): V1Response {
     val role = pathId("role")
     if (role !in roleRanks && role !in setOf("resident", "owner", "tenant", "dependent", "locker_user")) {
         fail(404, "ROLE_NOT_FOUND", "Papel não encontrado")
+    }
+    if (role == "brand_admin") fail(403, "PROTECTED_ROLE", "O papel administrador da marca é protegido")
+    val permissions = checkedPermissions(input.arr("permissions"))
+    val existing = store.find("role", role)
+    if (existing == null) store.create("role", obj("permissions" to permissions), id = role)
+    else store.update(existing, existing.data.plusFields("permissions" to permissions))
+    for (kind in listOf("membership", "staff_assignment")) store.list(kind, filters = mapOf("role" to role)).filter {
+        !it.data.bool("permissionsCustomized")
+    }.forEach { store.update(it, it.data.plusFields("permissions" to permissions)) }
+    return V1Response(roleView(role))
+}
