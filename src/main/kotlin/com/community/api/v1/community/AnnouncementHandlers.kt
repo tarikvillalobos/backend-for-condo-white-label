@@ -14,7 +14,7 @@ internal fun V1Context.acknowledge(row: Record, revision: Int? = null) {
 }
 internal fun V1Context.receipts(row: Record, revision: Int? = null): V1Response {
     val saved = store.list("receipt", locationId, filters = mapOf("resourceId" to row.id))
-        .filter { revision == null || it.data.number("revision") == revision }.associateBy { it.data.text("membershipId") }
+        .filter { revision == null || it.data.number("revision") >= revision }.associateBy { it.data.text("membershipId") }
     val eligible = members().filter { member -> row.data.array("targetNodeIds").let { targets ->
         targets.isEmpty() || targets.any { inSubtree(member.data.text("nodeId"), it.jsonPrimitive.content) }
     } }.filter { query["pendingOnly"] != "true" || saved[it.id] == null }
