@@ -58,3 +58,23 @@ private fun V1Context.changeIdentityPassword(): V1Response {
     return V1Response(status = 204)
 }
 
+private fun V1Context.requestIdentityContactChange(): V1Response {
+    val channel = identityInput("channel")
+    val destination = checkedContact(identityInput("contact"), channel)
+    requireEmailChannel(channel)
+    if (!identityRate("v1-contact", userId)) return rateLimited()
+    return V1Response(issueIdentityChallenge("contact_change", account(), destination, principal!!.sessionId), 202)
+}
+
+private fun V1Context.verifyIdentityContactChange(): V1Response {
+    val id = identityPath("challengeId")
+    val meta = challengeMetadata(id, "contact_change", true)
+    val destination = meta.data.string("destination")!!
+    val verified = verifyIdentityChallenge(id, "contact_change", true)
+    verified.failure?.let { return it }
+    val user = verified.account!!
+    val existing = findIdentity("email", destination)
+    if (existing != null && existing.id != user.id) fail(409, "CONTACT_ALREADY_USED", "Contato indisponível")
+    val oldEmail = user.decode<Account>().email
+    val updated = tx.update(user, body(user.decode<Account>().copy(email = destination)))
+    if (oldEmail != destination) {
