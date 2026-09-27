@@ -25,4 +25,4 @@ for commit in commits:
 if failures:
     print("\n".join(failures), file=sys.stderr)
     sys.exit(1)
-print(f"Verified {len(commits)} commits: one file and at most 20 text lines each.")
+print(f"Verified {len(commits)} commits: one file each; at most 20 lines except the authorized OpenAPI file.")
