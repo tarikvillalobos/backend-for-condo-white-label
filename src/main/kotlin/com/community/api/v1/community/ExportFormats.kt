@@ -38,3 +38,9 @@ internal fun xlsx(rows: List<Map<String, String>>): ByteArray {
         }
         row(columns, 1)
         rows.forEachIndexed { index, data -> row(columns.map { data[it].orEmpty() }, index + 2) }
+        write("</sheetData></worksheet>"); zip.closeEntry()
+    }
+    return output.toByteArray()
+}
+private fun xml(value: String): String = value.filter { it >= ' ' || it == '\n' || it == '\r' || it == '\t' }
+    .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
