@@ -58,3 +58,17 @@ internal fun announcementHandlers(): Map<String, V1Handler> = mapOf(
         if (c.input.flag("pushNotify") && !timestamp(publishedAt).isAfter(Instant.now()))
             c.broadcast("announcement", row.id, c.input.text("title")!!, c.input.text("body"), c.input.array("targetNodeIds"))
         V1Response(c.announcement(row), 201)
+    },
+    "adminListAnnouncements" to V1Handler { c -> c.listResponse("announcement") { c.adminAnnouncement(it) } },
+    "adminUpdateAnnouncement" to V1Handler { c ->
+        c.validateTargets(c.input)
+        val row = c.store.get("announcement", c.id("announcementId"), c.locationId)
+        var data = row.data.merge(c.input)
+        if ("publishAt" in c.input) data = data.merge(obj("publishedAt" to (c.input.text("publishAt") ?: now())))
+        if (data.text("expiresAt")?.let { !timestamp(it).isAfter(timestamp(data.text("publishedAt")!!)) } == true)
+            c.fail(422, "INVALID_TIME_RANGE", "Expiração deve ser posterior à publicação")
+        V1Response(c.adminAnnouncement(c.change(row, data)))
+    },
+    "adminDeleteAnnouncement" to V1Handler { c -> c.remove(c.store.get("announcement", c.id("announcementId"), c.locationId)) },
+    "adminListAnnouncementReceipts" to V1Handler { c -> c.receipts(c.store.get("announcement", c.id("announcementId"), c.locationId)) },
+)
