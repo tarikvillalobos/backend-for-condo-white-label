@@ -17421,7 +17421,9 @@ components:
         recipientId:
           $ref: '#/components/schemas/Identifier'
         membershipId:
-          $ref: '#/components/schemas/Identifier'
+          anyOf:
+          - $ref: '#/components/schemas/Identifier'
+          - type: 'null'
         carrier:
           type: string
           minLength: 1
@@ -17438,9 +17440,13 @@ components:
           - manual
           - collected
         locker:
-          $ref: '#/components/schemas/Locker'
+          anyOf:
+          - $ref: '#/components/schemas/Locker'
+          - type: 'null'
         compartment:
-          type: string
+          type:
+          - string
+          - 'null'
           minLength: 1
           maxLength: 100
         size:
@@ -17502,6 +17508,11 @@ components:
           - $ref: '#/components/schemas/PersonRef'
           - type: 'null'
           description: Quem retirou de fato (confirmado pelo locker ou pela portaria).
+        storage:
+          type: string
+          enum:
+          - front_desk
+          - locker
       required:
       - id
       - recipientId
@@ -17521,6 +17532,7 @@ components:
       - actions
       - timeline
       - version
+      - storage
       description: 'collected exige collectedAt de evento físico confiável; manual exige manualAt e collectedAt
         nulo. waiting
 
@@ -21379,7 +21391,6 @@ components:
           - type: 'null'
       required:
       - id
-      - code
       - node
       - role
       - status
@@ -23984,7 +23995,7 @@ components:
           type:
           - string
           - 'null'
-          pattern: ^\\d{14}$
+          pattern: ^[0-9]{14}$
         contacts:
           $ref: '#/components/schemas/SupportContacts'
         adminUserId:
