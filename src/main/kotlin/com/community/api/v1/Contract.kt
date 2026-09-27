@@ -118,3 +118,21 @@ object Contract {
         val choices = (schema["anyOf"] ?: schema["oneOf"]) as? JsonArray
         if (choices != null) {
             val choice = choices.map { resolve(it.jsonObject) }.firstOrNull { it.string("type") == "object" || "properties" in it }
+            if (choice != null) return projectValue(choice, value)
+        }
+        val properties = mutableMapOf<String, JsonElement>()
+        schema["allOf"]?.jsonArray?.forEach { properties += resolve(it.jsonObject)["properties"]?.jsonObject.orEmpty() }
+        properties += schema["properties"]?.jsonObject.orEmpty()
+        if (properties.isEmpty()) return value
+        return JsonObject(properties.mapNotNull { (key, definition) ->
+            val property = resolve(definition.jsonObject)
+            val raw = value[key] ?: property["default"] ?: if (allowsNull(property)) JsonNull else null
+            raw?.let { key to projectValue(property, it) }
+        }.toMap())
+    }
+    private fun allowsNull(schema: JsonObject): Boolean = schema["type"] == JsonPrimitive("null") ||
+        (schema["type"] as? JsonArray)?.contains(JsonPrimitive("null")) == true ||
+        (schema["anyOf"] as? JsonArray)?.any { allowsNull(resolve(it.jsonObject)) } == true
+}
+
+internal fun JsonObject.int(name: String, default: Int): Int = get(name)?.jsonPrimitive?.intOrNull ?: default
