@@ -48,3 +48,7 @@ application {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.processResources {
+    from("docs/openapi.yaml") { into("contract") }
+}
