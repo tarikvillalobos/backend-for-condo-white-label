@@ -98,3 +98,23 @@ private fun updateCompartment(c: V1Context): V1Response {
     return V1Response(c.project("Compartment", updated))
 }
 
+private fun V1Context.deviceView(row: Record): JsonObject = obj("id" to row.id, "kind" to row.data.text("type"),
+    "name" to row.data.text("name"), "node" to node(row.data.text("nodeId")), "lastSeenAt" to row.data["lastSeenAt"],
+    "keyRotatedAt" to row.data["keyRotatedAt"], "revokedAt" to row.data["revokedAt"], "metadata" to (row.data["metadata"] ?: obj()))
+
+private fun saveDevice(c: V1Context): V1Response {
+    val previous = c.path["deviceId"]?.let { c.store.get("device", it, c.condo()) }
+    if (c.header("If-Match") != null) previous?.let(c::requireVersion)
+    val deviceId = previous?.id ?: java.util.UUID.randomUUID().toString()
+    val key = deviceId + "." + Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32).also(SecureRandom()::nextBytes))
+    val input = if (previous == null) c.input else previous.data
+    input.text("nodeId")?.let { c.store.get("node", it, c.condo()) }
+    val data = JsonObject(input + obj("type" to (input.text("type") ?: input.text("kind")), "brandId" to c.brandId,
+        "condominiumId" to c.condo(), "keyHash" to c.hash(key), "status" to "active", "keyRotatedAt" to c.now.toString(), "revokedAt" to null))
+    val row = if (previous == null) c.store.create("device", data, c.condo(), id = deviceId) else c.store.update(previous, data)
+    c.audit(if (previous == null) "device.created" else "device.key_rotated", row)
+    return V1Response(obj("device" to c.deviceView(row), "apiKey" to key), if (previous == null) 201 else 200)
+}
+
+private fun revokeDevice(c: V1Context): V1Response {
+    val row = c.store.get("device", c.path.getValue("deviceId"), c.condo())
