@@ -919,6 +919,26 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Parcel'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: parcel
+        action: getParcel
+        severity: info
+        layers:
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
