@@ -58,3 +58,4 @@ private fun V1Context.unregisterIdentityDevice(): V1Response {
         store.update(registration, registration.data.with("status" to "inactive", "tokenEncrypted" to null, "tokenHash" to null))
     }
     return V1Response(status = 204)
+}
