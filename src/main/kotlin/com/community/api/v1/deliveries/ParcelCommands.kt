@@ -78,3 +78,23 @@ internal fun updateParcel(c: V1Context): V1Response {
         val nodeId = data.text("nodeId") ?: member?.data?.text("nodeId")
         val node = nodeId?.let { c.store.get("node", it, row.locationId) }
         if (kind == "node" && node?.data?.flag("receivesAsEntity") != true) c.fail(422, "NODE_NOT_RECIPIENT", "Node cannot receive deliveries")
+        c.revokeCredential(row.data)
+        data = data.changed("membershipId" to value(member?.id), "nodeId" to value(nodeId), "credentialStatus" to JsonPrimitive("revoked"),
+            "sealedCode" to JsonNull, "credentialHash" to JsonNull, "delegates" to JsonArray(emptyList()))
+        owner = member?.ownerId
+    }
+    if (data.text("carrier").isNullOrBlank()) c.fail(422, "VALIDATION_ERROR", "Carrier is required")
+    val updated = c.store.update(row, data)
+    if (owner != row.ownerId || c.input.containsKey("recipientMembershipId")) c.notifyParcel(updated, "Encomenda atribuída a você")
+    c.audit(if (changingDeadline) "parcel.deadline_extended" else "parcel.updated", updated)
+    return V1Response(c.parcelView(updated, true))
+}
+
+internal fun closeParcel(c: V1Context): V1Response {
+    val row = c.parcel()
+    if (c.header("If-Match") != null) c.requireVersion(row)
+    c.outstanding(row)
+    c.releaseCompartment(row)
+    c.revokeCredential(row.data)
+    val state = if (c.operationId == "adminReturnParcel") "returned" else "cancelled"
+    val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive(state), "credentialStatus" to JsonPrimitive("revoked"),
