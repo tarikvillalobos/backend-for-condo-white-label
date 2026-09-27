@@ -269,6 +269,20 @@ paths:
         logsDenied: true
   /auth/challenges/{challengeId}/verify:
     parameters:
+    - $ref: '#/components/parameters/ChallengeId'
+    post:
+      operationId: verifyLoginChallenge
+      tags:
+      - Authentication
+      summary: Verificar OTP e criar sessão
+      description: 'Consome o desafio de login uma única vez. Código incorreto retorna 422; expirado 410; tentativas
+        esgotadas
+
+        429. Mesma chave reproduz a sessão original por idempotência.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
