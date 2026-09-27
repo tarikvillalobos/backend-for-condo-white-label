@@ -78,3 +78,23 @@ private fun V1Context.checkSiblingLabel(parentId: String?, label: String, except
         fail(409, "NODE_LABEL_EXISTS", "Já existe um nó com esse rótulo sob o mesmo pai")
     }
 }
+
+private fun V1Context.updateStructureNode(): V1Response {
+    val node = store.get("node", pathId("nodeId"), condominiumId())
+    input.string("label")?.let { checkSiblingLabel(node.data.string("parentId"), it.trim(), node.id) }
+    if (input["active"] == JsonPrimitive(false)) fail(422, "USE_NODE_DEACTIVATION", "Use DELETE para desativar com validação de dependências")
+    if (input["active"] == JsonPrimitive(true) && !node.data.bool("active")) fail(422, "USE_NODE_RESTORE", "Use a operação de restauração")
+    val updated = platformUpdate(node, JsonObject(node.data + input))
+    return V1Response(structureNodeView(this, updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+private fun V1Context.moveStructureNode(): V1Response {
+    val node = store.get("node", pathId("nodeId"), condominiumId())
+    val parentId = required("newParentId")
+    if (node.data.string("parentId") == null || parentId in nodeDescendants(node.id)) fail(422, "STRUCTURE_CYCLE", "Movimento inválido na árvore")
+    checkNodeParent(store.get("node_type", node.data.string("typeId")!!, condominiumId()), parentId)
+    checkSiblingLabel(parentId, node.data.string("label")!!, node.id)
+    val updated = platformUpdate(node, node.data.plusFields("parentId" to parentId,
+        "sortOrder" to (input["sortOrder"] ?: node.data["sortOrder"])))
+    return V1Response(structureNodeView(this, updated))
+}
