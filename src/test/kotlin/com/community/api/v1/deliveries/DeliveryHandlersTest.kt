@@ -98,3 +98,23 @@ class DeliveryHandlersTest {
         assertEquals(JsonPrimitive(true), validation["valid"])
         assertEquals(JsonPrimitive(false), validation["consumedNow"])
         val event = obj("events" to listOf(obj("eventId" to UUID.randomUUID().toString(), "type" to "pickup",
+            "occurredAt" to now.plusSeconds(60).toString(), "compartmentCode" to "A1", "credentialCode" to code)))
+        call(db, "markManualPickup", path = parcelPath, at = now.plusSeconds(120))
+        val first = call(db, "ingestLockerEvents", event, lockerPath, deviceId = deviceId, at = now.plusSeconds(180)).body.jsonObject
+        assertEquals("accepted", first["results"]!!.jsonArray.single().jsonObject.string("result"))
+        val second = call(db, "ingestLockerEvents", event, lockerPath, deviceId = deviceId, at = now.plusSeconds(180)).body.jsonObject
+        assertEquals("duplicate", second["results"]!!.jsonArray.single().jsonObject.string("result"))
+        assertEquals("collected", call(db, "getParcel", path = parcelPath).body.jsonObject.string("status"))
+        val compartments = call(db, "listCompartments", path = lockerPath, deviceId = deviceId).body.jsonObject["compartments"]!!.jsonArray
+        assertEquals("free", compartments.single().jsonObject.string("status"))
+        assertFalse(db.tx { V1Store(it, "tenant", "brand").list("locker_event").any { row -> row.data.toString().contains(code) } })
+    }
+
+
+    @Test fun `metrics count physical pickups without counting manual reports as collection`() = database().use { db ->
+        val physical = frontDesk(db).string("id")!!
+        val manual = frontDesk(db).string("id")!!
+        call(db, "handoverParcel", obj("collectorMembershipId" to "alice", "identityChecked" to true), mapOf("parcelId" to physical), staff = true, at = now.plusSeconds(600))
+        call(db, "markManualPickup", path = mapOf("parcelId" to manual), at = now.plusSeconds(300))
+        val metrics = call(db, "getParcelMetrics", at = now.plusSeconds(900), query = mapOf("since" to now.minusSeconds(1).toString(), "until" to now.plusSeconds(900).toString())).body.jsonObject
+        assertEquals(JsonPrimitive(2), metrics["totalReceived"])
