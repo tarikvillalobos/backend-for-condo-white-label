@@ -52,7 +52,7 @@ private fun spaces(c: V1Context): V1Response = V1Response(c.page("space", condom
 
 private fun saveSpace(c: V1Context): V1Response {
     val old = c.path["spaceId"]?.let { space(c, it) }
-    old?.let(c::requireVersion)
+    if (c.header("If-Match") != null) old?.let(c::requireVersion)
     val data = JsonObject((old?.data ?: JsonObject(emptyMap())) + c.input)
     BookingRules.validate(data)
     listOf("nodeId", "visibleFromNodeId").forEach { key -> data.text(key)?.let { c.store.get("node", it, condominium(c)) } }
