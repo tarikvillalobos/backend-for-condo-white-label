@@ -98,3 +98,23 @@ private fun V1Context.requestStepUp(): V1Response {
 }
 
 private fun V1Context.verifyStepUp(): V1Response {
+    val password = input.string("password")
+    val challengeId = input.string("challengeId")
+    val code = input.string("code")
+    if (password != null && (challengeId != null || code != null) || password == null && (challengeId == null || code == null)) {
+        fail(422, "INVALID_VERIFICATION", "Informe senha ou desafio com código")
+    }
+    if (!identityRate("v1-login", userId)) return rateLimited()
+    if (password != null) {
+        if (!Passwords.verify(password, account().decode<Account>().passwordHash)) {
+            return identityError(401, "INVALID_CREDENTIALS", "Senha inválida")
+        }
+    } else {
+        val verified = verifyIdentityChallenge(challengeId!!, "step_up", true)
+        verified.failure?.let { return it }
+    }
+    val session = tx.get("session", principal!!.sessionId!!, tenantId)!!
+    if (password == null) {
+        val metadata = store.get("session", principal.sessionId!!)
+        store.update(metadata, metadata.data.with("otpVerifiedAt" to now.toString()))
+    }
