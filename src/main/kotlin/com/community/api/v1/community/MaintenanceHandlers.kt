@@ -18,3 +18,23 @@ internal fun V1Context.workOrder(row: Record): JsonObject {
             JsonObject(entry - "evidenceKeys").merge(obj("evidenceUrls" to JsonArray(entry.array("evidenceKeys").map { key -> JsonPrimitive(fileUrl(key.jsonPrimitive.content)) })))
         })))
 }
+private fun V1Context.validateWorkOrder(data: JsonObject) {
+    checkedNode(data)
+    data.text("equipmentId")?.let { if (!store.get("equipment", it, locationId).data.flag("active", true)) fail(422, "EQUIPMENT_INACTIVE", "Equipamento inativo") }
+    data.text("contractorId")?.let { if (!store.get("contractor", it, locationId).data.flag("approved")) fail(422, "CONTRACTOR_NOT_APPROVED", "Prestador não aprovado") }
+    requireStaffUser(data.text("assigneeUserId"))
+}
+internal fun V1Context.createWorkOrder(data: JsonObject): Record {
+    validateWorkOrder(data)
+    return save("work_order", data.merge(obj("status" to "scheduled", "priority" to (data.text("priority") ?: "normal"),
+        "reference" to "OS-${UUID.randomUUID().toString().take(8).uppercase()}", "history" to JsonArray(emptyList()))))
+}
+private fun V1Context.equipment(row: Record) = view("Equipment", row, obj("node" to node(row.data.text("nodeId")),
+    "description" to row.data["description"], "serialNumber" to row.data["serialNumber"], "manufacturer" to row.data["manufacturer"],
+    "installedAt" to row.data["installedAt"], "lastInspectionAt" to row.data["lastInspectionAt"], "nextInspectionAt" to row.data["nextInspectionAt"],
+    "inspectionIntervalDays" to row.data["inspectionIntervalDays"], "active" to row.data.flag("active", true)))
+private fun V1Context.contractor(row: Record) = view("Contractor", row, obj("document" to row.data.text("document")?.let { "***${it.takeLast(4)}" },
+    "phone" to row.data["phone"], "email" to row.data["email"], "notes" to row.data["notes"]))
+internal fun maintenanceHandlers(): Map<String, V1Handler> = mapOf(
+    "adminListContractors" to V1Handler { c -> V1Response(obj("items" to JsonArray(c.store.list("contractor", c.locationId).map { c.contractor(it) }))) },
+    "adminCreateContractor" to V1Handler { c -> V1Response(c.contractor(c.save("contractor", c.input)), 201) },
