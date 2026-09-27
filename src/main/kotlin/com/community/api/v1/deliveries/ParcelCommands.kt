@@ -98,3 +98,23 @@ internal fun closeParcel(c: V1Context): V1Response {
     c.revokeCredential(row.data)
     val state = if (c.operationId == "adminReturnParcel") "returned" else "cancelled"
     val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive(state), "credentialStatus" to JsonPrimitive("revoked"),
+        "sealedCode" to JsonNull, "credentialHash" to JsonNull, "closureReason" to (c.input["reason"] ?: JsonNull)))
+    c.audit("parcel.$state", updated)
+    c.notifyParcel(updated, if (state == "returned") "Encomenda devolvida" else "Encomenda cancelada")
+    return V1Response(c.parcelView(updated, true))
+}
+
+internal fun credentialMatches(c: V1Context, row: Record, supplied: String?, at: java.time.Instant = c.now): Boolean {
+    if (supplied.isNullOrEmpty() || row.data.text("credentialStatus") != "active" || row.data.text("status") != "waiting") return false
+    val hash = row.data.text("credentialHash") ?: return false
+    val expires = row.data.text("credentialExpiresAt")?.let(::instant) ?: return false
+    return at.isBefore(expires) && MessageDigest.isEqual(hash.toByteArray(), c.hash(supplied).toByteArray())
+}
+
+internal fun collected(c: V1Context, row: Record, collector: String, at: java.time.Instant): Record {
+    c.releaseCompartment(row, at)
+    c.revokeCredential(row.data, at)
+    val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive("collected"), "collectedAt" to JsonPrimitive(at.toString()),
+        "collectedBy" to JsonPrimitive(collector), "credentialStatus" to JsonPrimitive("consumed"), "sealedCode" to JsonNull,
+        "credentialHash" to JsonNull, "timeline" to timeline(row.data, "physical_pickup", at)))
+    c.audit("parcel.collected", updated)
