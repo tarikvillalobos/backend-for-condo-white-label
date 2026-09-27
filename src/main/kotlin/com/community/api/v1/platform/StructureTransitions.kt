@@ -58,3 +58,13 @@ internal fun V1Context.restoreNodes(): V1Response {
         if (parentId != null && parentId !in restoredIds && store.get("node", parentId).data.bool("active") != true) {
             fail(409, "PARENT_INACTIVE", "Restaure o nó pai primeiro")
         }
+        if (all.any { it.id !in restoredIds && it.data.bool("active", true) && it.data.string("parentId") == parentId &&
+                it.data.string("label")?.equals(node.data.string("label"), true) == true }) {
+            fail(409, "NODE_LABEL_EXISTS", "Outro nó ocupa este rótulo")
+        }
+    }
+    nodes.forEach { store.update(it, it.data.plusFields("active" to true, "status" to "active", "deactivationRequestId" to null)) }
+    val audit = appendAudit(this, "structure.restored", target, details = obj("nodeIds" to restoredIds))
+    return V1Response(obj("requestId" to requestId, "deactivatedNodes" to nodes.map { nodeRef(this, it.id) },
+        "auditEntryId" to audit["id"], "restorableUntil" to null))
+}
