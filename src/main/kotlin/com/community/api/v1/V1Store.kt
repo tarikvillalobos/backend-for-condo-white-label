@@ -39,7 +39,7 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
     fun update(record: Record, data: JsonObject, ownerId: String? = record.ownerId): Record {
         checkOwned(record)
         val physical = record.copy(id = physicalId(record.kind, record.id))
-        val updated = tx.update(physical, JsonObject(data + obj("_brandId" to brandId, "_id" to record.id)))
+        val updated = tx.update(physical, JsonObject(data + obj("_brandId" to brandId, "_id" to record.id)), ownerId)
         if (!tx.postgres) history(updated)
         return updated.logical()
     }
