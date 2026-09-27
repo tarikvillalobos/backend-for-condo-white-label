@@ -98,3 +98,5 @@ fun V1Context.pageItems(items: List<JsonElement>): JsonObject {
     val limit = query["limit"]?.toIntOrNull() ?: 20
     if (offset < 0 || limit !in 1..100) fail(422, "VALIDATION_ERROR", "Invalid pagination")
     val saved = record.data["items"]!!.jsonArray
+    return obj("items" to saved.drop(offset).take(limit), "page" to obj("nextCursor" to if (offset + limit < saved.size) seal("${record.id}:${offset + limit}") else null, "snapshotAt" to record.createdAt, "snapshotExpiresAt" to record.data["expiresAt"]))
+}
