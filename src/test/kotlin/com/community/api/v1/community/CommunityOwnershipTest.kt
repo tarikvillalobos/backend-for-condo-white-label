@@ -18,3 +18,23 @@ class CommunityOwnershipTest {
         f.run("deleteVehicle", ids = mapOf("vehicleId" to vehicle.id()))
         assertTrue(f.run("listVehicles").items().isEmpty())
     }
+    @Test fun `node assignment cannot escape membership subtree`() = CommunityFixture().use { f ->
+        assertEquals(403, assertFailsWith<ApiException> {
+            f.run("createVehicle", obj("nodeId" to f.otherUnit, "plate" to "ABC1D23", "model" to "Carro", "kind" to "car"))
+        }.status)
+    }
+    @Test fun `pet lost alerts require ownership and prevent duplicate open alerts`() = CommunityFixture().use { f ->
+        val pet = f.run("createPet", obj("name" to "Nina", "species" to "dog", "sex" to "female"))
+        val alert = obj("kind" to "lost", "petId" to pet.id(), "description" to "Desapareceu", "species" to "dog")
+        assertEquals(404, assertFailsWith<ApiException> { f.run("createPetAlert", alert, other = true) }.status)
+        val created = f.run("createPetAlert", alert)
+        assertEquals(1, f.run("listPetAlerts", other = true).items().size)
+        assertEquals(409, assertFailsWith<ApiException> { f.run("createPetAlert", alert) }.status)
+        assertEquals(409, assertFailsWith<ApiException> { f.run("deletePet", ids = mapOf("petId" to pet.id())) }.status)
+        assertEquals(404, assertFailsWith<ApiException> { f.run("resolvePetAlert", ids = mapOf("alertId" to created.id()), other = true) }.status)
+        f.run("resolvePetAlert", ids = mapOf("alertId" to created.id()))
+        f.run("deletePet", ids = mapOf("petId" to pet.id()))
+    }
+    @Test fun `vaccine dates must be valid and chronological`() = CommunityFixture().use { f ->
+        val pet = f.run("createPet", obj("name" to "Nina", "species" to "cat", "sex" to "female"))
+        assertEquals(422, assertFailsWith<ApiException> { f.run("addVaccination", obj("vaccine" to "Raiva", "appliedAt" to "2099-01-01"), mapOf("petId" to pet.id())) }.status)
