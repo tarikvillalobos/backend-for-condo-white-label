@@ -290,8 +290,13 @@ paths:
             schema:
               $ref: '#/components/schemas/OtpVerification'
       responses:
-        "200":
-          description: "Successful operation."
+        '200':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
           content:
             "application/json":
               schema: {"$ref":"#/components/schemas/Tokens"}
