@@ -150,9 +150,9 @@ class Tx internal constructor(internal val connection: Connection) {
         return record
     }
 
-    fun update(record: Record, data: kotlinx.serialization.json.JsonObject): Record {
-        val updated = record.copy(data = data, updatedAt = Instant.now().toString(), version = record.version + 1)
-        connection.prepareStatement("UPDATE app_records SET payload=?, updated_at=?, version=? WHERE id=? AND tenant_id=? AND version=?").use {
+    fun update(record: Record, data: kotlinx.serialization.json.JsonObject, ownerId: String? = record.ownerId): Record {
+        val updated = record.copy(data = data, ownerId = ownerId, updatedAt = Instant.now().toString(), version = record.version + 1)
+        connection.prepareStatement("UPDATE app_records SET payload=?, updated_at=?, version=?, owner_id=? WHERE id=? AND tenant_id=? AND version=?").use {
             it.setString(1, json.encodeToString(data))
             it.setString(2, updated.updatedAt)
             it.setInt(3, updated.version)
