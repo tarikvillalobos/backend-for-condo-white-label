@@ -38,3 +38,6 @@ CREATE INDEX changes_scope ON audit_changes (tenant_id, brand_id, location_id, c
 CREATE INDEX changes_trace ON audit_changes (request_id);
 CREATE TABLE v1_idempotency (
   id VARCHAR(64) PRIMARY KEY, fingerprint VARCHAR(64) NOT NULL,
+  status_code INTEGER NOT NULL, payload TEXT NOT NULL, headers TEXT NOT NULL, expires_at BIGINT NOT NULL
+);
+CREATE INDEX idempotency_expiry ON v1_idempotency (expires_at);
