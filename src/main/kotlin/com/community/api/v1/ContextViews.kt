@@ -78,3 +78,5 @@ fun contextHandlers(): Map<String,V1Handler> = mapOf(
                 "modules" to modulesView(c,assignment.string("condominiumId")),"requiresMfa" to (assignment["mfaRequired"] == JsonPrimitive(true) && c.principal?.staff != true),"badges" to obj())
         }
         V1Response(obj("items" to (residents+staff),"defaultContextId" to (residents+staff).firstOrNull()?.get("id")))
+    },
+)
