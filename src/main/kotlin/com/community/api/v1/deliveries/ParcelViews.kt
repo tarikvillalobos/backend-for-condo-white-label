@@ -18,3 +18,23 @@ internal fun V1Context.parcelView(row: Record, admin: Boolean = false): JsonObje
         "timeline" to data.array("timeline"), "version" to row.version)
     val manualAt = data.text("manualAt")?.let(::instant)
     val undoUntil = manualAt?.plusSeconds(600)
+    val credentialStatus = if (data.text("credentialStatus") == "active" && !instant(data.text("credentialExpiresAt")).isAfter(now)) "expired" else data.text("credentialStatus")
+    val lockerView = locker?.let { obj("id" to it.id, "name" to it.data.text("name"), "address" to it.data.text("address").orEmpty(), "available" to it.data.flag("available")) }
+    return obj("id" to row.id, "recipientId" to (data.text("membershipId") ?: data.text("nodeId")),
+        "membershipId" to data.text("membershipId"), "carrier" to data.text("carrier"), "tracking" to data["tracking"], "status" to status,
+        "locker" to lockerView, "compartment" to data["compartmentCode"], "storage" to data.text("storage"), "size" to data["size"],
+        "depositedAt" to data.text("depositedAt"), "notifiedAt" to data["notifiedAt"], "deadline" to data.text("deadline"),
+        "manualAt" to data["manualAt"], "collectedAt" to data["collectedAt"], "credentialStatus" to credentialStatus,
+        "actions" to obj("canMarkManually" to (status == "waiting"), "canUndoManual" to (status == "manual" && undoUntil!!.isAfter(now)),
+            "undoUntil" to undoUntil?.toString(), "canReportIssue" to (status !in setOf("returned", "cancelled"))),
+        "timeline" to data.array("timeline"), "version" to row.version, "recipientKind" to data.text("recipientKind"),
+        "node" to node(data.text("nodeId")), "delegates" to JsonArray(data.array("delegates").map { person(it.jsonPrimitive.content) }),
+        "collectedBy" to person(data.text("collectedBy")))
+}
+
+internal fun V1Context.pickupView(row: Record): JsonObject {
+    val data = row.data
+    if (data.text("status") != "waiting" || data.text("credentialStatus") != "active" || !instant(data.text("credentialExpiresAt")).isAfter(now))
+        fail(410, "CREDENTIAL_EXPIRED", "Pickup credential is no longer active")
+    if (membershipId != null && data.text("credentialMemberId") != membershipId) fail(403, "FORBIDDEN", "Credential belongs to another collector")
+    data.text("lockerId")?.let {
