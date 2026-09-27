@@ -45,8 +45,16 @@ servers:
 - url: http://localhost:8080/v1
   description: Desenvolvimento local via Docker Compose
 security:
-  -
-    SessionBearer: []
+- SessionBearer: []
+tags:
+- name: Configuration
+  description: Capacidades públicas da distribuição white-label.
+- name: Authentication
+  description: OTP, senha, recuperação, convites de primeiro acesso, refresh e logout.
+- name: Profile
+  description: Identidade, vínculos, preferências, contatos, privacidade.
+- name: Condominium
+  description: Contexto do condomínio, unidade, moradores e veículos.
 paths:
   "/health/live":
     get:
