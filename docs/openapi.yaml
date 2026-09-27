@@ -174,16 +174,9 @@ paths:
 
         do canal. Aplicar limites por contato, CPF, marca e origem. CPF nunca autentica sozinho.'
       security: []
-      responses:
-        "200":
-          description: "Successful operation."
-          content:
-            "application/json":
-              schema: {"$ref":"#/components/schemas/HealthResponse"}
-        default: {"$ref":"#/components/responses/Error"}
-        "503":
-          description: "Database is not ready."
-          content:
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
             "application/json":
               schema: {"$ref":"#/components/schemas/HealthResponse"}
   "/api/v1/auth/login":
