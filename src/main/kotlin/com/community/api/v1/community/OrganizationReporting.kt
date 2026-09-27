@@ -38,3 +38,23 @@ internal fun V1Context.organizationQueue(): V1Response {
             .thenBy { when (it.text("priority")) { "urgent" -> 0; "high" -> 1; else -> 2 } }
             .thenBy { it.text("dueAt") ?: "9999" }.thenBy { it.text("createdAt") },
     )
+    val page = pageItems(sorted)
+    return V1Response(page.merge(obj("counts" to JsonObject(counts.mapValues { JsonPrimitive(it.value) }))))
+}
+private fun V1Context.workItems(condo: Record): List<JsonObject> = buildList {
+    fun item(row: Record, kind: String, title: String, priority: String = "normal", due: String? = null) {
+        add(obj("id" to UUID.nameUUIDFromBytes("${row.id}:$kind".toByteArray()).toString(), "kind" to kind,
+            "condominiumId" to condo.id, "condominiumName" to condo.data["name"], "node" to node(row.data.text("nodeId")),
+            "title" to title, "referenceId" to row.id, "priority" to priority, "createdAt" to row.createdAt, "dueAt" to due))
+    }
+    store.list("arrival", locationId, filters = mapOf("status" to "pending")).filter { timestamp(it.data.text("expiresAt")!!).isAfter(now) }
+        .forEach { item(it, "arrival_pending", it.data.text("visitorName")!!, "urgent", it.data.text("expiresAt")) }
+    store.list("parcel", locationId, filters = mapOf("status" to "waiting")).forEach {
+        if (it.data.text("manualAt") != null) item(it, "parcel_manual_mismatch", "Retirada informada pelo morador", "high")
+        if (timestamp(it.data.text("deadline")!!).isBefore(now)) item(it, "parcel_overdue", "Encomenda com prazo vencido", "high", it.data.text("deadline"))
+    }
+    store.list("reservation", locationId, filters = mapOf("status" to "pending")).forEach { item(it, "reservation_pending", "Reserva aguardando aprovação", due = it.data.text("startsAt")) }
+    store.list("ticket", locationId).filter { it.data.text("status") !in closedTicketStates }.forEach {
+        item(it, "ticket_open", it.data.text("title") ?: it.data.text("reference") ?: "Chamado", it.data.text("priority") ?: "normal", it.data.text("dueAt"))
+    }
+    store.list("camera", locationId, filters = mapOf("status" to "offline")).forEach { item(it, "camera_offline", it.data.text("name")!!, "high") }
