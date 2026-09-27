@@ -52,8 +52,9 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
         tx.connection.prepareStatement("UPDATE v1_record_versions SET valid_to = ? WHERE id = ? AND valid_to IS NULL").use {
             it.setLong(1, at); it.setString(2, record.id); it.executeUpdate()
         }
-        tx.connection.prepareStatement("INSERT INTO v1_record_versions (id,version,kind,tenant_id,location_id,owner_id,brand_id,payload,created_at,updated_at,valid_from,deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").use {
-            listOf(record.id, record.version, record.kind, tenantId, record.locationId, record.ownerId, brandId, record.data.toString(), record.createdAt, record.updatedAt, at, record.data.string("_deletedAt") != null)
+        tx.connection.prepareStatement("INSERT INTO v1_record_versions (id,version,kind,tenant_id,location_id,owner_id,brand_id,payload,created_at,updated_at,valid_from,deleted,logical_id,sort_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
+            listOf(record.id, record.version, record.kind, tenantId, record.locationId, record.ownerId, brandId, record.data.toString(), record.createdAt, record.updatedAt, at, record.data.string("_deletedAt") != null,
+                record.data.string("_id") ?: record.id, record.data.string("depositedAt") ?: record.data.string("startsAt") ?: record.createdAt)
                 .forEachIndexed { index, value -> it.setObject(index + 1, value) }
             it.executeUpdate()
         }
