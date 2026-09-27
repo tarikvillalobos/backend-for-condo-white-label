@@ -74,6 +74,8 @@ internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadli
 internal fun V1Context.notifyParcel(row: Record, title: String) {
     val memberId = row.data.text("membershipId") ?: return
     val membership = store.get("membership", memberId, row.locationId)
+    val profile = membership.ownerId?.let { store.find("profile", it) }
+    if ((profile?.data?.get("preferences") as? JsonObject)?.get("inApp") == JsonPrimitive(false)) return
     store.create("notification", obj("membershipId" to memberId, "kind" to "parcel", "title" to title,
         "body" to "Transportadora: ${row.data.text("carrier")}", "referenceId" to row.id, "readAt" to null), row.locationId, membership.ownerId)
 }
