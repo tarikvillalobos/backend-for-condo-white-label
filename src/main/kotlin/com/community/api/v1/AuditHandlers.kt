@@ -118,3 +118,23 @@ private fun V1Context.auditPage(table: String): JsonObject {
     return obj("items" to rows.take(limit).map { it.third },"page" to obj("snapshotAt" to snapshot,"snapshotExpiresAt" to expires,
         "nextCursor" to if(rows.size>limit && last!=null) seal(obj("binding" to binding,"snapshot" to snapshot,"expires" to expires,"at" to last.second,"last" to last.first).toString()) else null))
 }
+
+private fun V1Context.verifyChain(): JsonObject {
+    val since = query["since"] ?: Instant.EPOCH.toString()
+    val until = query["until"] ?: now.toString()
+    var previous = ""; var checked=0; var broken:String?=null
+    tx.connection.prepareStatement("SELECT id,previous_hash,hash,payload,created_at FROM audit_log WHERE tenant_id=? AND brand_id=? ORDER BY sequence").use {
+        it.setString(1,tenantId);it.setString(2,brandId)
+        it.executeQuery().use { rows -> while(rows.next()) {
+            val entry=json.parseToJsonElement(rows.getString("payload")).jsonObject
+            val inRange=Instant.parse(rows.getString("created_at")).let { at -> !at.isBefore(Instant.parse(since)) && at.isBefore(Instant.parse(until)) }
+            if(inRange) {
+                checked++
+                if(broken==null && (rows.getString("previous_hash")!=previous || Secrets.hash(previous+JsonObject(entry-"hash").toString())!=rows.getString("hash"))) broken=rows.getString("id")
+            }
+            previous=rows.getString("hash")
+        } }
+    }
+    return obj("since" to since,"until" to until,"entriesChecked" to checked,"intact" to (broken==null),"firstBrokenEntryId" to broken,"checkedAt" to now)
+}
+
