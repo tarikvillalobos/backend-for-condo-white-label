@@ -58,3 +58,23 @@ private fun metrics(c: V1Context): V1Response {
         "totalReceived" to rows.size, "physicalPickupCount" to durations.size, "averagePickupDurationSeconds" to durations.takeIf { it.isNotEmpty() }?.average()))
 }
 
+private fun manualPickup(c: V1Context): V1Response {
+    val row = c.parcel()
+    c.requireVersion(row)
+    c.outstanding(row)
+    val undo = c.operationId == "undoManualPickup"
+    if (!undo && row.data.text("status") == "manual") return V1Response(c.parcelView(row))
+    if (undo && (row.data.text("status") != "manual" || !instant(row.data.text("manualAt")).plusSeconds(600).isAfter(c.now)))
+        c.fail(409, "MANUAL_UNDO_EXPIRED", "Manual pickup can no longer be reversed")
+    val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive(if (undo) "waiting" else "manual"),
+        "manualAt" to (if (undo) JsonNull else JsonPrimitive(c.now.toString())), "credentialStatus" to JsonPrimitive("revoked"),
+        "sealedCode" to JsonNull, "credentialHash" to JsonNull,
+        "timeline" to timeline(row.data, if (undo) "manual_pickup_reverted" else "manual_pickup", c.now)))
+    c.audit(if (undo) "parcel.manual_pickup_reverted" else "parcel.manual_pickup", updated)
+    return V1Response(c.parcelView(updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+private fun delegate(c: V1Context): V1Response {
+    val row = c.parcel()
+    c.recipient(row)
+    c.outstanding(row)
