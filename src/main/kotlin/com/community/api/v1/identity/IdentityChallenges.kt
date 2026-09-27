@@ -58,3 +58,23 @@ internal fun V1Context.verifyIdentityChallenge(id: String, purpose: String, owne
     val data = challenge.decode<ChallengeData>()
     if (data.consumed) fail(410, "CHALLENGE_CONSUMED", "Este desafio já foi utilizado")
     if (!Instant.parse(data.expiresAt).isAfter(now)) fail(410, "CHALLENGE_EXPIRED", "Este desafio expirou")
+    if (data.attempts >= 5) return VerifiedChallenge(null, rateLimited())
+    if (!identityRate("v1-verify", id)) return VerifiedChallenge(null, rateLimited())
+    val user = metadata.ownerId?.let { tx.get("account", it, tenantId) }
+    val supplied = identityInput("code")
+    if (user?.decode<Account>()?.active != true || !sameSecret(data.secretHash, digest("$id:$supplied"))) {
+        tx.update(challenge, body(data.copy(attempts = data.attempts + 1)))
+        return VerifiedChallenge(null, if (data.attempts + 1 >= 5) rateLimited()
+            else identityError(422, "INVALID_CODE", "Código inválido"))
+    }
+    tx.consumeChallenge(challenge)
+    return VerifiedChallenge(user)
+}
+
+internal fun V1Context.resendIdentityChallenge(purpose: String, owned: Boolean): V1Response {
+    val metadata = challengeMetadata(identityPath("challengeId"), purpose, owned)
+    val challenge = tx.get("auth_challenge", metadata.id, tenantId)
+        ?: fail(404, "CHALLENGE_NOT_FOUND", "Desafio não encontrado")
+    val data = challenge.decode<ChallengeData>()
+    if (data.consumed || !Instant.parse(data.expiresAt).isAfter(now)) {
+        fail(410, "CHALLENGE_EXPIRED", "Este desafio não está mais disponível")
