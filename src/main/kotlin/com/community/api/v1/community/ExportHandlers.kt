@@ -58,3 +58,21 @@ private fun processExport(db: Database, job: PendingExport) {
             val c = context(tx)
             val row = c.store.get("export", job.id, job.location)
             if (tx.get("account", job.user, job.tenant)?.data?.get("active") == JsonPrimitive(false)) c.fail(403, "ACCOUNT_DISABLED", "Conta desativada")
+            val records = c.exportRows(row)
+            val format = row.data.text("format")!!
+            val bytes = if (format == "xlsx") xlsx(records) else csv(records)
+            val contentType = if (format == "xlsx") "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" else "text/csv"
+            val file = writePrivateFile(c, "${row.data.text("resource")}-${row.id}.$format", contentType, bytes)
+            val updated = c.store.update(row, row.data.merge(obj("status" to "ready", "rowCount" to records.size,
+                "fileKey" to file.id, "expiresAt" to c.now.plusSeconds(86400).toString(), "leaseUntil" to null)))
+            c.audit("export.completed", updated)
+        }
+    }.onFailure {
+        db.scopedTx("export:${job.id}") { tx ->
+            val c = context(tx)
+            val row = c.store.find("export", job.id, job.location) ?: return@scopedTx
+            val failed = c.store.update(row, row.data.merge(obj("status" to "failed", "failureCode" to ((it as? ApiException)?.code ?: "EXPORT_FAILED"), "leaseUntil" to null)))
+            c.audit("export.failed", failed)
+        }
+    }
+}
