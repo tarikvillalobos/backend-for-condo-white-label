@@ -79,7 +79,7 @@ internal fun V1Context.notifyParcel(row: Record, title: String) {
     store.create("notification", obj("membershipId" to memberId, "kind" to "parcel", "title" to title,
         "body" to "Transportadora: ${row.data.text("carrier")}", "referenceId" to row.id, "readAt" to null), row.locationId, membership.ownerId)
 }
-internal fun V1Context.releaseCompartment(row: Record) {
+internal fun V1Context.releaseCompartment(row: Record, occurredAt: Instant = now) {
     val lockerId = row.data.text("lockerId") ?: return
     val locker = store.get("locker", lockerId, row.locationId)
     val compartments = locker.data.array("compartments").map { element ->
