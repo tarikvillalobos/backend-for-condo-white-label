@@ -98,3 +98,10 @@ class ReservationHandlersTest {
         val space = space(db)
         for (invalid in listOf(
             JsonObject(input(space) + obj("startsAt" to "2030-01-02T12:10:00Z", "endsAt" to "2030-01-02T13:10:00Z")),
+            JsonObject(input(space) + obj("startsAt" to "2030-01-02T09:00:00Z", "endsAt" to "2030-01-02T10:00:00Z")),
+            JsonObject(input(space) + obj("guestsCount" to 21)),
+        )) assertEquals(422, assertFailsWith<ApiException> { call(db, "createReservation", invalid) }.status)
+        val created = call(db, "createReservation", input(space)).body.jsonObject
+        assertEquals(422, assertFailsWith<ApiException> { call(db, "cancelReservation", path = mapOf("reservationId" to created.string("id")!!), at = Instant.parse("2030-01-02T11:00:00Z")) }.status)
+    }
+}
