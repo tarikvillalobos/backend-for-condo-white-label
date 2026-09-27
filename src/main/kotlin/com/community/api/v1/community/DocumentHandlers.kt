@@ -38,3 +38,23 @@ internal fun documentHandlers(): Map<String, V1Handler> = mapOf(
     "acknowledgeDocument" to V1Handler { c ->
         val row = c.documentRecord()
         c.acknowledge(row, row.data.number("currentRevision", 1))
+        V1Response(c.document(row))
+    },
+    "adminCreateDocument" to V1Handler { c ->
+        c.validateTargets(c.input)
+        c.requireDocumentUpload(c.input.text("fileKey")!!)
+        val row = c.save("document", c.input.merge(obj("currentRevision" to 1, "ackRequiredRevision" to 1, "archived" to false)))
+        c.save("document_version", obj("documentId" to row.id, "revision" to 1, "fileKey" to c.input["fileKey"], "notes" to c.input["notes"]))
+        V1Response(c.document(row), 201)
+    },
+    "adminUpdateDocument" to V1Handler { c ->
+        c.validateTargets(c.input)
+        V1Response(c.document(c.change(c.documentRecord(), c.input)))
+    },
+    "adminPublishDocumentVersion" to V1Handler { c ->
+        val row = c.documentRecord()
+        if (row.data.flag("archived")) c.fail(409, "DOCUMENT_ARCHIVED", "Documento arquivado")
+        c.requireDocumentUpload(c.input.text("fileKey")!!)
+        val revision = row.data.number("currentRevision", 1) + 1
+        c.save("document_version", obj("documentId" to row.id, "revision" to revision, "fileKey" to c.input["fileKey"], "notes" to c.input["notes"]))
+        val updated = c.change(row, obj("currentRevision" to revision,
