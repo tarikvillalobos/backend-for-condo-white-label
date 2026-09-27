@@ -340,6 +340,9 @@ paths:
 
         e corpo reproduzem a mesma rotação durante a janela de idempotência, sem revogar a família.'
       security: []
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
