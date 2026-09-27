@@ -38,3 +38,23 @@ private fun V1Context.createOrganization(): V1Response {
     if (invite != null && userId != null) fail(422, "INVALID_ADMIN_IDENTITY", "Informe adminUserId ou adminInvite")
     val record = store.create("organization", JsonObject(obj("document" to null, "contacts" to emptySupport(), "active" to true) +
         (input - setOf("adminInvite", "adminUserId"))))
+    if (invite != null || userId != null) withInput(obj("userId" to userId, "invite" to invite,
+        "role" to "org_admin", "mfaRequired" to true)).createPlatformStaff(record.id)
+    return V1Response(organizationView(record), 201)
+}
+
+private fun V1Context.organizationCondominiumView(record: Record): JsonObject = obj(
+    "condominium" to condominiumView(store.get("condominium", record.locationId!!)),
+    "services" to record.data["services"], "startedAt" to record.data["startedAt"], "endedAt" to record.data["endedAt"])
+
+private fun V1Context.checkCondominiumLinkAuthority(condoId: String) {
+    if (brandAdministrator()) return
+    if (store.list("staff_assignment", condoId, userId).none { it.data.string("status") == "active" &&
+            it.data.string("role") == "condo_admin" }) fail(403, "CONDOMINIUM_ADMIN_REQUIRED", "O vínculo exige autorização do condomínio")
+}
+
+private fun V1Context.linkOrganizationCondominium(): V1Response {
+    val org = store.get("organization", pathId("organizationId"))
+    val condo = store.get("condominium", required("condominiumId"))
+    checkCondominiumLinkAuthority(condo.id)
+    if (!org.data.bool("active", true) || !condo.data.bool("active", true)) fail(409, "INACTIVE_RESOURCE", "Organização ou condomínio inativo")
