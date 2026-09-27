@@ -78,3 +78,23 @@ private fun V1Context.verifyIdentityContactChange(): V1Response {
     val oldEmail = user.decode<Account>().email
     val updated = tx.update(user, body(user.decode<Account>().copy(email = destination)))
     if (oldEmail != destination) {
+        tx.get("v1_identifier", identityIndexId(tenantId, "email", oldEmail), tenantId)?.let { tx.delete(it) }
+    }
+    indexIdentityAccount(tx, updated)
+    saveProfile(updated, profileData(updated).with("emailVerifiedAt" to now.toString()))
+    consumeOtherChallenges(user.id)
+    revokeOtherIdentitySessions()
+    return V1Response(identityProfile(updated))
+}
+
+private fun V1Context.requestStepUp(): V1Response {
+    val user = account()
+    if (profileData(user).string("emailVerifiedAt") == null) {
+        fail(403, "VERIFIED_CONTACT_REQUIRED", "É necessário um contato verificado")
+    }
+    requireEmailChannel("email")
+    if (!identityRate("v1-step-up", userId)) return rateLimited()
+    return V1Response(issueIdentityChallenge("step_up", user, user.decode<Account>().email, principal!!.sessionId), 202)
+}
+
+private fun V1Context.verifyStepUp(): V1Response {
