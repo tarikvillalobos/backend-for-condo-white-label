@@ -58,3 +58,23 @@ internal fun ticketHandlers(): Map<String, V1Handler> = mapOf(
     "commentServiceRequest" to V1Handler { c -> V1Response(c.commentTicket(c.ticketBy("requestId", "service_request"), c.input.text("body")!!, false, false), 201) },
     "listOccurrences" to V1Handler { c -> c.listResponse("ticket", true, mapOf("kind" to "occurrence")) { c.ticket(it) } },
     "createOccurrence" to V1Handler { c ->
+        if (timestamp(c.input.text("occurredAt")!!).isAfter(c.now.plusSeconds(60))) c.fail(422, "INVALID_OCCURRENCE_TIME", "Ocorrência no futuro")
+        c.newTicket("occurrence")
+    },
+    "getOccurrence" to V1Handler { c -> V1Response(c.ticket(c.ticketBy("occurrenceId", "occurrence"))) },
+    "adminListTickets" to V1Handler { c -> c.listResponse("ticket") { c.ticket(it, true) } },
+    "adminGetTicket" to V1Handler { c -> V1Response(c.ticket(c.ticketBy("ticketId"), true)) },
+    "updateTicket" to V1Handler { c -> c.updateTicketState(c.ticketBy("ticketId")) },
+    "adminCommentTicket" to V1Handler { c -> V1Response(c.commentTicket(c.ticketBy("ticketId"), c.input.text("body")!!, c.input.flag("internal"), true), 201) },
+    "adminAssignTicket" to V1Handler { c ->
+        c.requireStaffUser(c.input.text("userId"))
+        val row = c.change(c.ticketBy("ticketId"), obj("assignedToUserId" to c.input["userId"], "dueAt" to c.input["dueAt"]), "ticket.assigned")
+        V1Response(c.ticket(row, true))
+    },
+    "adminEscalateTicket" to V1Handler { c -> c.escalateTicket(c.ticketBy("ticketId")) },
+    "adminCreateWorkOrderFromTicket" to V1Handler { c ->
+        val ticket = c.ticketBy("ticketId")
+        val data = c.input.merge(obj("ticketId" to ticket.id, "title" to (c.input.text("title") ?: ticket.data.text("title") ?: ticket.data.text("reference")),
+            "description" to ticket.data["description"], "nodeId" to ticket.data["nodeId"], "priority" to (ticket.data.text("priority") ?: "normal")))
+        V1Response(c.workOrder(c.createWorkOrder(data)), 201)
+    },
