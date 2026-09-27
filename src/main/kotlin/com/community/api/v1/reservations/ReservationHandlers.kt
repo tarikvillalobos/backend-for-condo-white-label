@@ -98,3 +98,23 @@ private fun reservations(c: V1Context): V1Response {
             (c.query["spaceId"] == null || data.text("spaceId") == c.query["spaceId"]) &&
             (if (admin) c.query["status"] == null || status == c.query["status"] || (c.query["status"] == "completed" && status == "confirmed" && ended)
              else when (c.query["status"] ?: "upcoming") { "past" -> ended && status == "confirmed"; "cancelled" -> status in setOf("cancelled", "rejected"); else -> !ended && BookingRules.active(data) }) &&
+            (c.query["since"] == null || !timestamp(data.text("startsAt")).isBefore(timestamp(c.query["since"]))) &&
+            (c.query["until"] == null || timestamp(data.text("startsAt")).isBefore(timestamp(c.query["until"])))
+    }.sortedWith(compareBy<Record> { it.data.text("startsAt") }.thenBy { it.id })
+    return V1Response(c.pageItems(rows.map { if (admin) adminView(c, it) else reservationView(c, it) }))
+}
+
+internal fun occupied(c: V1Context, spaceId: String, start: Instant, end: Instant, except: String? = null): Boolean =
+    c.store.list("reservation", condominium(c)).any {
+        it.id != except && it.data.text("spaceId") == spaceId && BookingRules.active(it.data) && BookingRules.overlaps(it.data, start, end)
+    }
+
+internal fun blocked(c: V1Context, spaceId: String, start: Instant, end: Instant): Boolean =
+    c.store.list("space_block", condominium(c)).any { it.data.text("spaceId") == spaceId && BookingRules.overlaps(it.data, start, end) }
+
+private fun createReservation(c: V1Context): V1Response {
+    val facility = space(c, c.input.text("spaceId")!!)
+    BookingRules.validateWindow(facility.data, c.input, zone(c), c.now)
+    val start = timestamp(c.input.text("startsAt"))
+    val end = timestamp(c.input.text("endsAt"))
+    val rules = facility.data.objectAt("rules")
