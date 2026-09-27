@@ -78,3 +78,23 @@ private fun setCompartments(c: V1Context): V1Response {
         JsonObject((old ?: obj()) + obj("code" to definition.text("code"), "size" to definition.text("size"), "status" to (old?.text("status") ?: "free"),
             "parcelId" to old?.get("parcelId"), "updatedAt" to c.now.toString()))
     }
+    val saved = c.store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
+    c.audit("locker.compartments_updated", saved)
+    return V1Response(obj("lockerId" to locker.id, "compartments" to compartments.map { c.project("Compartment", it) }))
+}
+
+private fun updateCompartment(c: V1Context): V1Response {
+    val locker = c.lockerRecord()
+    if (c.header("If-Match") != null) c.requireVersion(locker)
+    val code = c.path.getValue("compartmentCode")
+    val previous = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
+        ?: c.fail(404, "NOT_FOUND", "Compartment not found")
+    if (previous.text("parcelId") != null) c.fail(409, "COMPARTMENT_NOT_EMPTY", "Occupied compartments are managed through parcel operations")
+    val updated = JsonObject(previous + c.input + obj("updatedAt" to c.now.toString()))
+    val saved = c.store.update(locker, locker.data.changed("compartments" to JsonArray(locker.data.array("compartments").map {
+        if (it.jsonObject.text("code") == code) updated else it
+    })))
+    c.audit("locker.compartment_updated", saved)
+    return V1Response(c.project("Compartment", updated))
+}
+
