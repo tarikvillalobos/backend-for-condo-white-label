@@ -1,9 +1,16 @@
 openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
-  title: "Community API"
-  version: "0.1.0"
-  description: "Kotlin/Ktor API for white-label condo and smart locker applications. IDs are opaque strings. Human sessions select a tenant at sign-in; branding never grants access. Protected operations enforce active membership, enabled features, action permissions, and resource ownership. ISO timestamps use an explicit UTC offset. JSON request bodies reject unknown properties. The request body limit is 3 MiB. Permissions listed in descriptions are additional to authentication. See docs/identity.md, docs/deliveries.md, docs/reservations.md, and docs/community.md for workflow rules."
+  title: Condo Platform API
+  version: 1.1.0-draft
+  summary: API unificada para condo-app (moradores) e smartlocker-app (usuários de locker).
+  description: "Contrato unificado (junção do contrato de plataforma com o contrato Kotlin/Ktor \"Community API\"\
+    \ 0.1.0) para os aplicativos condo-app e smartlocker-app e para a camada operacional\n(lockers, portaria, câmeras,\
+    \ administração).\n\nCOMPATIBILIDADE: os 23 caminhos do contrato SmartLocker 0.1.0-draft são mantidos byte a\
+    \ byte em forma e\nsemântica; campos novos são sempre opcionais. Um cliente SmartLocker existente continua funcionando.\n\
+    \nESCOPO E ISOLAMENTO: toda operação é isolada por marca (X-Brand-Id), usuário, condomínio, unidade e\nvínculo\
+    \ (membership). Conhecer um ID não autoriza acesso; recurso alheio responde 404.\nUm vínculo (Membership) representa\
+    \ o usuário dentro de um condomínio/unidade OU de um locker avulso.\nOs módulos habilitados por marca e por\
 servers:
   - {"url":"http://localhost:8080","description":"Local development"}
 security:
