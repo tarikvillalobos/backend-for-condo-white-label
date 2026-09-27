@@ -158,3 +158,20 @@ internal fun resendNotice(c: V1Context): V1Response {
     c.outstanding(row)
     val channels = c.input.array("channels").map { it.jsonPrimitive.content }
     if (channels.any { it != "email" }) c.fail(422, "CHANNEL_UNAVAILABLE", "Only configured delivery channels can be used")
+    val memberId = row.data.text("membershipId") ?: c.fail(422, "RECIPIENT_REQUIRED", "Node recipient has no individual delivery channel")
+    val member = c.member(memberId)
+    val email = member.ownerId?.let { c.tx.get("account", it, c.tenantId)?.data?.text("email") }
+        ?: c.fail(422, "CHANNEL_UNAVAILABLE", "Recipient email is unavailable")
+    c.enqueueMail(email, "Encomenda aguardando retirada", "Uma encomenda da transportadora ${row.data.text("carrier")} aguarda retirada.")
+    c.notifyParcel(row, "Encomenda aguardando retirada")
+    c.audit("parcel.notice_queued", row)
+    return V1Response(status = 202)
+}
+
+private fun validatePhotos(c: V1Context) {
+    c.input.array("photoKeys").forEach { value ->
+        val upload = c.store.get("upload", value.jsonPrimitive.content)
+        if (upload.ownerId != c.userId) c.fail(404, "NOT_FOUND", "Upload not found")
+        if (upload.data.text("status") != "complete") c.fail(409, "UPLOAD_INCOMPLETE", "Complete the upload first")
+    }
+}
