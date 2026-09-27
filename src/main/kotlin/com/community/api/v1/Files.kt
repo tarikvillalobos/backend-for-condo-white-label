@@ -78,3 +78,23 @@ fun Route.fileRoutes(db: Database) {
             val ticket = fileClaims(call.parameters["fileId"]!!,call.request.queryParameters["ticket"],"download")
             val file = db.scopedQuery(null) { tx ->
                 val c = fileContext(tx,ticket,"downloadFile")
+                val record = c.store.get("upload",ticket.string("id")!!)
+                if (record.data.string("status") != "complete") c.fail(404,"RESOURCE_NOT_FOUND","File not found")
+                c.audit("file.downloaded",record)
+                record
+            }
+            val local = fileDirectory.resolve(file.id)
+            if (!Files.isRegularFile(local)) throw ApiException(404,"RESOURCE_NOT_FOUND","File not found")
+            call.response.headers.append(HttpHeaders.ContentDisposition,"attachment")
+            call.respondFile(local.toFile())
+        }
+    }
+}
+
+private fun fileClaims(id: String, encrypted: String?, action: String): JsonObject {
+    if (encrypted == null || runCatching { UUID.fromString(id) }.isFailure) throw ApiException(401,"ACCESS_DENIED","Signed file ticket required")
+    val claims = runCatching { json.parseToJsonElement(Secrets.unseal(encrypted)).jsonObject }.getOrElse { throw ApiException(401,"ACCESS_DENIED","Invalid file ticket") }
+    if (claims.string("id") != id || claims.string("action") != action || Instant.parse(claims.string("expires")).isBefore(Instant.now())) throw ApiException(401,"ACCESS_DENIED","Expired or invalid file ticket")
+    return claims
+}
+private fun fileContext(tx: Tx, claims: JsonObject, operation: String): V1Context = V1Context(tx,operation,
