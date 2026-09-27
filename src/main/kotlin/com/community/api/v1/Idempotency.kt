@@ -18,3 +18,20 @@ fun V1Context.idempotent(operation: ContractOperation, handler: V1Handler): Pair
         it.executeQuery().use { rows ->
             if (!rows.next() || rows.getLong("expires_at") <= now.epochSecond) null else {
                 if (rows.getString("fingerprint") != fingerprint) fail(409,"IDEMPOTENCY_CONFLICT","This key was used with different input")
+                V1Response(json.parseToJsonElement(unseal(rows.getString("payload"))),rows.getInt("status_code"),
+                    json.parseToJsonElement(rows.getString("headers")).jsonObject.mapValues { entry -> entry.value.jsonPrimitive.content })
+            }
+        }
+    }
+    if (previous != null) return previous to true
+    val result = handler.handle(this)
+    if (result.status in 200..299) {
+        tx.connection.prepareStatement("DELETE FROM v1_idempotency WHERE id = ?").use { it.setString(1,id); it.executeUpdate() }
+        tx.connection.prepareStatement("INSERT INTO v1_idempotency (id,fingerprint,status_code,payload,headers,expires_at) VALUES (?,?,?,?,?,?)").use {
+            listOf(id,fingerprint,result.status,seal(result.body.toString()),element(result.headers).toString(),now.plusSeconds(86400).epochSecond)
+                .forEachIndexed { index, value -> it.setObject(index+1,value) }
+            it.executeUpdate()
+        }
+    }
+    return result to false
+}
