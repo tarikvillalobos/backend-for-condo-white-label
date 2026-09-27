@@ -58,3 +58,5 @@ private fun scrubIdentityExport(element: JsonElement): JsonElement = when (eleme
         listOf("password", "secret", "token", "credential", "codehash", "keyhash", "encrypted").none(normalized::contains)
     }.mapValues { scrubIdentityExport(it.value) })
     is JsonArray -> JsonArray(element.map(::scrubIdentityExport))
+    else -> element
+}
