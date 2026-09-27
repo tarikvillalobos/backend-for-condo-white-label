@@ -58,3 +58,23 @@ private fun V1Context.acceptIdentityInvitation(): V1Response {
     val email = (input.string("email") ?: invitation.data.string("email"))?.let(::checkedEmail)
     val phone = (input.string("phone") ?: invitation.data.string("phone"))?.let(::checkedPhone)
     if (email == null && phone == null) fail(422, "CONTACT_REQUIRED", "Informe pelo menos um contato")
+    for ((type, value) in listOf("cpf" to cpf, "email" to email, "phone" to phone)) {
+        if (value != null && findIdentity(type, value) != null) {
+            fail(409, "ACCOUNT_ALREADY_EXISTS", "Entre em sua conta para continuar")
+        }
+    }
+    val terms = identityInput("acceptedTermsVersion")
+    val requiredTerms = store.find("brand", brandId)?.data?.string("termsVersion")
+    if (terms.isBlank() || requiredTerms != null && requiredTerms != terms) {
+        fail(422, "TERMS_VERSION_REQUIRED", "Aceite a versão vigente dos termos")
+    }
+    val user = tx.create("account", tenantId, data = body(Account(email.orEmpty(),
+        normalizedName(identityInput("name")), Passwords.hash(identityInput("password")))))
+    indexIdentityAccount(tx, user, cpf, phone)
+    val data = profileData(user)
+    saveProfile(user, data.with("phone" to phone, "cpfHash" to hash(cpf),
+        "privacy" to (data["privacy"] as JsonObject).with("termsVersion" to terms, "consentUpdatedAt" to now.toString())))
+    createInvitationMembership(invitation, user)
+    return V1Response(issueIdentitySession(user), 201)
+}
+
