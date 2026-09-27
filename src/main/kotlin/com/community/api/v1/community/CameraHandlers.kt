@@ -18,3 +18,23 @@ private fun V1Context.cameraAccess(row: Record): Pair<Boolean, Boolean> {
     val applicable = policies.map { it.jsonObject }.filter { policy ->
         val role = policy.text("role")
         val window = policy["timeWindow"] as? JsonObject
+        val timeAllowed = if (window == null) true else {
+            val from = LocalTime.parse(window.text("from")); val to = LocalTime.parse(window.text("to"))
+            if (from <= to) local >= from && local <= to else local >= from || local <= to
+        }
+        (role == null || role == membership.data.text("role")) && inSubtree(unitId, policy.text("scopeNodeId")) && timeAllowed
+    }
+    return (row.data.flag("liveAllowed") && applicable.any { it.flag("allowLive") }) to
+        (row.data.flag("recordingsAllowed") && applicable.any { it.flag("allowRecordings") })
+}
+internal fun V1Context.camera(row: Record, admin: Boolean = false): JsonObject {
+    val access = cameraAccess(row)
+    return view(if (admin) "CameraAdmin" else "Camera", row, obj("node" to node(row.data.text("nodeId")),
+        "status" to (row.data.text("status") ?: "offline"), "liveAllowed" to access.first, "recordingsAllowed" to access.second,
+        "thumbnailUrl" to null, "lastFrameAt" to row.data["lastFrameAt"], "gatewayDeviceId" to row.data["gatewayDeviceId"],
+        "retentionDays" to row.data.number("retentionDays"), "policies" to row.data.array("policies"),
+        "grantsCount" to store.list("camera_grant", locationId, filters = mapOf("cameraId" to row.id)).size))
+}
+internal fun V1Context.requireCamera(recordings: Boolean = false): Record {
+    val row = store.get("camera", id("cameraId"), locationId)
+    val permissions = cameraAccess(row)
