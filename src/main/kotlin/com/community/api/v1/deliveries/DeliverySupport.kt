@@ -46,7 +46,10 @@ internal fun V1Context.parcel(id: String = path.getValue("parcelId"), own: Boole
 internal fun V1Context.canReadParcel(row: Record, includeClosed: Boolean = false): Boolean {
     if (!includeClosed && row.data.text("status") in setOf("returned", "cancelled")) return false
     if (row.data.text("membershipId") == membershipId) return true
-    return row.data.array("delegates").any { it.jsonPrimitive.content == membershipId }
+    if (row.data.array("delegates").any { it.jsonPrimitive.content == membershipId }) return true
+    return row.data.text("recipientKind") == "node" && membership?.data?.text("nodeId")?.let { memberNode ->
+        nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == memberNode }
+    } == true
 }
 internal fun V1Context.recipient(row: Record) {
     if (row.data.text("membershipId") != membershipId) fail(403, "FORBIDDEN", "Only the recipient can perform this action")
