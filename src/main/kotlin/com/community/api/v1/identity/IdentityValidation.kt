@@ -38,3 +38,22 @@ internal fun checkedContact(value: String, channel: String): String = when (chan
     else -> identityFailure(422, "INVALID_CHANNEL", "Canal de autenticação inválido")
 }
 
+internal fun identifierType(value: String): String = when {
+    '@' in value -> "email"
+    value.startsWith('+') -> "phone"
+    else -> "cpf"
+}
+
+internal fun checkedIdentifier(value: String): Pair<String, String> {
+    val type = identifierType(value)
+    return type to when (type) {
+        "email" -> checkedEmail(value)
+        "phone" -> checkedPhone(value)
+        else -> checkedCpf(value)
+    }
+}
+
+internal fun maskedContact(value: String, channel: String): String = when (channel) {
+    "email" -> value.substringBefore('@').take(1) + "***@" + value.substringAfter('@', "***")
+    else -> "+55 ** *****-" + value.takeLast(4)
+}
