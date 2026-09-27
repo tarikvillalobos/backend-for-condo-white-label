@@ -386,11 +386,16 @@ paths:
         logsDenied: true
   /auth/logout:
     post:
-      tags: ["Identity"]
-      summary: "Request password recovery"
-      operationId: "post_api_v1_auth_recovery_request"
-      description: "Requests are rate limited. Recovery and code request responses do not reveal whether the account exists."
-      security: []
+      operationId: logoutSession
+      tags:
+      - Authentication
+      summary: Revogar a sessão atual
+      description: 'Revogar access/refresh tokens da sessão e seus registros push. Limpar dados locais mesmo se
+        a rede falhar; a
+
+        confirmação da revogação remota só ocorre com resposta 204. Repetição com a mesma chave após revogação mantém
+
+        204.'
       requestBody:
         required: true
         content:
