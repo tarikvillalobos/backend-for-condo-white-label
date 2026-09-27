@@ -38,3 +38,23 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
         }
     }
     val membership = if (operation.path.startsWith("/memberships/")) path["membershipId"]?.let {
+        store.get("membership",it).also { member ->
+            if (member.ownerId != principal?.userId || member.data.string("status") != "active") throw ApiException(404,"RESOURCE_NOT_FOUND","Membership not found")
+        }
+    } else null
+    val location = path["condominiumId"] ?: membership?.locationId ?: input.string("condominiumId") ?: query["condominiumId"]
+        ?: path["lockerId"]?.let { store.get("locker",it).locationId }
+        ?: path["parcelId"]?.let { store.get("parcel",it).locationId }
+        ?: path["arrivalId"]?.let { store.get("arrival",it).locationId }
+        ?: input.string("nodeId")?.let { store.get("node",it).locationId }
+        ?: principal?.deviceId?.let { store.get("device",it).locationId }
+    val provisional = V1Context(tx,operation.id,tenantId,brandId,requestId,input,path,query,headers,principal,location,membership)
+    if (location != null) {
+        val condo = store.get("condominium",location)
+        if (condo.data.string("status") in setOf("suspended","inactive","deleted")) provisional.fail(403,"ACCESS_DENIED","Condominium is unavailable")
+    }
+    val permissions = if (principal?.userId != null) effectivePermissions(provisional,principal.userId) else emptySet()
+    val c = V1Context(tx,operation.id,tenantId,brandId,requestId,input,path,query,headers,principal?.copy(permissions=permissions),location,membership)
+    if (principal?.deviceId != null && location != store.get("device",principal.deviceId).locationId) c.fail(404,"RESOURCE_NOT_FOUND","Resource not found")
+    operation.definition.string("x-required-permission")?.let { c.requirePermission(*it.split('|').map(String::trim).toTypedArray()) }
+    if ("x-step-up" in operation.definition) {
