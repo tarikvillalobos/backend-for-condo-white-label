@@ -78,3 +78,23 @@ private fun V1Context.auditWhere(table: String, extra: Map<String,String>): Pair
         sql.append(" AND $key = ?"); values += value
     }
     return sql.toString() to values
+}
+
+private fun V1Context.auditRows(table: String, extra: Map<String,String>): List<JsonObject> {
+    val (where,values) = auditWhere(table,extra)
+    return tx.connection.prepareStatement("SELECT payload FROM $table WHERE $where ORDER BY created_at LIMIT 5001").use {
+        values.forEachIndexed { index,value -> it.setObject(index+1,value) }
+        it.executeQuery().use { rows -> buildList { while(rows.next()) add(json.parseToJsonElement(rows.getString(1)).jsonObject) } }
+    }
+}
+private fun V1Context.auditRow(table: String, id: String): JsonObject = auditRows(table,mapOf((if(table=="api_requests") "request_id" else "id") to id)).firstOrNull()
+    ?: fail(404,"RESOURCE_NOT_FOUND","Audit record not found")
+
+private fun V1Context.auditPage(table: String): JsonObject {
+    val limit = query["limit"]?.toIntOrNull() ?: 20
+    if (limit !in 1..100) fail(422,"VALIDATION_ERROR","Invalid limit")
+    val binding = hash("$tenantId:$brandId:${principal?.userId}:$operationId:${path.toSortedMap()}:${query.filterKeys { it!="cursor" }.toSortedMap()}")
+    val cursor = query["cursor"]?.let { json.parseToJsonElement(unseal(it)).jsonObject }
+    val snapshot = cursor?.string("snapshot") ?: now.toString()
+    val expires = cursor?.string("expires") ?: now.plusSeconds(900).toString()
+    if (cursor != null && (cursor.string("binding") != binding || Instant.parse(expires).isBefore(now))) fail(410,"CURSOR_EXPIRED","Snapshot expired")
