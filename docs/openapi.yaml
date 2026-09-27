@@ -627,6 +627,7 @@ paths:
         logsDenied: true
   /me/contact-challenges/{challengeId}/resend:
     parameters:
+    - $ref: '#/components/parameters/ChallengeId'
     post:
       tags: ["Identity"]
       summary: "Request an email sign-in code"
