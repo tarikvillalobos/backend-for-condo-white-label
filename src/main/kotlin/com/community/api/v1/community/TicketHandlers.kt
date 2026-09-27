@@ -38,3 +38,23 @@ internal fun V1Context.commentTicket(row: Record, body: String, internal: Boolea
 private fun V1Context.updateTicketState(row: Record): V1Response {
     val previous = row.data.text("status")!!
     val requested = input.text("status")!!
+    val transitions = when (row.data.text("kind")) {
+        "occurrence" -> occurrenceTransitions
+        "support_issue" -> mapOf("received" to setOf("in_progress", "resolved", "closed"), "in_progress" to setOf("resolved", "closed"), "resolved" to setOf("closed", "in_progress"))
+        else -> requestTransitions
+    }
+    if (previous != requested && requested !in transitions[previous].orEmpty()) fail(409, "TICKET_INVALID_TRANSITION", "Transição inválida do chamado")
+    requireStaffUser(input.text("assignedToUserId"))
+    var data = input.merge(obj("resolvedAt" to if (requested == "resolved") now() else row.data["resolvedAt"]))
+    if ("assignedToUserId" !in input) data = JsonObject(data - "assignedToUserId")
+    val updated = change(row, data, "ticket.status_changed")
+    input.text("comment")?.takeIf { it.isNotBlank() }?.let { commentTicket(updated, it, false, true) }
+    return V1Response(status = 204)
+}
+internal fun ticketHandlers(): Map<String, V1Handler> = mapOf(
+    "listServiceRequests" to V1Handler { c -> c.listResponse("ticket", true, mapOf("kind" to "service_request")) { c.ticket(it) } },
+    "createServiceRequest" to V1Handler { c -> c.newTicket("service_request") },
+    "getServiceRequest" to V1Handler { c -> V1Response(c.ticket(c.ticketBy("requestId", "service_request"))) },
+    "commentServiceRequest" to V1Handler { c -> V1Response(c.commentTicket(c.ticketBy("requestId", "service_request"), c.input.text("body")!!, false, false), 201) },
+    "listOccurrences" to V1Handler { c -> c.listResponse("ticket", true, mapOf("kind" to "occurrence")) { c.ticket(it) } },
+    "createOccurrence" to V1Handler { c ->
