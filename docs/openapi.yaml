@@ -629,11 +629,16 @@ paths:
     parameters:
     - $ref: '#/components/parameters/ChallengeId'
     post:
-      tags: ["Identity"]
-      summary: "Request an email sign-in code"
-      operationId: "post_api_v1_auth_otp_request"
-      description: "Requests are rate limited. Recovery and code request responses do not reveal whether the account exists."
-      security: []
+      operationId: resendContactChange
+      tags:
+      - Profile
+      summary: Reenviar OTP para o novo contato
+      description: 'Usar o contato e canal armazenados no desafio, nunca inferir pelo estado local da tela. Retornar
+        novo desafio
+
+        invalidando o anterior; respeitar resendAt.'
+      x-required-permission: profile.manage
+      parameters:
       requestBody:
         required: true
         content:
