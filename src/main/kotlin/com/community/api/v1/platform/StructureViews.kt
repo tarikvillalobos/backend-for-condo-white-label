@@ -58,3 +58,13 @@ internal fun V1Context.nodeDescendants(id: String): Set<String> {
 internal fun V1Context.nodeCounts(ids: Set<String>): JsonObject {
     fun records(kind: String) = store.list(kind, condominiumId()).filter { it.data.string("nodeId") in ids }
     val residents = records("membership")
+    val parcels = records("parcel").filter { it.data.string("status") in setOf("waiting", "manual") }
+    return obj("activeResidents" to residents.count { it.data.string("status") == "active" },
+        "pendingResidents" to residents.count { it.data.string("status") == "pending" },
+        "pendingParcels" to parcels.size, "overdueParcels" to parcels.count { (it.data.string("deadlineAt") ?: "9999") < now.toString() },
+        "pets" to records("pet").size, "vehicles" to records("vehicle").size,
+        "activeInvites" to records("access_invite").count { it.data.string("status") == "active" },
+        "openTickets" to records("ticket").count { it.data.string("status") !in setOf("closed", "resolved", "cancelled") },
+        "upcomingReservations" to records("reservation").count { (it.data.string("startsAt") ?: "") > now.toString() &&
+            it.data.string("status") !in setOf("cancelled", "rejected") })
+}
