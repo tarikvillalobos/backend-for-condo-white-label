@@ -18,3 +18,23 @@ internal class IdentityFixture : AutoCloseable {
         tx.create("client", tenant, id = tenant, data = obj("active" to true, "name" to "Identity tenant"))
         val user = tx.create("account", tenant, data = body(Account(email, "Identity Test", passwordHash)))
         indexIdentityAccount(tx, user, "52998224725")
+        user
+    }
+
+    fun context(tx: Tx, operation: String = "test", input: JsonObject = obj(), token: String? = null,
+        path: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), brandId: String = brand): V1Context {
+        val actor = token?.let { authenticateV1Session(tx, tenant, brandId, it) }
+        return V1Context(tx, operation, tenant, brandId, UUID.randomUUID().toString(), input, path,
+            headers = headers + ("X-Remote-Host" to "fixture-host"), principal = actor?.let { V1Principal(actor = it) })
+    }
+
+    fun invoke(operation: String, input: JsonObject = obj(), token: String? = null,
+        path: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), brandId: String = brand): V1Response =
+        db.tx { identityHandlers().getValue(operation).handle(context(it, operation, input, token, path, headers, brandId)) }
+
+    fun login(): JsonObject = invoke("loginWithPassword", obj("identifier" to email, "password" to password)).body.jsonObject
+
+    fun challenge(purpose: String = "login", token: String? = null): Pair<JsonObject, String> = db.tx { tx ->
+        val context = context(tx, token = token)
+        val challenge = context.issueIdentityChallenge(purpose, user, email, context.principal?.sessionId)
+        val id = challenge.string("id")!!
