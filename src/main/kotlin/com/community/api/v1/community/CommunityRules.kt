@@ -38,3 +38,17 @@ internal fun vaccinationDates(data: JsonObject) {
     }
 }
 internal val workOrderTransitions = mapOf(
+    "scheduled" to setOf("in_progress", "cancelled"),
+    "in_progress" to setOf("waiting_parts", "completed", "cancelled"),
+    "waiting_parts" to setOf("in_progress", "cancelled"),
+)
+internal val requestTransitions = mapOf(
+    "received" to setOf("in_progress", "rejected", "closed"),
+    "in_progress" to setOf("waiting_resident", "resolved", "rejected", "closed"),
+    "waiting_resident" to setOf("in_progress", "resolved", "closed"),
+    "resolved" to setOf("in_progress", "closed"),
+)
+internal val occurrenceTransitions = mapOf(
+    "received" to setOf("under_review", "dismissed"),
+    "under_review" to setOf("resolved", "dismissed"),
+)
