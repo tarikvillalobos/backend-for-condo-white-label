@@ -95,6 +95,26 @@ tags:
 - name: Admin · Reservas
   description: Espaços, regras, bloqueios, aprovação de reservas, agenda.
 - name: Admin · Câmeras
+  description: Cadastro, quem pode ver, auditoria de visualização.
+- name: Admin · Lockers e equipamentos
+  description: Lockers, compartimentos, equipamentos e suas chaves.
+- name: Admin · Pets e veículos
+  description: Consulta por nó, moderação de alertas, busca por placa.
+- name: Admin · Comunicação
+  description: Comunicados com taxa de leitura.
+- name: Admin · Chamados
+  description: Solicitações, ocorrências e relatos; comentários internos.
+- name: Admin · Relatórios
+  description: Painel, séries para gráficos, exportação, auditoria.
+- name: Admin · Integrações
+  description: Webhooks para ERP/BI.
+- name: Documents
+  description: Regimento, atas, formulários; ciência por revisão.
+- name: Contacts
+  description: Telefones úteis do condomínio.
+- name: Admin · Documentos e contatos
+  description: Publicar documentos e revisões, acompanhar ciência, manter contatos.
+- name: Admin · Manutenção
 paths:
   "/health/live":
     get:
