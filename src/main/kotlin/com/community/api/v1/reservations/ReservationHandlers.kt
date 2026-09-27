@@ -98,6 +98,7 @@ private fun reservations(c: V1Context): V1Response {
     val matches: (Record) -> Boolean = { row ->
         val data = row.data
         val ended = !timestamp(data.text("endsAt")).isAfter(c.now)
+        val status = if (data.text("status") == "confirmed" && ended) "completed" else data.text("status")
         (admin || data.text("membershipId") == c.membershipId) &&
             (c.query["spaceId"] == null || data.text("spaceId") == c.query["spaceId"]) &&
             (if (admin) c.query["status"] == null || status == c.query["status"] || (c.query["status"] == "completed" && status == "confirmed" && ended)
