@@ -85,7 +85,7 @@ internal fun V1Context.releaseCompartment(row: Record, occurredAt: Instant = now
     val compartments = locker.data.array("compartments").map { element ->
         val compartment = element.jsonObject
         if (compartment.text("parcelId") == row.id) compartment.changed("status" to JsonPrimitive("free"), "parcelId" to JsonNull,
-            "updatedAt" to JsonPrimitive(now.toString())) else compartment
+            "updatedAt" to JsonPrimitive(now.toString()), "lastEventAt" to JsonPrimitive(maxOf(occurredAt, compartment.text("lastEventAt")?.let(::instant) ?: occurredAt).toString())) else compartment
     }
     store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
 }
