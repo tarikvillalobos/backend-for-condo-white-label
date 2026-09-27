@@ -38,3 +38,23 @@ private fun V1Context.createIdentityDataRequest(): V1Response {
     val requested = store.create("data_request", obj("kind" to kind, "status" to "received",
         "requestedAt" to now.toString(), "completedAt" to null, "downloadUrl" to null,
         "downloadExpiresAt" to null, "executeAfter" to if (kind == "deletion") now.plusSeconds(graceDays.toLong() * 86400).toString() else null),
+        ownerId = userId)
+    if (kind == "deletion") return V1Response(project("DataRequest", requested.document()), 202)
+    val kinds = listOf("membership", "vehicle", "pet", "vaccination", "visitor", "access_invite",
+        "reservation", "attendance", "ticket", "comment", "occurrence", "notification", "parcel", "data_request")
+    val data = obj("exportedAt" to now.toString(), "profile" to identityProfile(),
+        "privacy" to profileData(account())["privacy"], "records" to kinds.associateWith { type ->
+            store.list(type, ownerId = userId).map { scrubIdentityExport(it.document()) }
+        })
+    val file = writePrivateFile(this, "personal-data.json", "application/json", data.toString().toByteArray(Charsets.UTF_8))
+    val ready = store.update(requested, requested.data.with("status" to "ready", "completedAt" to now.toString(),
+        "downloadUrl" to fileUrl(file.id), "downloadExpiresAt" to now.plusSeconds(900).toString(), "fileId" to file.id))
+    return V1Response(project("DataRequest", ready.document()), 202)
+}
+
+private fun scrubIdentityExport(element: JsonElement): JsonElement = when (element) {
+    is JsonObject -> JsonObject(element.filterKeys { key ->
+        val normalized = key.lowercase()
+        listOf("password", "secret", "token", "credential", "codehash", "keyhash", "encrypted").none(normalized::contains)
+    }.mapValues { scrubIdentityExport(it.value) })
+    is JsonArray -> JsonArray(element.map(::scrubIdentityExport))
