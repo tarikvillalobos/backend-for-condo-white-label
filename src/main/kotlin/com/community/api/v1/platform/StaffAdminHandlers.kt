@@ -38,3 +38,23 @@ internal fun V1Context.createPlatformStaff(organizationId: String? = null): Reco
     }
     val requested = custom?.data?.arr("permissions") ?: input.arr("permissions").takeIf { it.isNotEmpty() }
         ?: JsonArray(platformRolePermissions(this, role).map(::JsonPrimitive))
+    val permissions = checkedPermissions(requested, role)
+    if (store.list("staff_assignment", ownerId = account.id).any { it.locationId == condoId &&
+            it.data.string("organizationId") == organizationId && it.data.string("status") == "active" }) {
+        fail(409, "STAFF_ALREADY_ASSIGNED", "A pessoa já possui uma atribuição ativa neste escopo")
+    }
+    val record = store.create("staff_assignment", obj("userId" to account.id, "brandId" to brandId,
+        "role" to role, "condominiumId" to condoId, "organizationId" to organizationId,
+        "scope" to if (condoId == null) "organization" else "condominium", "status" to "active",
+        "permissions" to permissions, "permissionsCustomized" to (custom != null || input.arr("permissions").isNotEmpty()),
+        "customRoleId" to customId, "customRole" to custom?.let { obj("id" to it.id, "code" to it.data["code"], "name" to it.data["name"]) },
+        "mfaRequired" to input.bool("mfaRequired", true), "startedAt" to now.toString(), "endedAt" to null), condoId, account.id)
+    if (invite != null && !account.data.bool("active")) {
+        if (condoId == null) issueOrganizationStaffInvitation(account, record, organizationId!!)
+        else withInput(input, condoId).createPlatformInvitation(JsonObject(invite + obj("nodeId" to withInput(input, condoId).rootNode().id,
+            "role" to role, "expiresInDays" to 7, "deliver" to listOf("email"))), userId = account.id, assignmentId = record.id)
+    }
+    return record
+}
+
+private fun V1Context.updatePlatformStaff(): V1Response {
