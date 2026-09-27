@@ -58,3 +58,23 @@ private fun saveSpace(c: V1Context): V1Response {
     if (data.text("photoKey") != null) c.store.get("upload", data.text("photoKey")!!, condominium(c))
     val saved = if (old == null) c.store.create("space", data, condominium(c)) else c.store.update(old, data)
     c.audit(if (old == null) "space.created" else "space.updated", saved)
+    return V1Response(spaceView(c, saved), if (old == null) 201 else 200)
+}
+
+internal fun zone(c: V1Context): ZoneId = BookingRules.timeZone(
+    c.store.get("condominium", condominium(c)).data.text("timeZone"),
+)
+
+private fun reservation(c: V1Context): Record = c.store.get("reservation", c.path.getValue("reservationId"), condominium(c)).also {
+    if (c.membershipId != null && it.data.text("membershipId") != c.membershipId) c.fail(404, "NOT_FOUND", "Reservation not found")
+}
+
+private fun reservationView(c: V1Context, row: Record): JsonObject {
+    val stored = row.data
+    val facility = c.store.get("space", stored.text("spaceId")!!, condominium(c))
+    val effectiveStatus = if (stored.text("status") == "confirmed" && !timestamp(stored.text("endsAt")).isAfter(c.now)) "completed" else stored.text("status")
+    return obj("id" to row.id, "membershipId" to stored.text("membershipId"), "space" to spaceView(c, facility),
+        "status" to effectiveStatus, "startsAt" to stored.text("startsAt"), "endsAt" to stored.text("endsAt"),
+        "guestsCount" to stored["guestsCount"], "notes" to stored["notes"],
+        "canCancel" to BookingRules.cancellable(stored, facility.data.objectAt("rules"), c.now),
+        "createdAt" to row.createdAt, "cancelledAt" to stored["cancelledAt"],
