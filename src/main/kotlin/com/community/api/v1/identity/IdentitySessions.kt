@@ -38,3 +38,23 @@ internal fun V1Context.identityTokens(user: Record, tokens: Tokens, challenge: J
     val id = tokens.accessToken.split('.')[1]
     val session = tx.get("session", id, tenantId)!!.decode<SessionData>()
     val staff = store.get("session", id).data["staff"]?.jsonPrimitive?.booleanOrNull == true
+    val permissions = mutableSetOf("profile.read", "profile.manage", "sessions.manage")
+    if (staff) identityStaff(user).forEach { assignment ->
+        (assignment.data["permissions"] as? JsonArray)?.mapNotNullTo(permissions) { it.jsonPrimitive.contentOrNull }
+    }
+    return obj("tokenType" to "Bearer", "accessToken" to tokens.accessToken,
+        "refreshToken" to tokens.refreshToken, "accessExpiresAt" to session.accessExpiresAt,
+        "refreshExpiresAt" to session.expiresAt, "userId" to user.id, "brandId" to brandId,
+        "sessionId" to id, "permissions" to permissions.toList(), "staff" to staff, "mfaChallenge" to challenge)
+}
+
+internal fun V1Context.revokeIdentitySession(id: String) {
+    val session = tx.get("session", id, tenantId) ?: return
+    tx.update(session, body(session.decode<SessionData>().copy(revoked = true)))
+    store.list("push_registration", filters = mapOf("sessionId" to id)).forEach {
+        store.update(it, it.data.with("status" to "inactive", "tokenEncrypted" to null, "tokenHash" to null))
+    }
+}
+
+internal fun V1Context.refreshIdentitySession(): V1Response {
+    val token = identityInput("refreshToken")
