@@ -192,10 +192,16 @@ paths:
             Cache-Control:
               $ref: '#/components/headers/NoStore'
           content:
-            "application/json":
-              schema: {"$ref":"#/components/schemas/Tokens"}
-        default: {"$ref":"#/components/responses/Error"}
-  "/api/v1/auth/refresh":
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '429':
     post:
       tags: ["Identity"]
       summary: "Rotate access and refresh tokens"
