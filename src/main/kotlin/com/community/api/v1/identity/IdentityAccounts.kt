@@ -38,3 +38,23 @@ internal fun V1Context.profileData(user: Record): JsonObject =
             "termsVersion" to "", "consentUpdatedAt" to user.createdAt))
 
 internal fun V1Context.saveProfile(user: Record, data: JsonObject): Record {
+    val existing = store.find("profile", user.id)
+    return if (existing == null) store.create("profile", data, ownerId = user.id, id = user.id)
+    else store.update(existing, data)
+}
+
+internal fun JsonObject.with(vararg values: Pair<String, Any?>): JsonObject = JsonObject(this + obj(*values))
+
+internal fun V1Context.identityInput(name: String): String = input.string(name)
+    ?: fail(422, "INVALID_INPUT", "O campo $name é obrigatório")
+
+internal fun V1Context.identityPath(name: String): String = path[name]
+    ?: fail(400, "INVALID_PATH", "Parâmetro de rota ausente")
+
+internal fun V1Context.identityHeader(name: String): String? =
+    headers.entries.firstOrNull { it.key.equals(name, ignoreCase = true) }?.value
+
+internal fun V1Context.identityRate(operation: String, subject: String): Boolean =
+    tx.allowAttempt(operation, tenantId, "$brandId:$subject", identityHeader("X-Remote-Host") ?: "unknown")
+
+internal fun V1Context.identityError(status: Int, code: String, detail: String): V1Response =
