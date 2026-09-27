@@ -879,6 +879,26 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: parcel
+        action: getParcelMetrics
+        severity: info
+        layers:
+        - request
+        logsDenied: true
+  /memberships/{membershipId}/parcels/{parcelId}:
+    parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    - $ref: '#/components/parameters/ParcelId'
+    get:
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
