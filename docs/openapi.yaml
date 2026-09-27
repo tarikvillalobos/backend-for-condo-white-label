@@ -999,6 +999,8 @@ paths:
         logsDenied: true
   /memberships/{membershipId}/parcels/{parcelId}/manual-pickup:
     parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    - $ref: '#/components/parameters/ParcelId'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
