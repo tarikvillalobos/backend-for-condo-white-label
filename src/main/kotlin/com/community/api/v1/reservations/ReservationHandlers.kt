@@ -14,7 +14,10 @@ fun reservationHandlers(): Map<String, V1Handler> = mapOf(
     "cancelReservation" to V1Handler(::transition), "adminCancelReservation" to V1Handler(::transition),
     "adminApproveReservation" to V1Handler(::transition), "adminRejectReservation" to V1Handler(::transition),
     "adminBlockSpace" to V1Handler(::blockSpace), "adminUnblockSpace" to V1Handler(::unblockSpace),
-)
+).mapValues { (_, handler) -> V1Handler { c ->
+    c.tx.lock("reservations:${c.tenantId}:${c.brandId}:${condominium(c)}")
+    handler.handle(c)
+} }
 
 internal fun condominium(c: V1Context): String = c.locationId ?: c.fail(404, "NOT_FOUND", "Condominium not found")
 internal fun space(c: V1Context, id: String = c.path.getValue("spaceId")): Record =
