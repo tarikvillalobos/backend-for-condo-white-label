@@ -570,10 +570,16 @@ paths:
         logsDenied: true
   /me/contact-challenges:
     post:
-      tags: ["Identity"]
-      summary: "Reset password using a recovery token"
-      operationId: "post_api_v1_auth_recovery_confirm"
-      security: []
+      operationId: requestContactChange
+      tags:
+      - Profile
+      summary: Verificar novo contato antes de alterar o perfil
+      description: 'Exige sessão ativa e capacidade contactEditing. Enviar OTP ao novo contato; manter o atual até
+        a verificação.
+
+        Desafio vinculado à sessão, usuário, marca, canal e novo contato; não pode ser usado para login.'
+      x-required-permission: profile.manage
+      parameters:
       requestBody:
         required: true
         content:
