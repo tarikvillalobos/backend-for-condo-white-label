@@ -38,3 +38,17 @@ internal fun V1Context.adminDashboard(): JsonObject {
 private fun V1Context.residentDashboard(): JsonObject {
     fun own(kind: String) = store.list(kind, locationId, userId, mapOf("membershipId" to membershipId!!))
     val unreadAnnouncements = store.list("announcement", locationId).count { row -> visible(row.data) &&
+        !timestamp(row.data.text("publishedAt")!!).isAfter(now) && row.data.text("expiresAt")?.let { timestamp(it).isAfter(now) } != false && receipt(row.id) == null }
+    return obj("pendingParcels" to own("parcel").count { it.data.text("status") == "waiting" },
+        "unreadNotifications" to own("notification").count { it.data.text("readAt") == null }, "unreadAnnouncements" to unreadAnnouncements,
+        "activeInvites" to own("access_invite").count { inviteStatus(it) == "active" },
+        "upcomingReservations" to own("reservation").count { it.data.text("status") !in setOf("cancelled", "rejected") && timestamp(it.data.text("startsAt")!!).isAfter(now) },
+        "openRequests" to own("ticket").count { it.data.text("kind") == "service_request" && it.data.text("status") !in closedTicketStates },
+        "activePetAlerts" to store.list("pet_alert", locationId, filters = mapOf("status" to "open")).size, "generatedAt" to now.toString())
+}
+internal fun dashboardHandlers(): Map<String, V1Handler> = mapOf(
+    "getDashboard" to V1Handler { c -> V1Response(c.residentDashboard()) },
+    "adminDashboard" to V1Handler { c -> V1Response(c.adminDashboard()) },
+    "organizationDashboard" to V1Handler { c -> c.organizationDashboard() },
+    "organizationWorkQueue" to V1Handler { c -> c.organizationQueue() },
+)
