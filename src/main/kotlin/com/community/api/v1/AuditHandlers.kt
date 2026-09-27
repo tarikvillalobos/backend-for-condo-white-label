@@ -138,3 +138,23 @@ private fun V1Context.verifyChain(): JsonObject {
     return obj("since" to since,"until" to until,"entriesChecked" to checked,"intact" to (broken==null),"firstBrokenEntryId" to broken,"checkedAt" to now)
 }
 
+private fun V1Context.acceptClientEvent(index:Int,event:JsonObject):JsonObject {
+    fun result(status:String,reason:String?=null,id:String?=null)=obj("index" to index,"result" to status,"reason" to reason,"auditEntryId" to id)
+    val type=event.string("type")!!
+    val allowed=if(principal?.deviceId!=null) type.startsWith("device.") else if(type.startsWith("web.")) principal?.staff==true else type.startsWith("app.")
+    if(!allowed) return result("rejected","type_not_allowed_for_actor")
+    if(kotlin.math.abs(java.time.Duration.between(Instant.parse(event.string("occurredAt")),now).seconds)>86400) return result("rejected","clock_skew")
+    val details=event["details"] as? JsonObject ?: obj()
+    if(details.toString().toByteArray().size>4096 || details.size>20) return result("rejected","payload_too_large")
+    if(redact(details)!=details || Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+|\\b[0-9]{11}\\b").containsMatchIn(details.toString())) return result("rejected","pii_detected")
+    val contextId=event.string("contextId")
+    val member=contextId?.let { store.find("membership",it) ?: store.find("staff_assignment",it) }
+    if(contextId!=null && (member?.ownerId!=principal?.userId || member?.data?.string("status")!="active")) return result("rejected","context_not_owned")
+    val target=(event["target"] as? JsonObject)?.let { ref -> store.find(ref.string("type")!!,ref.string("id")!!) }
+    if(event["target"] is JsonObject && target==null) return result("rejected","target_not_accessible")
+    if(target!=null) {
+        val expected=when {
+            type.contains("camera_view") -> "camera"
+            type.contains("recording_played") -> "recording"
+            type.contains("pickup_code") -> "parcel"
+            type.contains("access_qr") -> "access_invite"
