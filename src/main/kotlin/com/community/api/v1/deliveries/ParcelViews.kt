@@ -38,3 +38,12 @@ internal fun V1Context.pickupView(row: Record): JsonObject {
         fail(410, "CREDENTIAL_EXPIRED", "Pickup credential is no longer active")
     if (membershipId != null && data.text("credentialMemberId") != membershipId) fail(403, "FORBIDDEN", "Credential belongs to another collector")
     data.text("lockerId")?.let {
+        val locker = store.get("locker", it, row.locationId)
+        if (!locker.data.flag("available") || !lockerOnline(locker.data, now)) fail(503, "LOCKER_UNAVAILABLE", "Locker is unavailable")
+    }
+    val expiry = instant(data.text("credentialExpiresAt"))
+    val code = unseal(data.text("sealedCode") ?: fail(410, "CREDENTIAL_REVOKED", "Credential is unavailable"))
+    return obj("parcelId" to row.id, "membershipId" to data.text("credentialMemberId"), "code" to code, "qrPayload" to code,
+        "status" to "active", "verifiedAt" to now.toString(), "expiresAt" to expiry.toString(),
+        "revalidateAfter" to minOf(expiry, now.plusSeconds(60)).toString())
+}
