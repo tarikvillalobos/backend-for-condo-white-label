@@ -338,6 +338,7 @@ paths:
         renovações; reuso com chave diferente após consumo revoga a família e retorna 401 REFRESH_REVOKED. Mesma
         chave
 
+        e corpo reproduzem a mesma rotação durante a janela de idempotência, sem revogar a família.'
       security: []
       requestBody:
         required: true
