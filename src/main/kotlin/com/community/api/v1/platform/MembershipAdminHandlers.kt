@@ -78,3 +78,23 @@ private fun V1Context.importMemberships(): V1Response {
             val nodeId = row.string("nodeId") ?: resolveNodePath(row.string("nodePath").orEmpty())
             val data = JsonObject(row - setOf("rowRef", "nodePath")).plusFields("nodeId" to nodeId,
                 "sendInvitation" to if (dryRun) emptyList<String>() else input.arr("sendInvitation"),
+                "invitationExpiresInDays" to (input["invitationExpiresInDays"] ?: JsonPrimitive(7)))
+            val created = withInput(data).createMembership().body.jsonObject
+            if (dryRun) tx.connection.rollback(savepoint)
+            obj("rowRef" to row["rowRef"], "status" to if (created.bool("userCreated")) "created" else "reused",
+                "membershipId" to if (dryRun) null else created["membership"]!!.jsonObject["id"], "errorCode" to null, "message" to null)
+        } catch (failure: ApiException) {
+            tx.connection.rollback(savepoint)
+            obj("rowRef" to row["rowRef"], "status" to "failed", "membershipId" to null,
+                "errorCode" to failure.code, "message" to failure.message)
+        } finally { tx.connection.releaseSavepoint(savepoint) }
+    }
+    return V1Response(obj("dryRun" to dryRun, "created" to results.count { it.string("status") == "created" },
+        "reused" to results.count { it.string("status") == "reused" }, "failed" to results.count { it.string("status") == "failed" }, "rows" to results))
+}
+
+private fun V1Context.resolveNodePath(value: String): String {
+    var current = rootNode()
+    val segments = value.split('/').filter { it.isNotBlank() }.toMutableList()
+    if (segments.firstOrNull() == current.data.string("label")) segments.removeAt(0)
+    for (segment in segments) current = store.list("node", condominiumId(), filters = mapOf("parentId" to current.id))
