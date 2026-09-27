@@ -30,6 +30,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("com.h2database:h2:2.5.250")
     implementation("org.eclipse.angus:jakarta.mail:2.0.5")
+    implementation("org.yaml:snakeyaml:2.4")
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation(kotlin("test-junit5"))
