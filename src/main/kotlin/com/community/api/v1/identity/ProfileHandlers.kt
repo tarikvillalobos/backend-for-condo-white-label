@@ -118,3 +118,6 @@ private fun V1Context.verifyStepUp(): V1Response {
         val metadata = store.get("session", principal.sessionId!!)
         store.update(metadata, metadata.data.with("otpVerifiedAt" to now.toString()))
     }
+    tx.update(session, body(session.decode<SessionData>().copy(verifiedAt = now.toString())))
+    return V1Response(obj("verifiedUntil" to now.plusSeconds(600).toString()))
+}
