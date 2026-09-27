@@ -18,3 +18,23 @@ fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principa
 
 fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: String = "success", details: JsonObject = obj()): JsonObject {
     c.tx.lock("audit:${c.tenantId}:${c.brandId}")
+    val previous = c.tx.connection.prepareStatement("SELECT hash FROM audit_log WHERE tenant_id = ? AND brand_id = ? ORDER BY created_at DESC, id DESC LIMIT 1").use {
+        it.setString(1, c.tenantId); it.setString(2, c.brandId)
+        it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else "" }
+    }
+    val id = UUID.randomUUID().toString()
+    val at = Instant.now().toString()
+    val actor = c.principal
+    val operation = Contract.operations.firstOrNull { it.id == c.operationId }?.definition
+    val metadata = operation?.get("x-audit")?.jsonObject.orEmpty()
+    val entry = obj("id" to id, "category" to (metadata["category"] ?: JsonPrimitive("system")), "action" to action,
+        "severity" to (metadata["severity"] ?: JsonPrimitive("info")), "outcome" to outcome,
+        "actor" to auditActor(actor), "onBehalfOf" to null, "organizationId" to c.path["organizationId"],
+        "condominiumId" to c.locationId, "node" to null,
+        "target" to record?.let { obj("type" to it.kind.removePrefix("v1_"), "id" to it.id, "label" to null) },
+        "channel" to if (actor?.deviceId != null) "device" else "api", "requestId" to c.requestId,
+        "changes" to null, "details" to redact(details), "createdAt" to at, "source" to "server", "occurredAt" to at)
+    val hash = Secrets.hash(previous + entry.toString())
+    val saved = JsonObject(entry + obj("hash" to hash))
+    c.tx.connection.prepareStatement("INSERT INTO audit_log (id,tenant_id,brand_id,location_id,request_id,actor_id,action,target_type,target_id,created_at,previous_hash,hash,payload) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
+        listOf(id,c.tenantId,c.brandId,c.locationId,c.requestId,actor?.userId,action,record?.kind?.removePrefix("v1_"),record?.id,at,previous,hash,saved.toString()).forEachIndexed { index, value -> it.setObject(index + 1, value) }
