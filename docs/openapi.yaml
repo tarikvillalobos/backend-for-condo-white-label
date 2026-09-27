@@ -55,6 +55,26 @@ tags:
   description: Identidade, vínculos, preferências, contatos, privacidade.
 - name: Condominium
   description: Contexto do condomínio, unidade, moradores e veículos.
+- name: Parcels
+  description: Encomendas, métricas, credencial de retirada, marcação manual.
+- name: Cameras
+  description: Câmeras autorizadas, sessões de vídeo ao vivo e gravações.
+- name: Access
+  description: Visitantes, prestadores e convites de acesso com validade.
+- name: Pets
+  description: Pets, vacinação e alertas de perdidos/encontrados.
+- name: Reservations
+  description: Espaços comuns, disponibilidade, reservas e agenda.
+- name: Notifications
+  description: Avisos de entrega (SmartLocker), comunicados e caixa de entrada.
+- name: Support
+  description: Relatos de encomenda, solicitações e ocorrências.
+- name: Devices
+  description: Registro do CELULAR do morador para push. Não é hardware (ver Hardware).
+- name: Uploads
+  description: URL pré-assinada para fotos, anexos e planilhas (morador e equipe).
+- name: Portaria
+  description: 'Operação do dia a dia na portaria (StaffBearer: porter/manager) e catracas (DeviceKey).'
 paths:
   "/health/live":
     get:
