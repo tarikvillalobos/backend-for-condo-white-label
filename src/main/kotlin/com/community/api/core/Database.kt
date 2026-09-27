@@ -50,6 +50,21 @@ class Database(url: String, user: String = "sa", password: String = "") : AutoCl
     }
 
     suspend fun <T> query(block: (Tx) -> T): T = withContext(Dispatchers.IO) { tx(block) }
+    fun <T> scopedTx(scope: String?, block: (Tx) -> T): T = source.connection.use { connection ->
+        connection.autoCommit = false
+        try {
+            val transaction = Tx(connection)
+            if (scope != null) transaction.lock(scope)
+            val result = block(transaction)
+            connection.commit()
+            result
+        } catch (failure: Throwable) {
+            connection.rollback()
+            throw failure
+        }
+    }
+    suspend fun <T> scopedQuery(scope: String?, block: (Tx) -> T): T =
+        withContext(Dispatchers.IO) { scopedTx(scope, block) }
     fun healthy(): Boolean = runCatching { source.connection.use { it.isValid(2) } }.getOrDefault(false)
     override fun close() = source.close()
 
