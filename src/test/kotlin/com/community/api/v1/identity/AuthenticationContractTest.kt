@@ -38,3 +38,21 @@ class AuthenticationContractTest {
         assertEquals(200, tokens.status)
         assertEquals(410, assertFailsWith<ApiException> { f.invoke("verifyLoginChallenge", input, path = path) }.status)
         val profile = f.invoke("getProfile", token = tokens.body.jsonObject.string("accessToken")).body.jsonObject
+        assertNotNull(profile.string("emailVerifiedAt"))
+    }
+
+    @Test fun `OTP failure counters survive failed responses and stop at five`() = IdentityFixture().use { f ->
+        val (challenge, otp) = f.challenge()
+        val wrong = if (otp == "000000") "000001" else "000000"
+        val path = mapOf("challengeId" to challenge.string("id")!!)
+        repeat(4) { assertEquals(422, f.invoke("verifyLoginChallenge", obj("code" to wrong), path = path).status) }
+        assertEquals(429, f.invoke("verifyLoginChallenge", obj("code" to wrong), path = path).status)
+        assertEquals(429, f.invoke("verifyLoginChallenge", obj("code" to otp), path = path).status)
+    }
+
+    @Test fun `CPF check rejects repeated and incorrect digits`() {
+        assertEquals("52998224725", checkedCpf("52998224725"))
+        assertFailsWith<ApiException> { checkedCpf("11111111111") }
+        assertFailsWith<ApiException> { checkedCpf("52998224724") }
+    }
+}
