@@ -58,3 +58,23 @@ internal fun cameraHandlers(): Map<String, V1Handler> = mapOf(
         V1Response(c.camera(row))
     },
     "adminListCameras" to V1Handler { c -> c.listResponse("camera") { c.camera(it, true) } },
+    "adminCreateCamera" to V1Handler { c ->
+        c.validateCamera(c.input)
+        val row = c.save("camera", c.input.merge(obj("status" to "offline", "policies" to JsonArray(emptyList()))))
+        V1Response(c.camera(row, true), 201)
+    },
+    "adminUpdateCamera" to V1Handler { c ->
+        val row = c.store.get("camera", c.id("cameraId"), c.locationId)
+        c.validateCamera(row.data.merge(c.input))
+        V1Response(c.camera(c.change(row, c.input), true))
+    },
+    "adminDeleteCamera" to V1Handler { c -> c.remove(c.store.get("camera", c.id("cameraId"), c.locationId)) },
+    "adminSetCameraPolicies" to V1Handler { c ->
+        c.input.array("policies").forEach { policy ->
+            policy.jsonObject.text("scopeNodeId")?.let { c.store.get("node", it, c.locationId) }
+            (policy.jsonObject["timeWindow"] as? JsonObject)?.let {
+                runCatching { LocalTime.parse(it.text("from")); LocalTime.parse(it.text("to")) }.getOrElse { c.fail(422, "INVALID_TIME_WINDOW", "Horário inválido") }
+            }
+        }
+        V1Response(c.camera(c.change(c.store.get("camera", c.id("cameraId"), c.locationId), c.input), true))
+    },
