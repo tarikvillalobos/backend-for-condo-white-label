@@ -58,3 +58,23 @@ class DeliveryHandlersTest {
         val reversed = call(db, "undoManualPickup", path = path).body.jsonObject
         assertEquals("waiting", reversed.string("status"))
         assertEquals("revoked", reversed.string("credentialStatus"))
+        val handed = call(db, "handoverParcel", obj("collectorMembershipId" to "alice", "identityChecked" to true), path, staff = true).body.jsonObject
+        assertEquals("collected", handed.string("status"))
+        assertEquals("consumed", handed.string("credentialStatus"))
+        assertEquals(now.toString(), handed.string("collectedAt"))
+        assertEquals(409, assertFailsWith<ApiException> { call(db, "undoManualPickup", path = path) }.status)
+    }
+
+    @Test fun `delegation revokes old code and reissue binds new code to active delegate`() = database().use { db ->
+        val path = mapOf("parcelId" to frontDesk(db).string("id")!!)
+        val original = call(db, "getPickupCredential", path = path).body.jsonObject.string("code")!!
+        call(db, "addParcelDelegate", obj("membershipId" to "bob"), path)
+        assertEquals(410, assertFailsWith<ApiException> { call(db, "getPickupCredential", path = path) }.status)
+        val replacement = call(db, "adminReissuePickupCredential", obj("membershipId" to "bob"), path, staff = true).body.jsonObject
+        assertNotEquals(original, replacement.string("code"))
+        assertEquals(403, assertFailsWith<ApiException> { call(db, "getPickupCredential", path = path) }.status)
+        assertEquals(replacement.string("code"), call(db, "getPickupCredential", path = path, user = "bob").body.jsonObject.string("code"))
+        assertEquals(422, assertFailsWith<ApiException> { call(db, "handoverParcel", obj("code" to original, "identityChecked" to false), path, staff = true) }.status)
+        val handed = call(db, "handoverParcel", obj("code" to replacement.string("code"), "identityChecked" to false), path, staff = true).body.jsonObject
+        assertEquals("bob", handed["collectedBy"]!!.jsonObject.string("membershipId"))
+    }
