@@ -8,8 +8,8 @@ import java.time.Duration
 fun deliveryHandlers(): Map<String, V1Handler> = (mapOf(
     "listParcels" to V1Handler(::listParcels), "adminListParcels" to V1Handler(::listParcels),
     "organizationListParcels" to V1Handler(::listParcels),
-    "getParcel" to V1Handler { c -> V1Response(c.parcelView(c.parcel())) },
-    "adminGetParcel" to V1Handler { c -> V1Response(c.parcelView(c.parcel(), true)) },
+    "getParcel" to V1Handler { c -> val row = c.parcel(); V1Response(c.parcelView(row), headers = mapOf("ETag" to "\"${row.version}\"")) },
+    "adminGetParcel" to V1Handler { c -> val row = c.parcel(); V1Response(c.parcelView(row, true), headers = mapOf("ETag" to "\"${row.version}\"")) },
     "getParcelMetrics" to V1Handler(::metrics), "getPickupCredential" to V1Handler { c -> V1Response(c.pickupView(c.parcel())) },
     "markManualPickup" to V1Handler(::manualPickup), "undoManualPickup" to V1Handler(::manualPickup),
     "addParcelDelegate" to V1Handler(::delegate), "removeParcelDelegate" to V1Handler(::delegate),
