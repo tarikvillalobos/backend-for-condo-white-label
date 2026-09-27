@@ -78,3 +78,13 @@ internal fun V1Context.resendIdentityChallenge(purpose: String, owned: Boolean):
     val data = challenge.decode<ChallengeData>()
     if (data.consumed || !Instant.parse(data.expiresAt).isAfter(now)) {
         fail(410, "CHALLENGE_EXPIRED", "Este desafio não está mais disponível")
+    }
+    if (Instant.parse(metadata.data.string("resendAt")).isAfter(now)) return rateLimited()
+    val destination = metadata.data.string("destination")!!
+    if (!identityRate("v1-challenge", destination)) return rateLimited()
+    requireEmailChannel("email")
+    tx.consumeChallenge(challenge)
+    val user = metadata.ownerId?.let { tx.get("account", it, tenantId) }
+    return V1Response(issueIdentityChallenge(purpose, user, destination,
+        metadata.data.string("sessionId"), metadata.data.string("maskedDestination")!!), 202)
+}
