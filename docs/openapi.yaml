@@ -42,7 +42,8 @@ info:
   license:
     name: Privado e proprietário
 servers:
-  - {"url":"http://localhost:8080","description":"Local development"}
+- url: http://localhost:8080/v1
+  description: Desenvolvimento local via Docker Compose
 security:
   -
     SessionBearer: []
