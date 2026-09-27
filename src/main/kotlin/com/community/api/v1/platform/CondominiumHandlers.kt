@@ -78,3 +78,16 @@ private fun V1Context.updateCondominiumModules(): V1Response {
     return V1Response(modules)
 }
 
+internal fun V1Context.checkedModules(modules: JsonObject) {
+    val brandModules = store.get("brand", brandId).data["modules"]!!.jsonObject
+    if (modules.any { (key, value) -> value == JsonPrimitive(true) && brandModules[key] != JsonPrimitive(true) }) {
+        fail(403, "MODULE_DISABLED", "O módulo está desabilitado na marca")
+    }
+}
+
+private fun checkedTimeZone(value: String) {
+    if (runCatching { ZoneId.of(value) }.isFailure) throw ApiException(422, "INVALID_TIME_ZONE", "Fuso horário IANA inválido")
+}
+
+internal fun emptySupport(): JsonObject = obj("phone" to null, "whatsapp" to null, "email" to null,
+    "hours" to null, "privacyPolicyUrl" to null, "termsUrl" to null)
