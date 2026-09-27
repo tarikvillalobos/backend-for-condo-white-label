@@ -38,3 +38,23 @@ internal fun V1Context.createMembership(): V1Response {
         "canManageNode" to input.bool("canManageNode"), "startedAt" to now.toString(), "endedAt" to null)
     val member = store.create("membership", data, condominiumId(), user.id)
     val invite = if (!active) createPlatformInvitation(JsonObject(input["person"]!!.jsonObject + obj("nodeId" to nodeId,
+        "role" to required("role"), "expiresInDays" to (input["invitationExpiresInDays"] ?: JsonPrimitive(7)),
+        "deliver" to input.arr("sendInvitation"))), membershipId = member.id, userId = user.id) else null
+    return V1Response(obj("membership" to membershipAdminView(member), "userCreated" to person.created, "invitation" to invite), 201)
+}
+
+private fun V1Context.updateMembership(): V1Response {
+    val record = store.get("membership", pathId("membershipId"), condominiumId())
+    if (record.ownerId == userId) fail(403, "SELF_MEMBERSHIP_CHANGE", "Não é permitido alterar o próprio vínculo")
+    input.string("nodeId")?.let { checkAddressableNode(it) }
+    val role = input.string("role") ?: record.data.string("role")!!
+    val permissions = if ("permissions" in input) checkedPermissions(input.arr("permissions"), role) else null
+    val updatedData = JsonObject(record.data + input).plusFields("permissions" to (permissions ?: record.data.arr("permissions")))
+    val targetNode = updatedData.string("nodeId")
+    if (store.list("membership", condominiumId(), record.ownerId).any { it.id != record.id &&
+            it.data.string("nodeId") == targetNode && it.data.string("role") == role && it.data.string("status") != "ended" }) {
+        fail(409, "ALREADY_LINKED", "A pessoa já possui este papel no nó")
+    }
+    val state = input.string("status")
+    val updated = platformUpdate(record, updatedData.plusFields("endedAt" to if (state == "ended") now.toString()
+        else if (state == "active") null else record.data["endedAt"]))
