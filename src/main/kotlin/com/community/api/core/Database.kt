@@ -156,9 +156,10 @@ class Tx internal constructor(internal val connection: Connection) {
             it.setString(1, json.encodeToString(data))
             it.setString(2, updated.updatedAt)
             it.setInt(3, updated.version)
-            it.setString(4, record.id)
-            it.setString(5, record.tenantId)
-            it.setInt(6, record.version)
+            it.setString(4, ownerId)
+            it.setString(5, record.id)
+            it.setString(6, record.tenantId)
+            it.setInt(7, record.version)
             if (it.executeUpdate() != 1) conflict("Resource changed; reload before retrying")
         }
         return updated
