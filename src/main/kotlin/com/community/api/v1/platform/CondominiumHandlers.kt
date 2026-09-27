@@ -38,3 +38,23 @@ internal fun V1Context.condominiumView(record: Record): JsonObject {
         "nodesCount" to store.list("node", record.id).count { it.data.bool("active", true) }))
 }
 
+private fun V1Context.createCondominium(): V1Response {
+    checkedTimeZone(required("timeZone"))
+    checkedModules(input["modules"]!!.jsonObject)
+    val defaults = obj("active" to true, "support" to emptySupport(), "rulesUrl" to null,
+        "settings" to obj(), "petRules" to obj("vaccinationRequired" to false, "maxPetsPerNode" to null, "allowedSpecies" to emptyList<String>()))
+    val record = store.create("condominium", JsonObject(defaults + (input - "propertyManagerUserId")))
+    val types = seedDefaultNodeTypes(record.id)
+    val rootType = types.first { it.data.string("code") == "root" }
+    val root = store.create("node", obj("typeId" to rootType.id, "typeCode" to "root", "label" to required("name"),
+        "parentId" to null, "code" to null, "attributes" to obj(), "receivesAsEntity" to false,
+        "active" to true, "sortOrder" to 0), record.id)
+    val updated = store.update(record, record.data.plusFields("rootNodeId" to root.id))
+    val manager = input.string("propertyManagerUserId") ?: if (!brandAdministrator()) userId else null
+    manager?.let {
+        if (tx.get("account", it, tenantId) == null) fail(422, "USER_NOT_FOUND", "Administradora não encontrada")
+        store.create("staff_assignment", obj("userId" to it, "brandId" to brandId, "role" to "property_manager",
+            "scope" to "condominium", "condominiumId" to record.id, "organizationId" to null,
+            "permissions" to platformRolePermissions(this, "property_manager"), "status" to "active",
+            "mfaRequired" to true, "startedAt" to now.toString(), "endedAt" to null), record.id, it)
+    }
