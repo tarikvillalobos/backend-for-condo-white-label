@@ -38,3 +38,23 @@ internal fun V1Context.deactivateNodes(): V1Response {
     }
     if (store.list("parcel", condominiumId()).any { it.data.string("nodeId") in ids && it.data.string("status") in setOf("waiting", "manual") }) {
         fail(409, "NODE_HAS_PARCELS", "A subárvore possui encomendas pendentes")
+    }
+    val nodes = ids.map { store.get("node", it, condominiumId()) }.filter { it.data.bool("active", true) }
+    nodes.forEach { store.update(it, it.data.plusFields("active" to false, "status" to "inactive",
+        "deactivationRequestId" to requestId, "deactivatedAt" to now.toString())) }
+    val audit = appendAudit(this, "structure.deactivated", target, details = obj("nodeIds" to nodes.map { it.id }))
+    return V1Response(obj("requestId" to requestId, "deactivatedNodes" to nodes.map { nodeRef(this, it.id) },
+        "auditEntryId" to audit["id"], "restorableUntil" to null))
+}
+
+internal fun V1Context.restoreNodes(): V1Response {
+    val target = store.get("node", pathId("nodeId"), condominiumId())
+    val operation = target.data.string("deactivationRequestId") ?: fail(409, "NODE_NOT_DEACTIVATED", "O nó não está desativado")
+    val nodes = store.list("node", condominiumId(), filters = mapOf("deactivationRequestId" to operation))
+    val restoredIds = nodes.map { it.id }.toSet()
+    val all = store.list("node", condominiumId())
+    for (node in nodes) {
+        val parentId = node.data.string("parentId")
+        if (parentId != null && parentId !in restoredIds && store.get("node", parentId).data.bool("active") != true) {
+            fail(409, "PARENT_INACTIVE", "Restaure o nó pai primeiro")
+        }
