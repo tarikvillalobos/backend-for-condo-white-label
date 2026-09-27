@@ -118,3 +118,23 @@ internal fun collected(c: V1Context, row: Record, collector: String, at: java.ti
         "collectedBy" to JsonPrimitive(collector), "credentialStatus" to JsonPrimitive("consumed"), "sealedCode" to JsonNull,
         "credentialHash" to JsonNull, "timeline" to timeline(row.data, "physical_pickup", at)))
     c.audit("parcel.collected", updated)
+    c.notifyParcel(updated, "Retirada da encomenda confirmada")
+    return updated
+}
+
+internal fun handover(c: V1Context): V1Response {
+    val row = c.parcel()
+    if (c.header("If-Match") != null) c.requireVersion(row)
+    c.outstanding(row)
+    if (row.data.text("storage") != "front_desk") c.fail(409, "WRONG_STORAGE", "Locker pickups require a hardware event")
+    val supplied = c.input.text("code") ?: c.input.text("qrPayload")
+    val validCode = credentialMatches(c, row, supplied)
+    val collector = if (validCode) row.data.text("credentialMemberId")!! else c.input.text("collectorMembershipId")
+        ?: c.fail(422, "COLLECTOR_REQUIRED", "Identify the collector or provide a valid credential")
+    val member = c.member(collector)
+    val nodeRecipient = row.data.text("recipientKind") == "node" && c.nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == member.data.text("nodeId") }
+    if (row.data.text("membershipId") != collector && row.data.array("delegates").none { it.jsonPrimitive.content == collector } && !nodeRecipient)
+        c.fail(403, "FORBIDDEN", "Collector is not authorized for this parcel")
+    if (!validCode && !c.input.flag("identityChecked")) c.fail(422, "IDENTITY_REQUIRED", "Check collector identity when a credential is unavailable")
+    return V1Response(c.parcelView(collected(c, row, collector, c.now)))
+}
