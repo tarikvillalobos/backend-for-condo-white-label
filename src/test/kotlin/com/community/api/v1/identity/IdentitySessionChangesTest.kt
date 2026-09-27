@@ -38,3 +38,23 @@ class IdentitySessionChangesTest {
         assertEquals(404, mismatch.status)
     }
 
+    @Test fun `logout revokes access refresh and registered push recipient`() = IdentityFixture().use { f ->
+        val tokens = f.login()
+        val current = tokens.string("accessToken")!!
+        val id = java.util.UUID.randomUUID().toString()
+        val key = Secrets.token()
+        val input = obj("platform" to "android", "provider" to "fcm", "token" to "provider-registration-token",
+            "permission" to "authorized", "appVersion" to "1.0.0")
+        val path = mapOf("installationId" to id)
+        val headers = mapOf("X-Installation-Key" to key)
+        assertEquals(200, f.invoke("registerPushDevice", input, current, path, headers).status)
+        assertEquals(204, f.invoke("logoutSession", token = current).status)
+        assertEquals(401, f.invoke("refreshSession", obj("refreshToken" to tokens["refreshToken"])).status)
+        f.db.tx { tx ->
+            val registration = V1Store(tx, tenant, brand).get("push_registration", id)
+            assertEquals("inactive", registration.data.string("status"))
+            assertNull(registration.data.string("tokenEncrypted"))
+            assertNotNull(V1Store(tx, tenant, brand).find("installation", id))
+        }
+    }
+
