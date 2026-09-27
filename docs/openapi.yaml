@@ -607,6 +607,26 @@ paths:
         '403':
           $ref: '#/components/responses/Problem'
         '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: privacy
+        action: requestContactChange
+        severity: notice
+        layers:
+        - request
+        - event
+        - changes
+        logsDenied: true
+  /me/contact-challenges/{challengeId}/resend:
+    parameters:
     post:
       tags: ["Identity"]
       summary: "Request an email sign-in code"
