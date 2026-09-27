@@ -65,6 +65,9 @@ internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadli
         .take(20).firstOrNull { hash(it) !in occupied } ?: fail(503, "CREDENTIAL_UNAVAILABLE", "Unable to allocate a unique credential")
     val expiry = minOf(deadline, now.plusSeconds(86400))
     if (!expiry.isAfter(now)) fail(409, "PARCEL_EXPIRED", "Extend the parcel deadline before issuing a credential")
+    revokeCredential(data)
+    store.create("pickup_credential", obj("parcelId" to parcelId, "membershipId" to memberId, "hash" to hash(code),
+        "issuedAt" to now.toString(), "expiresAt" to expiry.toString(), "revokedAt" to null, "consumedAt" to null), locationId, id = hash(code + parcelId + now.toString()))
     return data.changed("credentialStatus" to JsonPrimitive("active"), "credentialMemberId" to JsonPrimitive(memberId),
         "sealedCode" to JsonPrimitive(seal(code)), "credentialHash" to JsonPrimitive(hash(code)), "credentialExpiresAt" to JsonPrimitive(expiry.toString()))
 }
