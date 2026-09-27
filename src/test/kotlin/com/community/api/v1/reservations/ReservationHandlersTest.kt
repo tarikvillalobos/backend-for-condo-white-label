@@ -38,3 +38,23 @@ class ReservationHandlersTest {
         handlers.getValue(operation).handle(context).also { validateResponse(operation, it) }
     }
 
+    private fun validateResponse(operation: String, response: V1Response) {
+        val definition = Contract.operations.find { it.id == operation }?.definition ?: return
+        val schema = definition["responses"]?.jsonObject?.get(response.status.toString())?.jsonObject
+            ?.get("content")?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject ?: return
+        Contract.validate(schema, response.body)
+    }
+    private fun space(db: Database): String = call(db, "adminCreateSpace", obj("name" to "Pool", "active" to true,
+        "rules" to rules, "openingHours" to opening), staff = true).body.jsonObject.string("id")!!
+    private fun input(spaceId: String) = obj("spaceId" to spaceId, "startsAt" to "2030-01-02T12:00:00Z", "endsAt" to "2030-01-02T13:00:00Z", "guestsCount" to 3)
+
+    @Test fun `concurrent reservations for same slot produce one booking and one conflict`() = database().use { db ->
+        val input = input(space(db))
+        val gate = CountDownLatch(1)
+        val pool = Executors.newFixedThreadPool(2)
+        try {
+            val futures = listOf("alice", "bob").map { user -> pool.submit<Int> {
+                gate.await()
+                try { call(db, "createReservation", input, user = user).status } catch (failure: ApiException) { failure.status }
+            } }
+            gate.countDown()
