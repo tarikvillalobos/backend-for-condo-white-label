@@ -18,3 +18,23 @@ suspend fun processIdentityDataRequests(db: Database): Int {
     var completed = 0
     for (raw in pending) {
         val executeAfter = raw.data.string("executeAfter")?.let(Instant::parse) ?: continue
+        if (executeAfter.isAfter(Instant.now())) continue
+        val deleted = db.query { tx ->
+            val brandId = raw.data.string("_brandId") ?: return@query false
+            val userId = raw.ownerId ?: return@query false
+            val c = V1Context(tx, "completeDataDeletion", raw.tenantId, brandId, UUID.randomUUID().toString(),
+                principal = V1Principal(actor = Actor(userId, raw.tenantId, "privacy-worker")))
+            val request = c.store.find("data_request", raw.data.string("_id") ?: raw.id) ?: return@query false
+            if (request.data.string("status") != "received") return@query false
+            if (c.store.list("retention_hold").any { it.data.string("releasedAt") == null }) return@query false
+            c.completeIdentityDeletion(request)
+            true
+        }
+        if (deleted) completed++
+    }
+    return completed
+}
+
+private fun V1Context.completeIdentityDeletion(request: Record) {
+    store.list("session", ownerId = userId).forEach { revokeIdentitySession(it.id) }
+    val personalKinds = listOf("profile", "membership", "staff_assignment", "vehicle", "pet", "vaccination",
