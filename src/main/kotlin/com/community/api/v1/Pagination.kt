@@ -14,6 +14,8 @@ fun V1Context.page(
     locationId: String? = this.locationId,
     ownerId: String? = null,
     filters: Map<String, String> = emptyMap(),
+    descending: Boolean = false,
+    sortField: String = "createdAt",
     predicate: (Record) -> Boolean = { true },
     transform: (Record) -> JsonElement,
 ): JsonObject {
