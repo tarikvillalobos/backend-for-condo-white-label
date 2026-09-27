@@ -58,3 +58,23 @@ internal fun V1Context.createPlatformStaff(organizationId: String? = null): Reco
 }
 
 private fun V1Context.updatePlatformStaff(): V1Response {
+    val record = store.get("staff_assignment", pathId("assignmentId"), condominiumId())
+    if (record.ownerId == userId) fail(403, "SELF_STAFF_CHANGE", "Não é permitido alterar a própria atribuição")
+    ensureRoleAuthority(record.data.string("role")!!)
+    if ("permissions" in input) checkedPermissions(input.arr("permissions"), record.data.string("role"))
+    val status = input.string("status")
+    val updated = platformUpdate(record, JsonObject(record.data + input).plusFields(
+        "permissionsCustomized" to if ("permissions" in input) true else record.data.bool("permissionsCustomized"),
+        "endedAt" to if (status == "ended") now.toString() else if (status == "active") null else record.data["endedAt"]))
+    if (status in setOf("ended", "suspended") || input["mfaRequired"] == JsonPrimitive(true)) tx.revokeSessions(tenantId, record.ownerId!!)
+    return V1Response(assignmentView(updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+internal fun V1Context.roleView(role: String) = obj("role" to role,
+    "kind" to if (role in roleRanks) "staff" else "resident", "permissions" to platformRolePermissions(this, role), "description" to null)
+
+private fun V1Context.updatePlatformRole(): V1Response {
+    requireBrandAdministrator()
+    val role = pathId("role")
+    if (role !in roleRanks && role !in setOf("resident", "owner", "tenant", "dependent", "locker_user")) {
+        fail(404, "ROLE_NOT_FOUND", "Papel não encontrado")
