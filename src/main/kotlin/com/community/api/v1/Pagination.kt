@@ -78,3 +78,23 @@ private fun V1Context.snapshot(binding: String): Snapshot {
     }
     return snapshot
 }
+private fun cursor(snapshot: Snapshot): String {
+    val payload = Base64.getUrlEncoder().withoutPadding().encodeToString(obj("id" to snapshot.id, "created" to snapshot.lastCreated, "last" to snapshot.lastId).toString().toByteArray())
+    return "$payload.${Secrets.sign(payload)}"
+}
+private fun microInstant(value: Long): String = Instant.ofEpochSecond(value / 1_000_000, value % 1_000_000 * 1000).toString()
+
+fun V1Context.pageRecords(records: List<Record>, transform: (Record) -> JsonElement): JsonObject = pageItems(records.map(transform))
+fun V1Context.pageItems(items: List<JsonElement>): JsonObject {
+    // Materialized snapshots are reserved for small derived collections, not entity tables.
+    if (items.size > 5000) fail(413, "RESULT_TOO_LARGE", "Use a narrower filter")
+    val key = "derived:$operationId:${path.toSortedMap()}:${query.filterKeys { it != "cursor" }.toSortedMap()}:${principal?.userId}"
+    val id = query["cursor"]?.let { unseal(it).split(':') } ?: listOf(UUID.randomUUID().toString(), "0")
+    if (id.size != 2) fail(422, "VALIDATION_ERROR", "Invalid cursor")
+    val record = if (query["cursor"] == null) store.create("derived_snapshot", obj("binding" to hash(key), "items" to items, "expiresAt" to now.plusSeconds(900)), ownerId = principal?.userId, id = id[0])
+        else store.find("derived_snapshot", id[0]) ?: fail(410, "CURSOR_EXPIRED", "Snapshot expired")
+    if (record.data.string("binding") != hash(key) || Instant.parse(record.data.string("expiresAt")).isBefore(now)) fail(410, "CURSOR_EXPIRED", "Snapshot expired")
+    val offset = id[1].toIntOrNull() ?: fail(422, "VALIDATION_ERROR", "Invalid cursor")
+    val limit = query["limit"]?.toIntOrNull() ?: 20
+    if (offset < 0 || limit !in 1..100) fail(422, "VALIDATION_ERROR", "Invalid pagination")
+    val saved = record.data["items"]!!.jsonArray
