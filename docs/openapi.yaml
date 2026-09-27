@@ -839,6 +839,26 @@ paths:
         category: parcel
         action: listParcels
         severity: info
+        layers:
+        - request
+        logsDenied: true
+  /memberships/{membershipId}/parcel-metrics:
+    parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    get:
+      operationId: getParcelMetrics
+      tags:
+      - Parcels
+      summary: Consultar métricas globais do período autorizado
+      description: 'Usar os dados completos do período retornado, sem relação com o cursor ou filtro da listagem.
+        Se cobertura
+
+        incompleta, responder complete=false e valores null.'
+      x-required-permission: parcels.read.own
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
