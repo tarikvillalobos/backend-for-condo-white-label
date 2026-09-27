@@ -18,3 +18,23 @@ private fun condominiumHandlers(): Map<String, V1Handler> = mapOf(
     },
     "adminUpdateCondominium" to V1Handler { it.updateCondominium() },
     "updateModules" to V1Handler { it.updateCondominiumModules() },
+)
+
+internal fun V1Context.managesCondominium(id: String): Boolean {
+    if (brandAdministrator()) return true
+    val assignments = store.list("staff_assignment", ownerId = userId).filter { it.data.string("status") == "active" }
+    return assignments.any { assignment -> assignment.locationId == id ||
+        assignment.data.string("scope") == "organization" && store.list("organization_condominium", id,
+            filters = mapOf("organizationId" to assignment.data.string("organizationId").orEmpty(), "status" to "active")).isNotEmpty()
+    }
+}
+
+internal fun V1Context.condominiumView(record: Record): JsonObject {
+    val roles = store.list("staff_assignment", ownerId = userId).filter { it.data.string("status") == "active" &&
+        (it.locationId == null || it.locationId == record.id) }
+    val role = roles.maxByOrNull { roleRanks[it.data.string("role")] ?: 0 }?.data?.string("role") ?: "resident"
+    return project("CondominiumAdmin", record.document().plusFields("myRole" to role,
+        "activeMemberships" to store.list("membership", record.id, filters = mapOf("status" to "active")).size,
+        "nodesCount" to store.list("node", record.id).count { it.data.bool("active", true) }))
+}
+
