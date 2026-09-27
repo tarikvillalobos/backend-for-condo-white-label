@@ -58,3 +58,23 @@ private fun V1Context.linkOrganizationCondominium(): V1Response {
     val condo = store.get("condominium", required("condominiumId"))
     checkCondominiumLinkAuthority(condo.id)
     if (!org.data.bool("active", true) || !condo.data.bool("active", true)) fail(409, "INACTIVE_RESOURCE", "Organização ou condomínio inativo")
+    if (store.list("organization_condominium", condo.id, filters = mapOf("organizationId" to org.id, "status" to "active")).isNotEmpty()) {
+        fail(409, "ALREADY_LINKED", "O condomínio já está vinculado")
+    }
+    val record = store.create("organization_condominium", obj("organizationId" to org.id, "condominiumId" to condo.id,
+        "services" to input["services"], "status" to "active", "startedAt" to now.toString(), "endedAt" to null), condo.id)
+    return V1Response(organizationCondominiumView(record), 201)
+}
+
+private fun V1Context.unlinkOrganizationCondominium(): V1Response {
+    val condoId = pathId("condominiumId")
+    val orgId = pathId("organizationId")
+    if (!brandAdministrator() && !managesCondominium(condoId)) fail(403, "ACCESS_DENIED", "Condomínio fora do escopo")
+    store.list("organization_condominium", condoId, filters = mapOf("organizationId" to orgId, "status" to "active"))
+        .forEach { store.update(it, it.data.plusFields("status" to "ended", "endedAt" to now.toString())) }
+    store.list("staff_assignment", condoId, filters = mapOf("organizationId" to orgId, "status" to "active"))
+        .forEach { store.update(it, it.data.plusFields("status" to "ended", "endedAt" to now.toString())); tx.revokeSessions(tenantId, it.ownerId!!) }
+    return V1Response(status = 204)
+}
+
+internal fun V1Context.issueOrganizationStaffInvitation(account: Record, assignment: Record, organizationId: String) {
