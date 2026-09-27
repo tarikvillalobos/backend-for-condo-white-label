@@ -38,3 +38,23 @@ internal fun registerParcel(c: V1Context): V1Response {
         "registeredByName" to value(c.tx.get("account", c.userId, c.tenantId)?.data?.text("name")),
         "timeline" to JsonArray(listOfNotNull(obj("type" to "deposited", "at" to c.now.toString()),
             if (notificationEnabled) obj("type" to "notification_available", "at" to c.now.toString()) else null)), "credentialStatus" to JsonPrimitive("unverified"))
+    if (member != null) data = c.credentialData(data, member.id, deadline, id)
+    val row = c.store.create("parcel", data, condoId, member?.ownerId, id)
+    c.notifyParcel(row, "Encomenda recebida")
+    c.audit("parcel.registered", row)
+    return V1Response(c.parcelView(row), 201)
+}
+
+private fun occupy(c: V1Context, parcelId: String, condoId: String) {
+    val lockerId = c.input.text("lockerId") ?: c.fail(422, "LOCKER_REQUIRED", "Locker storage requires a locker")
+    val code = c.input.text("compartmentCode") ?: c.fail(422, "COMPARTMENT_REQUIRED", "Locker storage requires a compartment")
+    val locker = c.store.get("locker", lockerId, condoId)
+    if (!locker.data.flag("available")) c.fail(409, "LOCKER_UNAVAILABLE", "Locker is unavailable")
+    val compartment = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
+        ?: c.fail(404, "NOT_FOUND", "Compartment not found")
+    if (compartment.text("status") != "free" || compartment.text("parcelId") != null) c.fail(409, "COMPARTMENT_OCCUPIED", "Compartment is unavailable")
+    val compartments = locker.data.array("compartments").map {
+        if (it.jsonObject.text("code") == code) it.jsonObject.changed("status" to JsonPrimitive("occupied"),
+            "parcelId" to JsonPrimitive(parcelId), "updatedAt" to JsonPrimitive(c.now.toString())) else it
+    }
+    c.store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
