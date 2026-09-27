@@ -38,3 +38,16 @@ private fun V1Context.recordAccess(): V1Response {
     val visitorId = input.text("visitorId") ?: invite?.data?.text("visitorId")
     if (invite != null && input.text("visitorId")?.let { it != invite.data.text("visitorId") } == true)
         fail(422, "ACCESS_SUBJECT_MISMATCH", "Visitante não corresponde ao convite")
+    val visitor = visitorId?.let { store.find("visitor", it, locationId) }
+    if (visitorId != null && visitor == null && invite == null) fail(404, "NOT_FOUND", "Visitante não encontrado")
+    val memberId = input.text("membershipId") ?: invite?.data?.text("membershipId")
+    val member = memberId?.let { store.get("membership", it, locationId) }
+    val nodeId = invite?.data?.text("nodeId") ?: member?.data?.text("nodeId") ?: visitor?.data?.text("nodeId")
+    val ref = node(nodeId)
+    val row = save("access_event", input.merge(obj("visitorId" to visitorId, "membershipId" to memberId,
+        "inviteId" to invite?.id, "nodeId" to nodeId, "node" to ref, "unitLabel" to (ref as? JsonObject)?.get("label"),
+        "subjectName" to (visitor?.data?.get("name") ?: (invite?.data?.get("visitorSnapshot") as? JsonObject)?.get("name")
+            ?: member?.data?.text("userId")?.let { JsonPrimitive(personName(it)) }),
+        "vehiclePlate" to input["vehiclePlate"], "recordedByName" to personName())), member?.data?.text("userId"))
+    return result("AccessEvent", row, 201)
+}
