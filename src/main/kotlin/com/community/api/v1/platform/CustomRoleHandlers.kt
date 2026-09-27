@@ -18,3 +18,14 @@ private fun V1Context.saveCustomRole(update: Boolean): V1Response {
     val permissions = checkedPermissions(input.arr("permissions"), role)
     val existing = if (update) store.get("custom_role", pathId("roleId")) else null
     if (existing != null && existing.data.string("organizationId") != orgId) fail(404, "ROLE_NOT_FOUND", "Papel não encontrado")
+    if (store.list("custom_role", filters = mapOf("organizationId" to orgId, "code" to required("code"))).any { it.id != existing?.id }) {
+        fail(409, "ROLE_CODE_EXISTS", "Já existe um papel com esse código")
+    }
+    val data = input.plusFields("organizationId" to orgId, "permissions" to permissions)
+    val record = if (existing == null) store.create("custom_role", data) else platformUpdate(existing, data)
+    store.list("staff_assignment", filters = mapOf("customRoleId" to record.id)).forEach {
+        store.update(it, it.data.plusFields("role" to role, "permissions" to permissions,
+            "customRole" to obj("id" to record.id, "code" to record.data["code"], "name" to record.data["name"])))
+    }
+    return platformResult("CustomRole", record, if (update) 200 else 201)
+}
