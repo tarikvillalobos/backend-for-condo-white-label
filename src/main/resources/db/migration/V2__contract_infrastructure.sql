@@ -18,3 +18,23 @@ CREATE INDEX v1_snapshots_expiry ON v1_snapshots (expires_at);
 CREATE TABLE api_requests (
   request_id VARCHAR(128) PRIMARY KEY, tenant_id VARCHAR(128), brand_id VARCHAR(128),
   location_id VARCHAR(128), actor_id VARCHAR(128), operation_id VARCHAR(128),
+  created_at VARCHAR(40) NOT NULL, status_code INTEGER NOT NULL, payload TEXT NOT NULL
+);
+CREATE INDEX requests_scope ON api_requests (tenant_id, brand_id, location_id, created_at, request_id);
+CREATE TABLE audit_log (
+  id VARCHAR(128) PRIMARY KEY, tenant_id VARCHAR(128) NOT NULL, brand_id VARCHAR(128) NOT NULL,
+  location_id VARCHAR(128), request_id VARCHAR(128), actor_id VARCHAR(128),
+  action VARCHAR(128) NOT NULL, target_type VARCHAR(64), target_id VARCHAR(128),
+  created_at VARCHAR(40) NOT NULL, previous_hash VARCHAR(64), hash VARCHAR(64) NOT NULL, payload TEXT NOT NULL
+);
+CREATE INDEX audit_scope ON audit_log (tenant_id, brand_id, location_id, created_at, id);
+CREATE INDEX audit_trace ON audit_log (request_id);
+CREATE TABLE audit_changes (
+  id VARCHAR(128) PRIMARY KEY, tenant_id VARCHAR(128) NOT NULL, brand_id VARCHAR(128),
+  location_id VARCHAR(128), request_id VARCHAR(128), table_name VARCHAR(64) NOT NULL,
+  row_id VARCHAR(128) NOT NULL, created_at VARCHAR(40) NOT NULL, payload TEXT NOT NULL
+);
+CREATE INDEX changes_scope ON audit_changes (tenant_id, brand_id, location_id, created_at, id);
+CREATE INDEX changes_trace ON audit_changes (request_id);
+CREATE TABLE v1_idempotency (
+  id VARCHAR(64) PRIMARY KEY, fingerprint VARCHAR(64) NOT NULL,
