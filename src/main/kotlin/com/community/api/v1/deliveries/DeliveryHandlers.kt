@@ -19,7 +19,13 @@ fun deliveryHandlers(): Map<String, V1Handler> = (mapOf(
     "adminResendParcelNotice" to V1Handler(::resendNotice), "adminReissuePickupCredential" to V1Handler(::reissue),
     "listSupportIssues" to V1Handler(::supportIssues), "createSupportIssue" to V1Handler(::createSupportIssue),
     "getSupportIssue" to V1Handler(::getSupportIssue),
-) + lockerHandlers()
+) + lockerHandlers()).mapValues { (_, handler) -> V1Handler { c ->
+    val location = c.locationId ?: c.input.text("condominiumId")
+        ?: c.path["parcelId"]?.let { c.store.find("parcel", it)?.locationId }
+        ?: c.path["lockerId"]?.let { c.store.find("locker", it)?.locationId }
+    c.tx.lock("deliveries:${c.tenantId}:${c.brandId}:$location")
+    handler.handle(c)
+} }
 
 private fun listParcels(c: V1Context): V1Response {
     val admin = c.operationId != "listParcels"
