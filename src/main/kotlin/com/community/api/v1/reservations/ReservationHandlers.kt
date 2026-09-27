@@ -118,3 +118,23 @@ private fun createReservation(c: V1Context): V1Response {
     val start = timestamp(c.input.text("startsAt"))
     val end = timestamp(c.input.text("endsAt"))
     val rules = facility.data.objectAt("rules")
+    val count = c.store.list("reservation", condominium(c)).count {
+        it.data.text("membershipId") == c.membershipId && it.data.text("spaceId") == facility.id &&
+            BookingRules.active(it.data) && timestamp(it.data.text("endsAt")).isAfter(c.now)
+    }
+    if (count >= rules.number("maxFutureReservations")!!) c.fail(409, "RESERVATION_LIMIT", "Future reservation limit reached")
+    if (occupied(c, facility.id, start, end) || blocked(c, facility.id, start, end))
+        c.fail(409, "RESERVATION_CONFLICT", "The requested period is unavailable")
+    val row = c.store.create("reservation", c.input.changed(
+        "membershipId" to JsonPrimitive(c.membershipId!!), "status" to JsonPrimitive(if (rules.flag("requiresApproval")) "pending" else "confirmed"),
+        "cancelledAt" to JsonNull, "cancellationReason" to JsonNull,
+    ), condominium(c), c.userId)
+    c.audit("reservation.created", row)
+    notifyReservation(c, row)
+    return V1Response(reservationView(c, row), 201)
+}
+
+private fun transition(c: V1Context): V1Response {
+    val row = reservation(c)
+    c.requireVersion(row)
+    val facility = c.store.get("space", row.data.text("spaceId")!!, condominium(c))
