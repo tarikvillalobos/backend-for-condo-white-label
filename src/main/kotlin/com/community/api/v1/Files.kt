@@ -38,3 +38,23 @@ private fun persistFile(id: String, bytes: ByteArray) {
     require(runCatching { UUID.fromString(id) }.isSuccess)
     Files.createDirectories(fileDirectory)
     val temporary = Files.createTempFile(fileDirectory,"upload-",".tmp")
+    try {
+        Files.write(temporary,bytes)
+        Files.move(temporary,fileDirectory.resolve(id),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING)
+    } finally { Files.deleteIfExists(temporary) }
+}
+
+fun fileHandlers(): Map<String,V1Handler> = mapOf("createUpload" to V1Handler { c ->
+    val contentType = c.input.string("contentType")!!
+    val size = c.input["sizeBytes"]!!.jsonPrimitive.long
+    val record = c.store.create("upload",obj("filename" to "upload","contentType" to contentType,"size" to size,"sizeBytes" to size,
+        "purpose" to c.input["purpose"],"status" to "pending","expiresAt" to c.now.plusSeconds(900)),ownerId=c.userId)
+    V1Response(obj("fileKey" to record.id,"uploadUrl" to "$publicBase/v1/files/${record.id}?ticket=${c.fileTicket(record.id,"upload")}",
+        "method" to "PUT","headers" to obj("Content-Type" to contentType),"expiresAt" to c.now.plusSeconds(900)),201)
+})
+
+fun Route.fileRoutes(db: Database) {
+    route("/v1/files/{fileId}") {
+        put {
+            val ticket = fileClaims(call.parameters["fileId"]!!,call.request.queryParameters["ticket"],"upload")
+            val bytes = call.receive<ByteArray>()
