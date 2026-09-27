@@ -58,3 +58,23 @@ object Contract {
         }
         schema["not"]?.jsonObject?.let { if (errors(it, value, field).isEmpty()) errors += "$field has a forbidden combination" }
         schema["enum"]?.jsonArray?.let { if (value !in it) errors += "$field is not an allowed value" }
+        schema["const"]?.let { if (value != it) errors += "$field has an invalid constant" }
+        val types = when (val type = schema["type"]) {
+            is JsonPrimitive -> listOf(type.content)
+            is JsonArray -> type.map { it.jsonPrimitive.content }
+            else -> emptyList()
+        }
+        if (types.isNotEmpty() && types.none { matchesType(it, value) }) return errors + "$field has an invalid type"
+        if (value is JsonObject) {
+            val properties = schema["properties"]?.jsonObject.orEmpty()
+            schema["required"]?.jsonArray?.forEach { if (it.jsonPrimitive.content !in value) errors += "$field.${it.jsonPrimitive.content} is required" }
+            value.forEach { (key, child) ->
+                if (key in properties) errors += errors(properties.getValue(key).jsonObject, child, "$field.$key")
+                else if (schema["additionalProperties"] == JsonPrimitive(false)) errors += "$field.$key is not supported"
+                else (schema["additionalProperties"] as? JsonObject)?.let { errors += errors(it, child, "$field.$key") }
+            }
+            if (value.size < schema.int("minProperties", 0)) errors += "$field requires more properties"
+        }
+        if (value is JsonArray) {
+            if (value.size < schema.int("minItems", 0) || value.size > schema.int("maxItems", Int.MAX_VALUE)) errors += "$field has an invalid number of items"
+            if (schema["uniqueItems"] == JsonPrimitive(true) && value.distinct().size != value.size) errors += "$field must contain unique items"
