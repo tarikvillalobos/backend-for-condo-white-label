@@ -11,6 +11,26 @@ info:
     \nESCOPO E ISOLAMENTO: toda operação é isolada por marca (X-Brand-Id), usuário, condomínio, unidade e\nvínculo\
     \ (membership). Conhecer um ID não autoriza acesso; recurso alheio responde 404.\nUm vínculo (Membership) representa\
     \ o usuário dentro de um condomínio/unidade OU de um locker avulso.\nOs módulos habilitados por marca e por\
+    \ condomínio chegam em Membership.modules e BrandConfiguration.modules.\n\nAUTENTICAÇÃO: bearer opaco. Dois\
+    \ caminhos de login coexistem: OTP (SmartLocker) e senha (condo-app),\nalém de primeiro acesso por convite.\
+    \ Refresh é rotativo. Perfis operacionais (portaria, locker, admin)\nusam schemes próprios: DeviceKey (hardware)\
+    \ e StaffBearer (equipe).\n\nCONVENÇÕES: IDs opacos; datas RFC 3339 UTC com Z; paginação por cursor com snapshot\
+    \ estável (410 ao\nexpirar); erros em application/problem+json com código estável; mutações relevantes exigem\n\
+    Idempotency-Key (UUID, retenção 24h); concorrência por If-Match/version onde indicado.\nRespostas pessoais usam\
+    \ Cache-Control: no-store.\n\nHARDWARE: o app do usuário nunca abre porta nem declara retirada física. Eventos\
+    \ físicos entram apenas\npela área /ops autenticada por DeviceKey e são reconciliados no servidor (dedupe por\
+    \ eventId,\ntolerância a eventos fora de ordem via occurredAt).\n\nAUDITORIA (obrigatória, não opt-in). Toda\
+    \ requisição é registrada; x-audit.layers diz o que mais cada operação gera:\n  request — api_requests: quem\
+    \ (usuário, papel, vínculo ou atribuição, organização, em nome de quem), operação, rota, ids, resultado, duração.\
+    \ TODAS as operações, inclusive leituras, 401/403/404/409/5xx.\n  event   — audit_log: evento de negócio com\
+    \ significado e antes/depois, hash encadeado. Toda escrita e leituras sensíveis.\n  changes — audit_changes:\
+    \ cada linha inserida/alterada/removida no banco, por trigger nas tabelas de negócio, inclusive cascatas; tabelas\
+    \ técnicas de auditoria, segredos e controle são excluídas para evitar recursão e exposição\n            e alterações\
+    \ feitas fora da API (registradas como actor_kind=database).\nAs três camadas compartilham o X-Request-Id devolvido\
+    \ em toda resposta. Registros de negócio usam exclusão lógica. Segredos temporários, sessões expiradas e arquivos\
+    \ temporários podem ser expurgados; pedidos de privacidade seguem política de anonimização e retenção.\nSegredos,\
+    \ códigos, tokens e documentos nunca aparecem em claro em nenhuma camada.\n\nPERMISSÕES: formato dominio.acao[.escopo].\
+    \ .own = só os próprios registros; .all = todo o escopo do contexto. Catálogo completo em x-permission-catalog\
 servers:
   - {"url":"http://localhost:8080","description":"Local development"}
 security:
