@@ -78,3 +78,10 @@ internal fun petHandlers(): Map<String, V1Handler> = mapOf(
         val row = c.record("pet_alert", "alertId")
         if (row.data.text("status") != "open") c.fail(409, "PET_ALERT_NOT_OPEN", "Alerta não está aberto")
         V1Response(c.petAlert(c.change(row, obj("status" to "resolved", "resolvedAt" to now()))))
+    },
+    "adminRemovePetAlert" to V1Handler { c ->
+        val row = c.store.get("pet_alert", c.id("alertId"), c.locationId)
+        V1Response(c.petAlert(c.change(row, obj("status" to "removed", "removalReason" to c.input["reason"]))))
+    },
+
+)
