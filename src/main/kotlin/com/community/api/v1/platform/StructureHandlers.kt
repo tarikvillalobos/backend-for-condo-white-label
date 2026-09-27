@@ -58,3 +58,23 @@ internal fun V1Context.createStructureNode(data: JsonObject): Record {
 
 private fun V1Context.checkNodeParent(type: Record, parentId: String?) {
     if (parentId == null) {
+        if (type.data.string("code") != "root" || store.list("node", condominiumId()).any { it.data.string("parentId") == null }) {
+            fail(422, "ROOT_ALREADY_EXISTS", "O condomínio deve possuir uma única raiz")
+        }
+    } else {
+        val parent = store.get("node", parentId, condominiumId())
+        if (!parent.data.bool("active", true)) fail(422, "PARENT_INACTIVE", "O nó pai está inativo")
+        if (JsonPrimitive(parent.data.string("typeCode")) !in type.data.arr("allowedParents")) {
+            fail(422, "INVALID_PARENT_TYPE", "Este tipo não pode ser criado sob o pai informado")
+        }
+        if (nodePathView(this, parentId).size >= 32) fail(422, "STRUCTURE_TOO_DEEP", "Limite de profundidade atingido")
+    }
+}
+
+private fun V1Context.checkSiblingLabel(parentId: String?, label: String, exceptId: String? = null) {
+    if (label.isBlank()) fail(422, "INVALID_LABEL", "O rótulo não pode ficar vazio")
+    if (store.list("node", condominiumId()).any { it.id != exceptId && it.data.string("parentId") == parentId &&
+            it.data.bool("active", true) && it.data.string("label")?.equals(label, true) == true }) {
+        fail(409, "NODE_LABEL_EXISTS", "Já existe um nó com esse rótulo sob o mesmo pai")
+    }
+}
