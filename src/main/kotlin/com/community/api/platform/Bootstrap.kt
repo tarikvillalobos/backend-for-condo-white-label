@@ -24,6 +24,7 @@ fun bootstrap(env: Map<String, String> = System.getenv()) {
         }
         println("Client created: $id")
         println("Administrator created: $userId")
+        println("Brand ID (X-Brand-Id): $id")
     }
 }
 
