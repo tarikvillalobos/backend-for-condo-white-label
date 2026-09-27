@@ -58,3 +58,23 @@ private fun V1Context.updateMembership(): V1Response {
     val state = input.string("status")
     val updated = platformUpdate(record, updatedData.plusFields("endedAt" to if (state == "ended") now.toString()
         else if (state == "active") null else record.data["endedAt"]))
+    if (state in setOf("ended", "suspended")) {
+        store.list("invitation", condominiumId(), filters = mapOf("membershipId" to record.id, "status" to "pending"))
+            .forEach { store.update(it, it.data.plusFields("status" to "revoked")) }
+        store.list("access_invite", condominiumId(), filters = mapOf("membershipId" to record.id)).forEach {
+            store.update(it, it.data.plusFields("status" to "revoked", "credentialStatus" to "revoked"))
+        }
+        tx.revokeSessions(tenantId, record.ownerId!!)
+    }
+    return V1Response(membershipAdminView(updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+private fun V1Context.importMemberships(): V1Response {
+    val dryRun = input.bool("dryRun")
+    val results = input.arr("rows").map { element ->
+        val row = element.jsonObject
+        val savepoint = tx.connection.setSavepoint()
+        try {
+            val nodeId = row.string("nodeId") ?: resolveNodePath(row.string("nodePath").orEmpty())
+            val data = JsonObject(row - setOf("rowRef", "nodePath")).plusFields("nodeId" to nodeId,
+                "sendInvitation" to if (dryRun) emptyList<String>() else input.arr("sendInvitation"),
