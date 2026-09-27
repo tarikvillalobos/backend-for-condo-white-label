@@ -38,3 +38,23 @@ fun platformRolePermissions(c: V1Context, role: String): Set<String> {
         "org_admin" -> staff + catalog.filter { it.string("audience") == "organization" }.map { it.string("code")!! } - "roles.manage"
         "property_manager" -> staff - "roles.manage"
         "condo_admin" -> staff - setOf("roles.manage", "condominiums.create")
+        "manager" -> staff - setOf("roles.manage", "condominiums.create", "staff.manage", "cameras.manage")
+        "porter" -> setOf("profile.read", "profile.manage", "sessions.manage", "memberships.read", "structure.read",
+            "parcels.read.all", "parcels.receive", "visitors.checkin", "visitors.read.all", "concierge.notes", "contacts.read", "lockers.read")
+        "support" -> setOf("profile.read", "profile.manage", "sessions.manage", "tickets.read.all", "tickets.manage", "contacts.read")
+        else -> residents
+    }
+}
+
+internal fun V1Context.checkedPermissions(values: JsonArray, baseRole: String? = null): Set<String> {
+    val permissions = values.map { it.jsonPrimitive.content }.toSet()
+    val known = Contract.document["x-permission-catalog"]!!.jsonArray.map { it.jsonObject.string("code") }.toSet()
+    if (permissions.any { it !in known }) fail(422, "UNKNOWN_PERMISSION", "Permissão desconhecida")
+    if (baseRole != null && !platformRolePermissions(this, baseRole).containsAll(permissions)) {
+        fail(422, "CUSTOM_ROLE_EXCEEDS_BASE", "As permissões excedem o papel base")
+    }
+    if (!brandAdministrator() && !principal!!.permissions.containsAll(permissions)) {
+        fail(403, "PERMISSION_ABOVE_OWN", "Não é permitido conceder permissões que você não possui")
+    }
+    return permissions
+}
