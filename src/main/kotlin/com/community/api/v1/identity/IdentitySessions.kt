@@ -58,3 +58,23 @@ internal fun V1Context.revokeIdentitySession(id: String) {
 
 internal fun V1Context.refreshIdentitySession(): V1Response {
     val token = identityInput("refreshToken")
+    val parts = parseToken(token) ?: return identityError(401, "REFRESH_REVOKED", "Sessão revogada")
+    val meta = store.find("session", parts[1])
+    if (parts[0] != tenantId || meta?.data?.string("brandId") != brandId) {
+        return identityError(401, "REFRESH_REVOKED", "Sessão revogada")
+    }
+    val result = tx.refresh(token, identityHeader("X-Remote-Host") ?: "unknown")
+    val tokens = result.value
+    if (tokens == null) {
+        val revoked = tx.get("session", parts[1], tenantId)?.decode<SessionData>()?.revoked == true
+        if (revoked) revokeIdentitySession(parts[1])
+        return if (result.status == 429) rateLimited()
+        else identityError(401, "REFRESH_REVOKED", "Sessão revogada")
+    }
+    val user = tx.get("account", meta.ownerId!!, tenantId)!!
+    return V1Response(identityTokens(user, tokens))
+}
+
+internal fun V1Context.listIdentitySessions(): V1Response {
+    val items = tx.list("session", tenantId, ownerId = userId).mapNotNull { record ->
+        val session = record.decode<SessionData>()
