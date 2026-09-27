@@ -202,6 +202,23 @@ paths:
         '422':
           $ref: '#/components/responses/Problem'
         '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: auth
+        action: requestLoginChallenge
+        severity: notice
+        layers:
+        - request
+        - event
+        - changes
+        logsDenied: true
+  /auth/challenges/{challengeId}/resend:
+    parameters:
+    - $ref: '#/components/parameters/ChallengeId'
     post:
       tags: ["Identity"]
       summary: "Rotate access and refresh tokens"
