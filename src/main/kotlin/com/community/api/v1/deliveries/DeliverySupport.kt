@@ -58,3 +58,23 @@ internal fun timeline(data: JsonObject, type: String, at: Instant): JsonArray =
     JsonArray(data.array("timeline") + obj("type" to type, "at" to at.toString()))
 internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadline: Instant): JsonObject {
     val code = (0..99999999).let { SecureRandom().nextInt(100000000).toString().padStart(8, '0') }
+    val expiry = minOf(deadline, now.plusSeconds(86400))
+    if (!expiry.isAfter(now)) fail(409, "PARCEL_EXPIRED", "Extend the parcel deadline before issuing a credential")
+    return data.changed("credentialStatus" to JsonPrimitive("active"), "credentialMemberId" to JsonPrimitive(memberId),
+        "sealedCode" to JsonPrimitive(seal(code)), "credentialHash" to JsonPrimitive(hash(code)), "credentialExpiresAt" to JsonPrimitive(expiry.toString()))
+}
+internal fun V1Context.notifyParcel(row: Record, title: String) {
+    val memberId = row.data.text("membershipId") ?: return
+    val membership = store.get("membership", memberId, row.locationId)
+    store.create("notification", obj("membershipId" to memberId, "kind" to "parcel", "title" to title,
+        "body" to "Transportadora: ${row.data.text("carrier")}", "referenceId" to row.id, "readAt" to null), row.locationId, membership.ownerId)
+}
+internal fun V1Context.releaseCompartment(row: Record) {
+    val lockerId = row.data.text("lockerId") ?: return
+    val locker = store.get("locker", lockerId, row.locationId)
+    val compartments = locker.data.array("compartments").map { element ->
+        val compartment = element.jsonObject
+        if (compartment.text("parcelId") == row.id) compartment.changed("status" to JsonPrimitive("free"), "parcelId" to JsonNull,
+            "updatedAt" to JsonPrimitive(now.toString())) else compartment
+    }
+    store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
