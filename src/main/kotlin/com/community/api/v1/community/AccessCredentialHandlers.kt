@@ -58,3 +58,14 @@ internal fun V1Context.validateAccess(): V1Response {
     val status = inviteStatus(row)
     val exit = input.text("direction") == "exit"
     if (status == "revoked" || status == "expired" || status == "scheduled" || (status == "used" && !exit)) return validationResult(row, if (status == "used") "consumed" else status)
+    val gates = row.data.array("allowedGates")
+    if (gates.isNotEmpty() && JsonPrimitive(gateId) !in gates) return validationResult(row, "wrong_gate")
+    val member = row.data.text("membershipId")?.let { store.find("membership", it, locationId) }
+    if (member == null || member.data.text("status") != "active") return validationResult(row, "revoked")
+    if (exit && row.data.array("uses").lastOrNull()?.jsonObject?.text("direction") != "entry") return validationResult(row, "unknown")
+    val use = obj("at" to now.toString(), "gateName" to gate.data["name"], "direction" to input["direction"], "method" to if (qr != null) "qr" else "code")
+    change(row, obj("usesCount" to row.data.number("usesCount") + if (exit) 0 else 1,
+        "uses" to JsonArray(row.data.array("uses") + use)), "access_invite.validated")
+    if (attempt != null) store.delete(attempt)
+    return validationResult(row, null, !exit && row.data.flag("singleUse"))
+}
