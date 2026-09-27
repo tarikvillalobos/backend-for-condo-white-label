@@ -31,6 +31,16 @@ info:
     \ temporários podem ser expurgados; pedidos de privacidade seguem política de anonimização e retenção.\nSegredos,\
     \ códigos, tokens e documentos nunca aparecem em claro em nenhuma camada.\n\nPERMISSÕES: formato dominio.acao[.escopo].\
     \ .own = só os próprios registros; .all = todo o escopo do contexto. Catálogo completo em x-permission-catalog\
+    \ e GET /admin/permissions.\nCONFIRMAÇÃO DE IDENTIDADE: operações com x-step-up exigem POST /me/verify nos últimos\
+    \ 10 minutos (403 VERIFICATION_REQUIRED).\nPROVEDORES: câmera ao vivo, gravação e abertura remota de compartimento\
+    \ respondem 501 PROVIDER_NOT_CONFIGURED sem provedor; nada é simulado.\nENCOMENDAS: \"já retirei\" do morador\
+    \ é relato (status manual); só o evento do locker ou a confirmação no balcão finalizam (collected).\n\nMARCA\
+    \ E CLIENTE: X-Brand-Id identifica uma distribuição pertencente a um cliente (tenant). O servidor resolve esse\
+    \ vínculo e vincula cada sessão à marca. A marca não concede acesso. SessionBearer e StaffBearer usam o mesmo\
+    \ mecanismo de sessão humana; StaffBearer exige atribuição de equipe ativa. A compatibilidade com clientes legados\
+    \ deve ser validada pelos testes de contrato."
+  license:
+    name: Privado e proprietário
 servers:
   - {"url":"http://localhost:8080","description":"Local development"}
 security:
