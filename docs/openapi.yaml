@@ -132,6 +132,8 @@ paths:
       - Configuration
       summary: Consultar capacidades públicas da marca
       security: []
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
       responses:
         "200":
           description: "Successful operation."
