@@ -106,8 +106,8 @@ private fun reservations(c: V1Context): V1Response {
              else when (c.query["status"] ?: "upcoming") { "past" -> ended && status == "completed"; "cancelled" -> status in setOf("cancelled", "rejected"); else -> !ended && BookingRules.active(data) }) &&
             (c.query["since"] == null || !timestamp(data.text("startsAt")).isBefore(timestamp(c.query["since"]))) &&
             (c.query["until"] == null || timestamp(data.text("startsAt")).isBefore(timestamp(c.query["until"])))
-    }.sortedWith(compareBy<Record> { it.data.text("startsAt") }.thenBy { it.id })
-    return V1Response(c.pageItems(rows.map { if (admin) adminView(c, it) else reservationView(c, it) }))
+    }
+    return V1Response(c.page("reservation", condominium(c), sortField = "startsAt", predicate = matches) { if (admin) adminView(c, it) else reservationView(c, it) })
 }
 
 internal fun occupied(c: V1Context, spaceId: String, start: Instant, end: Instant, except: String? = null): Boolean =
