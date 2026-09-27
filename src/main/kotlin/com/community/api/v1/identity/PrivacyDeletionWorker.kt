@@ -38,3 +38,23 @@ suspend fun processIdentityDataRequests(db: Database): Int {
 private fun V1Context.completeIdentityDeletion(request: Record) {
     store.list("session", ownerId = userId).forEach { revokeIdentitySession(it.id) }
     val personalKinds = listOf("profile", "membership", "staff_assignment", "vehicle", "pet", "vaccination",
+        "visitor", "access_invite", "reservation", "attendance", "ticket", "comment", "occurrence", "notification")
+    for (kind in personalKinds) {
+        store.list(kind, ownerId = userId).forEach { record ->
+            val anonymous = obj("status" to "deleted", "anonymizedAt" to now.toString(), "_deletedAt" to now.toString())
+            val updated = store.update(record, anonymous)
+            tx.connection.prepareStatement("UPDATE v1_record_versions SET payload = ? WHERE id = ?").use {
+                it.setString(1, updated.data.toString())
+                it.setString(2, store.physicalId(record.kind, record.id))
+                it.executeUpdate()
+            }
+        }
+    }
+    val otherBrands = listOf("v1_membership", "v1_staff_assignment").any { kind ->
+        tx.list(kind, tenantId, ownerId = userId).any {
+            it.data.string("_brandId") != brandId && it.data.string("status") == "active" && it.data.string("_deletedAt") == null
+        }
+    }
+    if (!otherBrands) {
+        val user = account()
+        tx.update(user, body(Account("", "Conta removida", "", false)))
