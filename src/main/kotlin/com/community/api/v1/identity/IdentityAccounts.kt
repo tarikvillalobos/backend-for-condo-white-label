@@ -58,3 +58,10 @@ internal fun V1Context.identityRate(operation: String, subject: String): Boolean
     tx.allowAttempt(operation, tenantId, "$brandId:$subject", identityHeader("X-Remote-Host") ?: "unknown")
 
 internal fun V1Context.identityError(status: Int, code: String, detail: String): V1Response =
+    V1Response(obj("type" to "about:blank", "title" to detail, "status" to status,
+        "detail" to detail, "code" to code, "requestId" to requestId), status,
+        mapOf("Content-Type" to "application/problem+json") +
+            if (status == 429) mapOf("Retry-After" to "900") else emptyMap())
+
+internal fun V1Context.rateLimited(): V1Response =
+    identityError(429, "RATE_LIMITED", "Limite de tentativas atingido; aguarde antes de tentar novamente")
