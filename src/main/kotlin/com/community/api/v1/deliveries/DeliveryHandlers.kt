@@ -78,3 +78,23 @@ private fun delegate(c: V1Context): V1Response {
     val row = c.parcel()
     c.recipient(row)
     c.outstanding(row)
+    c.requireVersion(row)
+    val id = c.path["delegateMembershipId"] ?: c.input.text("membershipId")!!
+    val removing = c.operationId == "removeParcelDelegate"
+    if (!removing) { c.member(id); if (id == c.membershipId) c.fail(422, "DELEGATE_NOT_ELIGIBLE", "Recipient does not need delegation") }
+    val delegates = row.data.array("delegates").map { it.jsonPrimitive.content }.toMutableSet()
+    if (removing) delegates.remove(id) else delegates.add(id)
+    val updated = c.store.update(row, row.data.changed("delegates" to JsonArray(delegates.map(::JsonPrimitive)),
+        "credentialStatus" to JsonPrimitive("revoked"), "sealedCode" to JsonNull, "credentialHash" to JsonNull))
+    c.audit(if (removing) "parcel.delegate_removed" else "parcel.delegate_added", updated)
+    return V1Response(c.parcelView(updated))
+}
+
+private fun supportView(row: Record): JsonObject = obj("id" to row.id, "reference" to row.data.text("reference"),
+    "membershipId" to row.data.text("membershipId"), "parcelId" to row.data.text("parcelId"), "message" to row.data.text("message"),
+    "status" to row.data.text("status"), "createdAt" to row.createdAt, "updatedAt" to row.updatedAt, "resolution" to row.data["resolution"])
+private fun supportIssues(c: V1Context): V1Response = V1Response(c.page("ticket", filters = mapOf("kind" to "support_issue", "membershipId" to c.membershipId!!), transform = ::supportView))
+private fun createSupportIssue(c: V1Context): V1Response {
+    c.parcel(c.input.text("parcelId")!!)
+    val message = c.input.text("message")!!.trim()
+    if (message.length !in 10..2000) c.fail(422, "VALIDATION_ERROR", "Message must contain 10 to 2000 characters after trimming")
