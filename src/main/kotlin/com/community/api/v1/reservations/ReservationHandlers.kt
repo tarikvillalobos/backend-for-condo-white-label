@@ -169,3 +169,13 @@ internal fun notifyReservation(c: V1Context, row: Record) {
     c.store.create("notification", obj("membershipId" to row.data.text("membershipId"), "title" to "Reserva atualizada",
         "body" to "Status da reserva: ${row.data.text("status")}", "kind" to "reservation", "referenceId" to row.id, "readAt" to null), condominium(c), row.ownerId)
 }
+
+private fun holderInNode(c: V1Context, membershipId: String, rootId: String): Boolean {
+    var current = c.store.get("membership", membershipId, condominium(c)).data.text("nodeId")
+    val seen = mutableSetOf<String>()
+    while (current != null && seen.add(current)) {
+        if (current == rootId) return true
+        current = c.store.get("node", current, condominium(c)).data.text("parentId")
+    }
+    return false
+}
