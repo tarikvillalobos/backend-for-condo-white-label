@@ -89,3 +89,21 @@ internal fun V1Context.releaseCompartment(row: Record, occurredAt: Instant = now
     }
     store.update(locker, locker.data.changed("compartments" to JsonArray(compartments)))
 }
+
+internal fun V1Context.revokeCredential(data: JsonObject, consumedAt: Instant? = null) {
+    val hash = data.text("credentialHash") ?: return
+    store.list("pickup_credential", filters = mapOf("hash" to hash)).forEach { row ->
+        if (row.data.text("revokedAt") == null && row.data.text("consumedAt") == null)
+            store.update(row, row.data.changed((if (consumedAt == null) "revokedAt" else "consumedAt") to JsonPrimitive((consumedAt ?: now).toString())))
+    }
+}
+
+internal fun V1Context.historicalCredential(parcel: Record, supplied: String?, at: Instant): Record? {
+    if (supplied.isNullOrBlank()) return null
+    return store.list("pickup_credential", filters = mapOf("parcelId" to parcel.id, "hash" to hash(supplied))).firstOrNull { row ->
+        val data = row.data
+        !at.isBefore(instant(data.text("issuedAt"))) && at.isBefore(instant(data.text("expiresAt"))) &&
+            data.text("revokedAt")?.let { at.isBefore(instant(it)) } != false &&
+            data.text("consumedAt")?.let { at.isBefore(instant(it)) } != false
+    }
+}
