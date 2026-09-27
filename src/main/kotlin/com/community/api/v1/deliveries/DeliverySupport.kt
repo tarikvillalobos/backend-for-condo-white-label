@@ -38,3 +38,23 @@ internal fun V1Context.nodePath(id: String?): JsonArray {
         current = store.get("node", current).data.text("parentId")
     }
     return JsonArray(result)
+}
+internal fun V1Context.parcel(id: String = path.getValue("parcelId"), own: Boolean = membershipId != null): Record =
+    store.get("parcel", id, locationId).also { row ->
+        if (own && !canReadParcel(row)) fail(404, "NOT_FOUND", "Parcel not found")
+    }
+internal fun V1Context.canReadParcel(row: Record): Boolean {
+    if (row.data.text("status") in setOf("returned", "cancelled")) return false
+    if (row.data.text("membershipId") == membershipId) return true
+    return row.data.array("delegates").any { it.jsonPrimitive.content == membershipId }
+}
+internal fun V1Context.recipient(row: Record) {
+    if (row.data.text("membershipId") != membershipId) fail(403, "FORBIDDEN", "Only the recipient can perform this action")
+}
+internal fun V1Context.outstanding(row: Record) {
+    if (row.data.text("status") !in setOf("waiting", "manual")) fail(409, "PARCEL_NOT_EDITABLE", "Parcel is already closed")
+}
+internal fun timeline(data: JsonObject, type: String, at: Instant): JsonArray =
+    JsonArray(data.array("timeline") + obj("type" to type, "at" to at.toString()))
+internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadline: Instant): JsonObject {
+    val code = (0..99999999).let { SecureRandom().nextInt(100000000).toString().padStart(8, '0') }
