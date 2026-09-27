@@ -22,7 +22,9 @@ class Database(url: String, user: String = "sa", password: String = "") : AutoCl
 
     init {
         try {
-            Flyway.configure().dataSource(source).locations("classpath:db/migration").load().migrate()
+            val locations = mutableListOf("classpath:db/migration")
+            if (url.startsWith("jdbc:postgresql:")) locations += "classpath:db/postgresql"
+            Flyway.configure().dataSource(source).locations(*locations.toTypedArray()).load().migrate()
         } catch (failure: Exception) {
             source.close()
             throw failure
