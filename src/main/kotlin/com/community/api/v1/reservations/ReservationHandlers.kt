@@ -78,3 +78,23 @@ private fun reservationView(c: V1Context, row: Record): JsonObject {
         "guestsCount" to stored["guestsCount"], "notes" to stored["notes"],
         "canCancel" to BookingRules.cancellable(stored, facility.data.objectAt("rules"), c.now),
         "createdAt" to row.createdAt, "cancelledAt" to stored["cancelledAt"],
+        "cancellationReason" to stored["cancellationReason"], "version" to row.version)
+}
+
+private fun adminView(c: V1Context, row: Record): JsonObject {
+    val member = c.store.get("membership", row.data.text("membershipId")!!, condominium(c))
+    val name = member.data.text("name") ?: member.ownerId?.let { c.tx.get("account", it, c.tenantId)?.data?.text("name") }.orEmpty()
+    val nodeId = member.data.text("nodeId") ?: c.fail(409, "MEMBERSHIP_NODE_REQUIRED", "Reservation holder needs a node")
+    return obj("reservation" to reservationView(c, row), "holderName" to name, "node" to nodeReference(c, nodeId))
+}
+
+private fun reservations(c: V1Context): V1Response {
+    val admin = c.operationId.startsWith("admin")
+    val rows = c.store.list("reservation", condominium(c)).filter { row ->
+        val data = row.data
+        val status = data.text("status")
+        val ended = !timestamp(data.text("endsAt")).isAfter(c.now)
+        (admin || data.text("membershipId") == c.membershipId) &&
+            (c.query["spaceId"] == null || data.text("spaceId") == c.query["spaceId"]) &&
+            (if (admin) c.query["status"] == null || status == c.query["status"] || (c.query["status"] == "completed" && status == "confirmed" && ended)
+             else when (c.query["status"] ?: "upcoming") { "past" -> ended && status == "confirmed"; "cancelled" -> status in setOf("cancelled", "rejected"); else -> !ended && BookingRules.active(data) }) &&
