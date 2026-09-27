@@ -38,3 +38,23 @@ fun processReportExports(db: Database) {
                 }
             } }
         }
+    }
+    pending.take(10).forEach { job -> processExport(db, job) }
+}
+private fun processExport(db: Database, job: PendingExport) {
+    fun context(tx: Tx) = V1Context(tx, "processReportExport", job.tenant, job.brand, UUID.randomUUID().toString(),
+        principal = V1Principal(userId = job.user, staff = true, permissions = setOf("*")), locationId = job.location)
+    val claimed = db.scopedTx("export:${job.id}") { tx ->
+        val c = context(tx)
+        val row = c.store.find("export", job.id, job.location) ?: return@scopedTx false
+        if (row.data.text("status") !in setOf("queued", "processing")) return@scopedTx false
+        if (row.data.text("status") == "processing" && row.data.text("leaseUntil")?.let { timestamp(it).isAfter(c.now) } == true) return@scopedTx false
+        c.store.update(row, row.data.merge(obj("status" to "processing", "leaseUntil" to c.now.plusSeconds(300).toString(), "attempts" to row.data.number("attempts") + 1)))
+        true
+    }
+    if (!claimed) return
+    runCatching {
+        db.scopedTx("export:${job.id}") { tx ->
+            val c = context(tx)
+            val row = c.store.get("export", job.id, job.location)
+            if (tx.get("account", job.user, job.tenant)?.data?.get("active") == JsonPrimitive(false)) c.fail(403, "ACCOUNT_DISABLED", "Conta desativada")
