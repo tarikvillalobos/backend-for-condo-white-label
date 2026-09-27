@@ -98,3 +98,23 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
     if (result.status == 204) respond(HttpStatusCode.NoContent)
     else respondText(result.body.toString(),ContentType.parse(if (result.status >= 400) "application/problem+json" else "application/json"),HttpStatusCode.fromValue(result.status))
 }
+
+fun problem(status: Int, code: String, detail: String, requestId: String): V1Response = V1Response(obj(
+    "type" to "about:blank","title" to HttpStatusCode.fromValue(status).description,"status" to status,"code" to code,"detail" to detail,"requestId" to requestId),status)
+
+private fun validateRequest(op: ContractOperation, path: Map<String,String>, query: Map<String,String>, headers: Map<String,String>, input: JsonObject) {
+    op.definition["parameters"]!!.jsonArray.forEach { reference ->
+        val param = Contract.resolve(reference.jsonObject)
+        val name = param.string("name")!!
+        val raw = when (param.string("in")) {
+            "path" -> path[name]
+            "header" -> headers.entries.firstOrNull { it.key.equals(name,true) }?.value
+            else -> query[name]
+        }
+        if (raw == null && param["required"] == JsonPrimitive(true)) throw ApiException(400,"VALIDATION_ERROR","$name is required")
+        if (raw != null) {
+            val schema = Contract.resolve(param["schema"]!!.jsonObject)
+            val parsed = when(schema.string("type")) {
+                "integer" -> raw.toLongOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
+                "boolean" -> raw.toBooleanStrictOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
+                else -> JsonPrimitive(raw)
