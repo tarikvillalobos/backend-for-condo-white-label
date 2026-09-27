@@ -19,6 +19,7 @@ fun bootstrap(env: Map<String, String> = System.getenv()) {
             val account = tx.createAccount(id, email, password, "Client administrator")
             tx.create("membership", id, ownerId = account.id, data = body(Membership(account.id, role = "client_admin")))
             tx.audit(Context(Actor(account.id, id, "bootstrap"), null, setOf("*")), "client.bootstrapped", id)
+            com.community.api.v1.bootstrapV1(tx, id, account.id, name)
             account.id
         }
         println("Client created: $id")
