@@ -37,7 +37,7 @@ private fun listParcels(c: V1Context): V1Response {
         val data = row.data
         val status = data.text("status")
         val filter = c.query["status"] ?: if (admin) "waiting" else "all"
-        (admin || c.canReadParcel(row)) && (if (admin) status == filter else when (filter) {
+        (served == null || row.locationId in served) && (admin || c.canReadParcel(row)) && (if (admin) status == filter else when (filter) {
             "waiting" -> status == "waiting"; "collected" -> status in setOf("manual", "collected"); else -> true
         }) && (c.query["storage"] == null || data.text("storage") == c.query["storage"]) &&
             (c.query["overdue"] != "true" || (status in setOf("waiting", "manual") && instant(data.text("deadline")).isBefore(c.now))) &&
