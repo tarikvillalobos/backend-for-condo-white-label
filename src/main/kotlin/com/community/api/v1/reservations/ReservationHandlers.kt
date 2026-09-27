@@ -101,8 +101,9 @@ private fun reservations(c: V1Context): V1Response {
         val status = if (data.text("status") == "confirmed" && ended) "completed" else data.text("status")
         (admin || data.text("membershipId") == c.membershipId) &&
             (c.query["spaceId"] == null || data.text("spaceId") == c.query["spaceId"]) &&
-            (if (admin) c.query["status"] == null || status == c.query["status"] || (c.query["status"] == "completed" && status == "confirmed" && ended)
-             else when (c.query["status"] ?: "upcoming") { "past" -> ended && status == "confirmed"; "cancelled" -> status in setOf("cancelled", "rejected"); else -> !ended && BookingRules.active(data) }) &&
+            (c.query["nodeId"] == null || holderInNode(c, data.text("membershipId")!!, c.query.getValue("nodeId"))) &&
+            (if (admin) c.query["status"] == null || status == c.query["status"]
+             else when (c.query["status"] ?: "upcoming") { "past" -> ended && status == "completed"; "cancelled" -> status in setOf("cancelled", "rejected"); else -> !ended && BookingRules.active(data) }) &&
             (c.query["since"] == null || !timestamp(data.text("startsAt")).isBefore(timestamp(c.query["since"]))) &&
             (c.query["until"] == null || timestamp(data.text("startsAt")).isBefore(timestamp(c.query["until"])))
     }.sortedWith(compareBy<Record> { it.data.text("startsAt") }.thenBy { it.id })
