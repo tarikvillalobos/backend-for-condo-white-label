@@ -78,3 +78,23 @@ private fun applyLockerEvent(c: V1Context, locker: Record, event: JsonObject) {
         if (member.data.text("status") != "active") c.fail(422, "COLLECTOR_INACTIVE", "Collector membership is inactive")
         collected(c, row, memberId, at)
         val currentCredential = c.store.get("pickup_credential", credential.id)
+        c.store.update(currentCredential, currentCredential.data.changed("consumedAt" to JsonPrimitive(at.toString())))
+        return
+    }
+    val lastAt = compartment.text("lastEventAt")?.let(::instant)
+    if (lastAt != null && at.isBefore(lastAt)) return
+    val newState = when (type) {
+        "deposit" -> if (parcel == null) "reserved" else "occupied"
+        "compartment_freed" -> {
+            if (parcel != null && parcel.data.text("status") in setOf("waiting", "manual")) c.fail(409, "PARCEL_NOT_COLLECTED", "A pickup event must confirm collection")
+            "free"
+        }
+        "fault", "door_forced" -> "faulty"
+        "door_opened", "door_closed" -> compartment.text("status")!!
+        else -> c.fail(422, "EVENT_TYPE_UNKNOWN", "Unsupported event type")
+    }
+    val next = compartment.changed("status" to JsonPrimitive(newState), "lastEventAt" to JsonPrimitive(at.toString()),
+        "updatedAt" to JsonPrimitive(c.now.toString()), "parcelId" to if (newState == "free") JsonNull else compartment["parcelId"] ?: JsonNull)
+    c.store.update(locker, locker.data.changed("compartments" to JsonArray(locker.data.array("compartments").map {
+        if (it.jsonObject.text("code") == code) next else it
+    })))
