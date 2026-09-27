@@ -73,7 +73,7 @@ internal object BookingRules {
                 !localEnd.toLocalTime().isAfter(localTime(it.text("closes")))
         } ?: bookingError("OUTSIDE_OPENING_HOURS", "Reservation is outside opening hours")
         val offset = Duration.between(localTime(opening.text("opens")), localStart.toLocalTime()).seconds
-        if (offset % (slot * 60) != 0L) bookingError("INVALID_SLOT", "Reservation start must align with a slot")
+        if (start.nano != 0 || end.nano != 0 || offset % (slot * 60) != 0L) bookingError("INVALID_SLOT", "Reservation start must align with a slot")
     }
 
     fun overlaps(a: JsonObject, startsAt: Instant, endsAt: Instant): Boolean =
