@@ -739,6 +739,26 @@ paths:
         layers:
         - request
         - event
+        - changes
+        logsDenied: true
+  /memberships/{membershipId}/recipients:
+    parameters:
+    - $ref: '#/components/parameters/MembershipId'
+    get:
+      operationId: listRecipients
+      tags:
+      - Profile
+      summary: Consultar destinatários visíveis do vínculo
+      x-required-permission: parcels.read.own
+      parameters:
+      - $ref: '#/components/parameters/BrandId'
+      responses:
+        '200':
+          description: Resultado confirmado pelo servidor.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
