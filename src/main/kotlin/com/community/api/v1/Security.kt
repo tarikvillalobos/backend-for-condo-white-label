@@ -98,3 +98,8 @@ private fun enforceModule(c: V1Context, operation: ContractOperation) {
         tag == "Access" -> "visitors"
         tag == "Documents" -> "documents"
         else -> return
+    }
+    val brandModules = c.store.get("brand",c.brandId).data["modules"] as? JsonObject
+    val condoModules = c.locationId?.let { c.store.get("condominium",it).data["modules"] as? JsonObject }
+    if (brandModules?.get(module) == JsonPrimitive(false) || condoModules?.get(module) == JsonPrimitive(false)) c.fail(403,"MODULE_DISABLED","Module is disabled")
+}
