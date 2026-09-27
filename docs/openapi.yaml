@@ -709,10 +709,16 @@ paths:
             Cache-Control:
               $ref: '#/components/headers/NoStore'
           content:
-            "application/json":
-              schema: {"$ref":"#/components/schemas/Accepted"}
-        default: {"$ref":"#/components/responses/Error"}
-  "/api/v1/auth/otp/confirm":
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
     post:
       tags: ["Identity"]
       summary: "Sign in with a one-time email code"
