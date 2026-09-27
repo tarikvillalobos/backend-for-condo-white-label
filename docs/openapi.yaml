@@ -416,6 +416,26 @@ paths:
           $ref: '#/components/responses/Problem'
         '429':
           $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+      x-audit:
+        category: auth
+        action: logoutSession
+        severity: notice
+        layers:
+        - request
+        - event
+        - changes
+        logsDenied: true
+  /me:
+    get:
+      operationId: getProfile
+      tags:
+      - Profile
+      summary: Consultar perfil e vínculos autorizados
+      x-required-permission: profile.read
       requestBody:
         required: true
         content:
