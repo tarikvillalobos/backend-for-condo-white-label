@@ -78,3 +78,23 @@ internal fun cameraHandlers(): Map<String, V1Handler> = mapOf(
         }
         V1Response(c.camera(c.change(c.store.get("camera", c.id("cameraId"), c.locationId), c.input), true))
     },
+    "adminListCameraViews" to V1Handler { c ->
+        c.store.get("camera", c.id("cameraId"), c.locationId)
+        c.listResponse("camera_view", filters = mapOf("cameraId" to c.id("cameraId"))) { c.view("StreamAudit", it) }
+    },
+    "adminListCameraGrants" to V1Handler { c ->
+        c.store.get("camera", c.id("cameraId"), c.locationId)
+        V1Response(obj("items" to JsonArray(c.store.list("camera_grant", c.locationId, filters = mapOf("cameraId" to c.id("cameraId"))).map { c.view("CameraGrant", it) })))
+    },
+    "adminSetCameraGrant" to V1Handler { c -> c.setCameraGrant() },
+    "adminRevokeCameraGrant" to V1Handler { c ->
+        c.store.get("camera", c.id("cameraId"), c.locationId)
+        val grant = c.store.list("camera_grant", c.locationId, filters = mapOf("cameraId" to c.id("cameraId"), "membershipId" to c.id("membershipId"))).firstOrNull()
+        if (grant != null) c.remove(grant) else V1Response(status = 204)
+    },
+    "createStreamSession" to V1Handler { c -> c.openCameraStream(false) },
+    "createPlaybackSession" to V1Handler { c -> c.openCameraStream(true) },
+    "closeStreamSession" to V1Handler { c -> c.closeCameraStream() },
+    "listRecordings" to V1Handler { c -> c.recordings() },
+)
+private fun V1Context.setCameraGrant(): V1Response {
