@@ -580,6 +580,8 @@ paths:
         Desafio vinculado à sessão, usuário, marca, canal e novo contato; não pode ser usado para login.'
       x-required-permission: profile.manage
       parameters:
+      - $ref: '#/components/parameters/BrandId'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
