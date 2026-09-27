@@ -78,3 +78,23 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
         problem(failure.status,failure.code.uppercase(),failure.message,requestId)
     } catch (failure: Exception) {
         if (failure is CancellationException) throw failure
+        if (failure is kotlinx.serialization.SerializationException || failure is IllegalArgumentException)
+            problem(400,"VALIDATION_ERROR","Malformed request",requestId)
+        else {
+            application.log.error("V1 operation {} failed ({}) requestId={}",operation.id,failure.javaClass.simpleName,requestId)
+            problem(500,"INTERNAL_ERROR","Unexpected server error",requestId)
+        }
+    }
+    try {
+        recordRequest(db,requestId,operation,tenantId,brandId,context?.locationId,context?.principal,request.httpMethod.value,operation.path,
+            result.status,(System.nanoTime()-started)/1_000_000,(result.body as? JsonObject)?.string("code"),replay)
+    } catch (failure: Exception) {
+        application.log.error("Request audit persistence failed requestId={} type={}",requestId,failure.javaClass.simpleName)
+        val unavailable = problem(503,"SERVICE_UNAVAILABLE","Audit storage unavailable; retry with the same idempotency key",requestId)
+        respondText(unavailable.body.toString(),ContentType.parse("application/problem+json"),HttpStatusCode.ServiceUnavailable)
+        return
+    }
+    result.headers.filterKeys { !it.equals("Content-Type",true) }.forEach { (name,value) -> response.headers.append(name,value) }
+    if (result.status == 204) respond(HttpStatusCode.NoContent)
+    else respondText(result.body.toString(),ContentType.parse(if (result.status >= 400) "application/problem+json" else "application/json"),HttpStatusCode.fromValue(result.status))
+}
