@@ -18,3 +18,23 @@ internal fun V1Context.broadcast(kind: String, referenceId: String, title: Strin
         .forEach { notifyMember(it, kind, referenceId, title, message) }
 }
 private fun V1Context.notification(row: Record, delivery: Boolean = false) = view(
+    if (delivery) "DeliveryNotice" else "InboxNotification", row, obj("parcelId" to row.data.text("referenceId"), "readAt" to row.data["readAt"]),
+)
+internal fun notificationHandlers(): Map<String, V1Handler> = mapOf(
+    "listInbox" to V1Handler { c -> c.listResponse("notification", true) { row ->
+        if (c.query["unreadOnly"] == "true" && row.data.text("readAt") != null) JsonNull else c.notification(row)
+    } },
+    "markInboxRead" to V1Handler { c ->
+        val row = c.record("notification", "notificationId")
+        if (row.data.text("readAt") == null) c.change(row, obj("readAt" to now()), "notification.read")
+        V1Response(status = 204)
+    },
+    "markInboxAllRead" to V1Handler { c ->
+        c.store.list("notification", c.locationId, c.userId, mapOf("membershipId" to c.membershipId!!)).forEach {
+            if (it.data.text("readAt") == null) c.change(it, obj("readAt" to now()), "notification.read")
+        }
+        V1Response(status = 204)
+    },
+    "listDeliveryNotices" to V1Handler { c -> c.listResponse("notification", true, mapOf("kind" to "parcel")) { c.notification(it, true) } },
+    "markNoticeRead" to V1Handler { c ->
+        val row = c.record("notification", "noticeId")
