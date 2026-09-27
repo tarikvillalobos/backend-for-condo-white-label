@@ -18,3 +18,23 @@ internal fun V1Context.personName(id: String? = principal?.userId): String = id?
 internal fun V1Context.node(id: String?): JsonElement {
     if (id == null) return JsonNull
     val row = store.get("node", id, locationId)
+    return obj("id" to row.id, "type" to (row.data.text("type") ?: row.data.text("typeCode") ?: "unit"), "label" to row.data.text("label"))
+}
+internal fun V1Context.inSubtree(candidate: String?, ancestor: String?): Boolean {
+    if (ancestor == null) return true
+    var current = candidate
+    val seen = mutableSetOf<String>()
+    while (current != null && seen.add(current)) {
+        if (current == ancestor) return true
+        current = store.find("node", current, locationId)?.data?.text("parentId")
+    }
+    return false
+}
+internal fun V1Context.checkedNode(input: JsonObject = this.input, required: Boolean = false): String? {
+    val value = input.text("nodeId") ?: if (membershipId != null) unitId else null
+    if (required && value == null) fail(422, "NODE_REQUIRED", "O vínculo precisa estar associado a um nó")
+    value?.let { store.get("node", it, locationId) }
+    if (membershipId != null && !inSubtree(value, unitId)) fail(403, "NODE_OUTSIDE_SCOPE", "Nó fora do vínculo")
+    return value
+}
+internal fun V1Context.visible(data: JsonObject): Boolean = membershipId == null || data.array("targetNodeIds").let { targets ->
