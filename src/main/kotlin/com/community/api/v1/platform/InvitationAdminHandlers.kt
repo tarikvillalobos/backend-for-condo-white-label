@@ -58,3 +58,6 @@ internal fun V1Context.createPlatformInvitation(data: JsonObject, membershipId: 
         if (MailConfig.fromEnvironment() == null) fail(503, "CHANNEL_UNAVAILABLE", "E-mail não está configurado")
         val email = data.string("email") ?: recipient?.data?.string("email") ?: fail(422, "EMAIL_REQUIRED", "Informe o e-mail para envio")
         enqueueMail(email, "Community: convite de acesso", "Seu código de convite é:\n$code\nExpira em ${record.data.string("expiresAt")}")
+    }
+    return invitationView(record, code)
+}
