@@ -18,3 +18,23 @@ private fun V1Context.changeAttendance(attend: Boolean): V1Response {
     if (!row.data.flag("rsvpEnabled")) fail(409, "EVENT_RSVP_DISABLED", "Este evento não recebe confirmações")
     val entries = store.list("attendance", locationId, filters = mapOf("eventId" to row.id))
     val existing = entries.firstOrNull { it.data.text("membershipId") == membershipId }
+    if (attend && existing == null) {
+        val capacity = row.data.text("capacity")?.toIntOrNull()
+        if (capacity != null && entries.size >= capacity) fail(409, "EVENT_FULL", "Capacidade do evento atingida")
+        save("attendance", obj("eventId" to row.id, "residentName" to personName(), "node" to node(unitId), "confirmedAt" to now()))
+    }
+    if (!attend && existing != null) { store.delete(existing); audit("event.attendance_cancelled", existing) }
+    return V1Response(event(row))
+}
+internal fun eventHandlers(): Map<String, V1Handler> = mapOf(
+    "listEvents" to V1Handler { c -> c.listResponse("event") { c.event(it) } },
+    "adminCreateEvent" to V1Handler { c ->
+        window(c.input)
+        val row = c.save("event", c.input.merge(obj("rsvpEnabled" to c.input.flag("rsvpEnabled"), "cancelledAt" to null)))
+        if (c.input.flag("notify")) c.broadcast("system", row.id, c.input.text("title")!!, c.input.text("description"))
+        V1Response(c.event(row), 201)
+    },
+    "adminUpdateEvent" to V1Handler { c ->
+        val row = c.store.get("event", c.id("eventId"), c.locationId)
+        val data = row.data.merge(c.input)
+        window(data)
