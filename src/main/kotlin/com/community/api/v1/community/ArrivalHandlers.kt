@@ -38,3 +38,21 @@ internal fun arrivalHandlers(): Map<String, V1Handler> = mapOf(
             "visitorDocumentLast4" to c.input.text("visitorDocument")?.takeLast(4), "expiresAt" to c.now.plusSeconds(duration.toLong()).toString())))
         c.members().filter { it.data.text("nodeId") == nodeId }.forEach {
             c.notifyMember(it, "arrival", row.id, "Visitante aguardando autorização", c.input.text("visitorName"))
+        }
+        V1Response(c.arrival(row), 201)
+    },
+    "listArrivals" to V1Handler { c -> c.arrivalList(false) },
+    "getArrival" to V1Handler { c -> V1Response(c.arrival(c.arrivalRecord())) },
+    "listMyArrivals" to V1Handler { c -> c.arrivalList(true) },
+    "porterDecideArrival" to V1Handler { c -> c.decideArrival(true) },
+    "residentDecideArrival" to V1Handler { c -> c.decideArrival(false) },
+)
+private fun V1Context.decideArrival(staff: Boolean): V1Response {
+    val row = arrivalRecord()
+    if (arrivalStatus(row) != "pending") fail(409, "ARRIVAL_ALREADY_DECIDED", "Chegada expirada ou já decidida")
+    if (staff && input.text("contactMethod") == null) fail(422, "CONTACT_METHOD_REQUIRED", "Informe como confirmou com o morador")
+    val updated = change(row, obj("status" to if (input.text("decision") == "approve") "approved" else "denied",
+        "decidedAt" to now.toString(), "decidedByName" to personName(), "decidedByKind" to if (staff) "staff" else "resident",
+        "decisionNote" to input["note"], "contactMethod" to input["contactMethod"], "decidedByUserId" to userId), "arrival.decided")
+    return V1Response(arrival(updated))
+}
