@@ -38,3 +38,23 @@ class DeliveryHandlersTest {
         Contract.validate(schema, response.body)
     }
     private fun frontDesk(db: Database): JsonObject = call(db, "registerParcel", obj("condominiumId" to "condo",
+        "carrier" to "Postal", "storage" to "front_desk", "recipientMembershipId" to "alice"), staff = true).body.jsonObject
+
+    @Test fun `manual report revokes credential without finalizing physical pickup`() = database().use { db ->
+        val parcel = frontDesk(db)
+        val id = parcel.string("id")!!
+        val path = mapOf("parcelId" to id)
+        val credential = call(db, "getPickupCredential", path = path).body.jsonObject
+        assertTrue(credential.string("code")!!.matches(Regex("[0-9]{8}")))
+        assertEquals(404, assertFailsWith<ApiException> { call(db, "getParcel", path = path, user = "bob") }.status)
+        val before = db.tx { V1Store(it, "tenant", "brand").get("parcel", id).version }
+        call(db, "getPickupCredential", path = path)
+        assertEquals(before, db.tx { V1Store(it, "tenant", "brand").get("parcel", id).version })
+        val manual = call(db, "markManualPickup", path = path).body.jsonObject
+        assertEquals("manual", manual.string("status"))
+        assertEquals(JsonNull, manual["collectedAt"])
+        assertEquals("revoked", manual.string("credentialStatus"))
+        assertEquals(410, assertFailsWith<ApiException> { call(db, "getPickupCredential", path = path) }.status)
+        val reversed = call(db, "undoManualPickup", path = path).body.jsonObject
+        assertEquals("waiting", reversed.string("status"))
+        assertEquals("revoked", reversed.string("credentialStatus"))
