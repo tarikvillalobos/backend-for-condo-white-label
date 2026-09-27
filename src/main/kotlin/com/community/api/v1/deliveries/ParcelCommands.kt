@@ -138,3 +138,23 @@ internal fun handover(c: V1Context): V1Response {
     if (!validCode && !c.input.flag("identityChecked")) c.fail(422, "IDENTITY_REQUIRED", "Check collector identity when a credential is unavailable")
     return V1Response(c.parcelView(collected(c, row, collector, c.now)))
 }
+
+internal fun reissue(c: V1Context): V1Response {
+    val row = c.parcel()
+    if (c.header("If-Match") != null) c.requireVersion(row)
+    if (row.data.text("status") != "waiting") c.fail(409, "PARCEL_NOT_EDITABLE", "Only waiting parcels can receive a credential")
+    val id = c.input.text("membershipId") ?: c.fail(422, "COLLECTOR_REQUIRED", "Collector membership is required")
+    val member = c.member(id)
+    val nodeRecipient = row.data.text("recipientKind") == "node" && c.nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == member.data.text("nodeId") }
+    if (row.data.text("membershipId") != id && row.data.array("delegates").none { it.jsonPrimitive.content == id } && !nodeRecipient)
+        c.fail(422, "DELEGATE_NOT_ELIGIBLE", "Collector must be the recipient or an authorized delegate")
+    val updated = c.store.update(row, c.credentialData(row.data, id, instant(row.data.text("deadline")), row.id))
+    c.audit("parcel.credential_reissued", updated)
+    return V1Response(c.pickupView(updated), headers = mapOf("ETag" to "\"${updated.version}\""))
+}
+
+internal fun resendNotice(c: V1Context): V1Response {
+    val row = c.parcel()
+    c.outstanding(row)
+    val channels = c.input.array("channels").map { it.jsonPrimitive.content }
+    if (channels.any { it != "email" }) c.fail(422, "CHANNEL_UNAVAILABLE", "Only configured delivery channels can be used")
