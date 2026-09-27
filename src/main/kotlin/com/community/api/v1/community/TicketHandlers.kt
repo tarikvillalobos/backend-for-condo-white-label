@@ -78,3 +78,12 @@ internal fun ticketHandlers(): Map<String, V1Handler> = mapOf(
             "description" to ticket.data["description"], "nodeId" to ticket.data["nodeId"], "priority" to (ticket.data.text("priority") ?: "normal")))
         V1Response(c.workOrder(c.createWorkOrder(data)), 201)
     },
+)
+private fun V1Context.escalateTicket(row: Record): V1Response {
+    requireStaffUser(input.text("userId"))
+    val entry = obj("reason" to input["reason"], "fromPriority" to (row.data.text("priority") ?: "normal"),
+        "toPriority" to input["priority"], "fromAssigneeName" to row.data.text("assignedToUserId")?.let { personName(it) },
+        "toAssigneeName" to input.text("userId")?.let { personName(it) }, "dueAt" to input["dueAt"], "byName" to personName(), "at" to now())
+    return V1Response(ticket(change(row, obj("priority" to input["priority"], "assignedToUserId" to input["userId"],
+        "dueAt" to input["dueAt"], "escalations" to JsonArray(row.data.array("escalations") + entry)), "ticket.escalated"), true))
+}
