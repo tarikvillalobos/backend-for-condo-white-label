@@ -98,3 +98,15 @@ private fun createSupportIssue(c: V1Context): V1Response {
     c.parcel(c.input.text("parcelId")!!)
     val message = c.input.text("message")!!.trim()
     if (message.length !in 10..2000) c.fail(422, "VALIDATION_ERROR", "Message must contain 10 to 2000 characters after trimming")
+    val reference = "P-${java.util.UUID.randomUUID().toString().take(8).uppercase()}"
+    val row = c.store.create("ticket", c.input.changed("kind" to JsonPrimitive("support_issue"), "message" to JsonPrimitive(message),
+        "description" to JsonPrimitive(message), "membershipId" to JsonPrimitive(c.membershipId!!), "status" to JsonPrimitive("received"),
+        "resolution" to JsonNull, "reference" to JsonPrimitive(reference)), c.locationId, c.userId)
+    c.audit("parcel.issue_created", row)
+    return V1Response(supportView(row), 201)
+}
+private fun getSupportIssue(c: V1Context): V1Response {
+    val row = c.store.get("ticket", c.path.getValue("issueId"), c.locationId)
+    if (row.data.text("kind") != "support_issue" || row.data.text("membershipId") != c.membershipId) c.fail(404, "NOT_FOUND", "Issue not found")
+    return V1Response(supportView(row))
+}
