@@ -58,3 +58,23 @@ private fun saveLocker(c: V1Context): V1Response {
     data = data.changed("address" to value(c.store.get("condominium", c.condo()).data.text("address")))
     val saved = if (previous == null) c.store.create("locker", data, c.condo()) else c.store.update(previous, data)
     device?.let { c.store.update(it, it.data.changed("lockerId" to JsonPrimitive(saved.id))) }
+    c.audit(if (previous == null) "locker.created" else "locker.updated", saved)
+    return V1Response(c.lockerView(saved), if (previous == null) 201 else 200)
+}
+
+private fun setCompartments(c: V1Context): V1Response {
+    val locker = c.lockerRecord()
+    if (c.header("If-Match") != null) c.requireVersion(locker)
+    val definitions = c.input.array("compartments").map { it.jsonObject }
+    if (definitions.isEmpty() || definitions.size > 300 || definitions.any { it.text("code").isNullOrBlank() } || definitions.map { it.text("code") }.distinct().size != definitions.size)
+        c.fail(422, "VALIDATION_ERROR", "Compartment codes must be nonempty and unique")
+    val previous = locker.data.array("compartments").map { it.jsonObject }.associateBy { it.text("code") }
+    val codes = definitions.map { it.text("code") }.toSet()
+    if (previous.values.any { (it.text("parcelId") != null || it.text("status") in setOf("occupied", "reserved")) && it.text("code") !in codes })
+        c.fail(409, "COMPARTMENT_NOT_EMPTY", "Occupied compartments cannot be removed")
+    val compartments = definitions.map { definition ->
+        val old = previous[definition.text("code")]
+        if (old?.text("parcelId") != null && old.text("size") != definition.text("size")) c.fail(409, "COMPARTMENT_NOT_EMPTY", "Occupied compartment size cannot change")
+        JsonObject((old ?: obj()) + obj("code" to definition.text("code"), "size" to definition.text("size"), "status" to (old?.text("status") ?: "free"),
+            "parcelId" to old?.get("parcelId"), "updatedAt" to c.now.toString()))
+    }
