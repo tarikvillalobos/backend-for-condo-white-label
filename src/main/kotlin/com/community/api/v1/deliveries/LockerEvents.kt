@@ -58,3 +58,23 @@ private fun applyLockerEvent(c: V1Context, locker: Record, event: JsonObject) {
         if (previous == null || at.isAfter(previous)) c.store.update(locker, locker.data.changed("lastHeartbeatAt" to JsonPrimitive(at.toString())))
         c.principal?.deviceId?.let { id ->
             val device = c.store.get("device", id, locker.locationId)
+            if (device.data.text("lastSeenAt")?.let(::instant)?.isAfter(at) != true)
+                c.store.update(device, device.data.changed("lastSeenAt" to JsonPrimitive(at.toString())))
+        }
+        return
+    }
+    val code = event.text("compartmentCode") ?: c.fail(422, "COMPARTMENT_REQUIRED", "Compartment is required for this event")
+    val compartment = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
+        ?: c.fail(404, "COMPARTMENT_UNKNOWN", "Compartment not found")
+    val parcel = compartment.text("parcelId")?.let { c.store.get("parcel", it, locker.locationId) }
+    if (type == "pickup") {
+        val row = parcel ?: c.fail(422, "PARCEL_UNKNOWN", "No parcel is linked to this compartment")
+        if (at.isBefore(instant(row.data.text("depositedAt")))) c.fail(422, "STALE_EVENT", "Pickup precedes deposit")
+        c.outstanding(row)
+        val credential = c.historicalCredential(row, event.text("credentialCode"), at)
+            ?: c.fail(422, "CREDENTIAL_INVALID", "Pickup credential was not valid at the event timestamp")
+        val memberId = credential.data.text("membershipId") ?: c.fail(422, "COLLECTOR_UNKNOWN", "Credential has no collector")
+        val member = c.store.get("membership", memberId, locker.locationId)
+        if (member.data.text("status") != "active") c.fail(422, "COLLECTOR_INACTIVE", "Collector membership is inactive")
+        collected(c, row, memberId, at)
+        val currentCredential = c.store.get("pickup_credential", credential.id)
