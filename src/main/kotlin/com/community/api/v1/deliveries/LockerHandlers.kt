@@ -38,3 +38,23 @@ private fun V1Context.lockerView(row: Record): JsonObject {
     val data = row.data
     val compartments = data.array("compartments").map { it.jsonObject }
     return obj("id" to row.id, "name" to data.text("name"), "address" to data.text("address").orEmpty(), "node" to node(data.text("nodeId")),
+        "deviceId" to data["deviceId"], "available" to data.flag("available"), "online" to (lockerOnline(data, now) && data.text("deviceId")?.let { store.find("device", it)?.data?.text("status") == "active" } == true),
+        "lastHeartbeatAt" to data["lastHeartbeatAt"], "occupancy" to obj("total" to compartments.size,
+            "occupied" to compartments.count { it.text("status") == "occupied" }, "faulty" to compartments.count { it.text("status") == "faulty" },
+            "disabled" to compartments.count { it.text("status") == "disabled" }))
+}
+
+private fun saveLocker(c: V1Context): V1Response {
+    val previous = c.path["lockerId"]?.let { c.store.get("locker", it, c.condo()) }
+    if (c.header("If-Match") != null) previous?.let(c::requireVersion)
+    var data = JsonObject((previous?.data ?: obj("available" to true, "compartments" to JsonArray(emptyList()), "lastHeartbeatAt" to null)) + c.input)
+    if (data.text("name").isNullOrBlank()) c.fail(422, "VALIDATION_ERROR", "Locker name is required")
+    data.text("nodeId")?.let { c.store.get("node", it, c.condo()) }
+    val device = data.text("deviceId")?.let { c.store.get("device", it, c.condo()) }
+    if (device != null && (device.data.text("type") != "locker" || device.data.text("status") != "active"))
+        c.fail(422, "INVALID_DEVICE", "Locker requires an active locker device")
+    if (device != null && c.store.list("locker", c.condo()).any { it.id != previous?.id && it.data.text("deviceId") == device.id })
+        c.fail(409, "DEVICE_ASSIGNED", "Device already belongs to another locker")
+    data = data.changed("address" to value(c.store.get("condominium", c.condo()).data.text("address")))
+    val saved = if (previous == null) c.store.create("locker", data, c.condo()) else c.store.update(previous, data)
+    device?.let { c.store.update(it, it.data.changed("lockerId" to JsonPrimitive(saved.id))) }
