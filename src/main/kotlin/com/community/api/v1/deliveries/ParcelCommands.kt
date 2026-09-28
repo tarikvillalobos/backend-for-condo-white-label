@@ -171,7 +171,7 @@ internal fun resendNotice(c: V1Context): V1Response {
 private fun validatePhotos(c: V1Context) {
     c.input.array("photoKeys").forEach { value ->
         val upload = c.store.get("upload", value.jsonPrimitive.content)
-        if (upload.ownerId != c.userId) c.fail(404, "NOT_FOUND", "Upload not found")
-        if (upload.data.text("status") != "complete") c.fail(409, "UPLOAD_INCOMPLETE", "Complete the upload first")
+        if (upload.ownerId != c.userId) c.fail(404, "RESOURCE_NOT_FOUND", "Upload not found")
+        if (upload.data.text("status") != "complete") c.fail(409, "OPERATION_IN_PROGRESS", "Complete the upload first")
     }
 }
