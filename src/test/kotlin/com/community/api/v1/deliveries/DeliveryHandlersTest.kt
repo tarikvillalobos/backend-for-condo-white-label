@@ -108,6 +108,12 @@ class DeliveryHandlersTest {
         val compartments = call(db, "listCompartments", path = lockerPath, deviceId = deviceId).body.jsonObject["compartments"]!!.jsonArray
         assertEquals("free", compartments.single().jsonObject.string("status"))
         assertFalse(db.tx { V1Store(it, "tenant", "brand").list("locker_event").any { row -> row.data.toString().contains(code) } })
+        val fault = obj("events" to listOf(obj("eventId" to UUID.randomUUID().toString(), "type" to "fault",
+            "occurredAt" to now.plusSeconds(240), "compartmentCode" to "A1")))
+        call(db, "ingestLockerEvents", fault, lockerPath, deviceId = deviceId, at = now.plusSeconds(300))
+        val faults = db.scopedTx(null) { tx -> tx.connection.prepareStatement("SELECT COUNT(*) FROM audit_log WHERE action='locker.fault'")
+            .use { it.executeQuery().use { rows -> rows.next(); rows.getInt(1) } } }
+        assertEquals(1,faults)
     }
 
 
