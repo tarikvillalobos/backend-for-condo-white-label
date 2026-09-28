@@ -56,7 +56,7 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
         val condo = store.get("condominium",location)
         if (condo.data.string("status") in setOf("suspended","inactive","deleted")) provisional.fail(403,"ACCESS_DENIED","Condominium is unavailable")
     }
-    val permissions = if (principal?.userId != null) effectivePermissions(provisional,principal.userId) else emptySet()
+    val permissions = if (principal?.userId != null) effectivePermissions(provisional,principal.userId) else principal?.permissions.orEmpty()
     val c = V1Context(tx,operation.id,tenantId,brandId,requestId,input,path,query,headers,principal?.copy(permissions=permissions),location,membership)
     if (principal?.deviceId != null && location != store.get("device",principal.deviceId).locationId) c.fail(404,"RESOURCE_NOT_FOUND","Resource not found")
     operation.definition.string("x-required-permission")?.let { c.requirePermission(*it.split('|').map(String::trim).toTypedArray()) }
