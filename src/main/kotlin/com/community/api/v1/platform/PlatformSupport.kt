@@ -39,7 +39,7 @@ internal fun defaultPlatformRolePermissions(role: String): Set<String> {
     val staff = catalog.filter { it.string("audience") in setOf("resident", "staff") }.map { it.string("code")!! }.toSet()
     return when (role) {
         "brand_admin" -> catalog.map { it.string("code")!! }.toSet()
-        "org_admin" -> staff + catalog.filter { it.string("audience") == "organization" }.map { it.string("code")!! } - "roles.manage"
+        "org_admin" -> staff + catalog.filter { it.string("audience") == "organization" }.map { it.string("code")!! } - setOf("roles.manage", "condominiums.create")
         "property_manager" -> staff - "roles.manage"
         "condo_admin" -> staff - setOf("roles.manage", "condominiums.create")
         "manager" -> staff - setOf("roles.manage", "condominiums.create", "staff.manage", "cameras.manage")
