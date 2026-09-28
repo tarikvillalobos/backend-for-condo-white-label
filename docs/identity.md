@@ -15,7 +15,7 @@ Use `Authorization: Bearer <accessToken>` nas rotas protegidas. `GET /v1/me/cont
 
 Convites são consultados em `GET /v1/auth/invitations/{code}` e aceitos em `POST /v1/auth/invitations/{code}/accept`. Uma conta já autenticada vincula outro convite em `POST /v1/me/invitations/{code}/link`. Alterações de senha, recuperação, troca de contato e preferências têm rotas próprias no contrato.
 
-## Profile and sessions
+`POST /v1/me/verify` confirma identidade recente para operações com `x-step-up`; o contrato informa quando usar o desafio adicional `/v1/me/verify/challenge`. `GET /v1/me/sessions` lista sessões; as rotas `DELETE /v1/me/sessions/{sessionId}` e `POST /v1/me/sessions/revoke-others` as revogam.
 
 | Method and path | Request or behavior |
 | --- | --- |
