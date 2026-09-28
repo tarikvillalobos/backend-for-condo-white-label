@@ -9,7 +9,8 @@ internal fun validateCredential(c: V1Context): V1Response {
     val locker = c.lockerRecord()
     val supplied = c.input.text("code") ?: c.input.text("qrPayload") ?: c.fail(422, "VALIDATION_ERROR", "A code or QR payload is required")
     if (c.input.text("code") != null && c.input.text("qrPayload") != null) c.fail(422, "VALIDATION_ERROR", "Supply only one credential representation")
-    val row = c.store.list("parcel", locker.locationId).firstOrNull {
+    val row = c.store.list("parcel", locker.locationId, filters = mapOf("credentialHash" to c.hash(supplied),
+        "credentialStatus" to "active")).firstOrNull {
         it.data.text("lockerId") == locker.id && credentialMatches(c, it, supplied)
     }
     val valid = row != null && locker.data.flag("available")
