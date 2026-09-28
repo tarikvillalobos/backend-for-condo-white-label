@@ -54,6 +54,9 @@ internal class CommunityFixture : AutoCloseable {
     fun seed(kind: String, data: JsonObject, ownerId: String? = user): Record = db.tx {
         V1Store(it, tenant, brand).create(kind, data, condo, ownerId)
     }
+    fun file(name: String = "regulamento.pdf", bytes: ByteArray = "%PDF-1.7\nTest".toByteArray()): Record = db.tx {
+        writePrivateFile(V1Context(it, "testUpload", tenant, brand, UUID.randomUUID().toString(), principal = V1Principal(userId = user)), name, "application/pdf", bytes)
+    }
     override fun close() = db.close()
 }
 internal fun V1Response.id() = body.jsonObject["id"]!!.jsonPrimitive.content
