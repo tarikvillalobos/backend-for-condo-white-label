@@ -17,26 +17,6 @@ Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de
 - `POST .../reservations/{reservationId}/approve`, `/reject` e `/cancel` executam as decisões da equipe.
 
 Listas usam cursor e snapshot. Respostas 409 `RESERVATION_CONFLICT` indicam conflito de intervalo ou estado; 422 cobre regras de horário e validação. Use o schema de cada operação no OpenAPI para os campos exatos, cabeçalhos de idempotência, permissões e ETag.
-require management permissions. Owners may cancel their own future or ongoing
-bookings; already ended or closed bookings cannot transition again.
-
-Maintenance intervals use the booking body and can span closed hours or multiple
-days, but must start in the future and cannot overlap an active reservation.
-Availability accepts at most a 93-day range and exposes busy times without
-resident names, notes, or booking IDs. Lists are paginated with `offset` and
-`limit`. Waitlists, payments, and recurring bookings are optional extensions and
-are not included in this API contract.
-
-## Community events linked to reservations
-
-Event creation and updates accept an optional `reservationId` alongside the
-event title, description, schedule, and capacity. A link requires both the
-`events` and `reservations` features. The event publisher must own the reservation
-or have `reservations.manage` in the same location.
-
-The reservation must belong to the same client and location and be `PENDING` or
-`CONFIRMED`. Event start and end must fit within the reserved interval. A pending
-link does not imply that the reservation has been approved. Each reservation can
 back only one active event; simultaneous attempts to reuse it conflict.
 
 Editing an event validates its link again. Omit `reservationId` or send `null` to
