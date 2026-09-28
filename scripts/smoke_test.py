@@ -57,7 +57,6 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             content = response.read()
             assert response.status == expected, f"{method} {path}: {response.status} != {expected}; {content[:300]!r}"
             assert response.headers["X-Request-ID"]
-            content = response.read()
             return json.loads(content) if content else None
 
     def start(log):
