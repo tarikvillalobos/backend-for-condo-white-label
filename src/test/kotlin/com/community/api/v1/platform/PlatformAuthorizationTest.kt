@@ -58,3 +58,8 @@ class PlatformAuthorizationTest {
         assertEquals(401, assertFailsWith<ApiException> {
             f.identity.invoke("getProfile", token = tokens.string("accessToken"))
         }.status)
+        assertEquals(401, assertFailsWith<ApiException> {
+            f.identity.invoke("loginWithPassword", obj("identifier" to "operator@example.test", "password" to password))
+        }.status)
+    }
+}
