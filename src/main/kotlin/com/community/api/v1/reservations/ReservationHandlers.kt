@@ -124,9 +124,9 @@ private fun createReservation(c: V1Context): V1Response {
     val start = timestamp(c.input.text("startsAt"))
     val end = timestamp(c.input.text("endsAt"))
     val rules = facility.data.objectAt("rules")
-    val count = c.store.list("reservation", condominium(c)).count {
-        it.data.text("membershipId") == c.membershipId && it.data.text("spaceId") == facility.id &&
-            BookingRules.active(it.data) && timestamp(it.data.text("endsAt")).isAfter(c.now)
+    val count = c.store.list("reservation", condominium(c), filters = mapOf("membershipId" to c.membershipId!!,
+        "spaceId" to facility.id)).count {
+        BookingRules.active(it.data) && timestamp(it.data.text("endsAt")).isAfter(c.now)
     }
     if (count >= rules.number("maxFutureReservations")!!) c.fail(409, "RESERVATION_LIMIT", "Future reservation limit reached")
     if (occupied(c, facility.id, start, end) || blocked(c, facility.id, start, end))
