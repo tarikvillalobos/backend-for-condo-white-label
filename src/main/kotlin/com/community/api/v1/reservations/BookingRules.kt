@@ -54,7 +54,7 @@ internal object BookingRules {
         if (!space.flag("active")) bookingError("RESERVATION_CONFLICT", "Space is inactive", 409)
         if (!start.isBefore(end) || !start.isAfter(now)) bookingError("VALIDATION_ERROR", "Reservation must occupy a future interval")
         if (start.isBefore(now.plusSeconds(rules.number("minAdvanceMinutes")!!.toLong() * 60)))
-            bookingError("MIN_ADVANCE_REQUIRED", "Reservation does not meet the minimum notice")
+            bookingError("VALIDATION_ERROR", "Reservation does not meet the minimum notice")
         if (start.atZone(zone).toLocalDate().isAfter(now.atZone(zone).toLocalDate().plusDays(rules.number("horizonDays")!!.toLong())))
             bookingError("OUTSIDE_HORIZON", "Reservation exceeds the booking horizon")
         val duration = Duration.between(start, end)
