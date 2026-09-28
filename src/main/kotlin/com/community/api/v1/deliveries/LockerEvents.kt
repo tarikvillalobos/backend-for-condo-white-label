@@ -46,6 +46,12 @@ internal fun lockerEvents(c: V1Context): V1Response {
                 "result" to result, "reason" to reason, "parcelExternalRef" to input["parcelExternalRef"],
                 "payloadEncrypted" to c.seal((input["payload"] ?: JsonNull).toString())), locker.locationId, id = key)
             c.audit("locker.event_$result", stored)
+            if (reason == null && input.text("type") in setOf("fault", "door_forced")) {
+                val current = c.store.get("locker", locker.id)
+                val changed = current.data.array("compartments").map { it.jsonObject }.firstOrNull { it.text("code") == input.text("compartmentCode") }
+                if (changed?.text("lastEventAt")?.let(::instant) == input.text("occurredAt")?.let(::instant))
+                    c.audit("locker.fault", current)
+            }
             obj("eventId" to eventId, "result" to result, "reason" to reason)
         }
     }
