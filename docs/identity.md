@@ -1,6 +1,6 @@
 # Identidade e sessões v1
 
-# Identity and account API
+O fluxo completo está no [OpenAPI](openapi.yaml), nas seções Authentication e Profile. Todas as chamadas de negócio enviam `X-Brand-Id`; a autenticação também depende da marca. A primeira conta administrativa é criada pelo comando `bootstrap` descrito no [README](../README.md).
 
 All requests and responses use JSON. Account identities are scoped to `tenantId`; the same email in another client is a separate account. Authorization uses `Authorization: Bearer <accessToken>`.
 
