@@ -6,7 +6,7 @@ import kotlinx.serialization.json.*
 import java.time.ZoneId
 
 fun platformHandlers(): Map<String, V1Handler> = condominiumHandlers() + structureHandlers() +
-    membershipAdminHandlers() + staffAdminHandlers() + organizationHandlers() + brandAdminHandlers()
+    membershipAdminHandlers() + staffAdminHandlers() + organizationHandlers() + brandAdminHandlers() + residentStructureHandlers()
 
 private fun condominiumHandlers(): Map<String, V1Handler> = mapOf(
     "createCondominium" to V1Handler { it.createCondominium() },
