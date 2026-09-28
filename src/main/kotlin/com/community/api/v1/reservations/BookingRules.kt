@@ -71,7 +71,7 @@ internal object BookingRules {
             it.number("weekday") == localStart.dayOfWeek.value % 7 &&
                 !localStart.toLocalTime().isBefore(localTime(it.text("opens"))) &&
                 !localEnd.toLocalTime().isAfter(localTime(it.text("closes")))
-        } ?: bookingError("OUTSIDE_OPENING_HOURS", "Reservation is outside opening hours")
+        } ?: bookingError("VALIDATION_ERROR", "Reservation is outside opening hours")
         val offset = Duration.between(localTime(opening.text("opens")), localStart.toLocalTime()).seconds
         if (start.nano != 0 || end.nano != 0 || offset % (slot * 60) != 0L) bookingError("INVALID_SLOT", "Reservation start must align with a slot")
     }
