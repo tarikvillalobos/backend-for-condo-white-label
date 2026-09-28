@@ -22,6 +22,8 @@ internal fun V1Context.identityStaff(user: Record): List<Record> =
     }
 
 internal fun V1Context.issueIdentitySession(user: Record): JsonObject {
+    if (profileData(user).string("accountStatus") == "blocked") fail(401, "INVALID_CREDENTIALS", "Conta indisponível")
+    if (store.find("profile", user.id) == null) saveProfile(user, profileData(user))
     val tokens = tx.issueSession(user, identityHeader("User-Agent") ?: "app")
     val id = tokens.accessToken.split('.')[1]
     val staff = identityStaff(user)
