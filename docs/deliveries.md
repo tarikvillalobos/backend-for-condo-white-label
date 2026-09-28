@@ -10,7 +10,7 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 
 ## Equipamentos e eventos
 
-Example receipt body:
+Administradores criam o locker em `/v1/admin/condominiums/{condominiumId}/lockers`, associam um dispositivo ativo e definem compartimentos em `PUT .../lockers/{lockerId}/compartments`. O dispositivo usa `X-Device-Key` em `POST /v1/ops/lockers/{lockerId}/events` e `/credential-validations`. O contrato `LockerEvent` define os tipos, campos e códigos aceitos. Eventos `heartbeat` atualizam a disponibilidade observada; `door_opened` registra abertura física. A API não infere que uma encomenda foi retirada apenas porque uma porta abriu.
 
 ```json
 {
