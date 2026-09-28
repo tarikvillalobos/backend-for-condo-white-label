@@ -57,26 +57,6 @@ build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 Crie `build/spec-venv` e instale `requirements-dev.txt` antes do último comando se o ambiente ainda não tiver as dependências Python. Os commits na `main` usam `tarik.villalobos@gmail.com`, um arquivo por commit e até 20 linhas alteradas; `docs/openapi.yaml` é a exceção autorizada.
-Suspension revokes the client's account credentials; it does not delete records.
-
-### Health endpoints
-
-| Method | Path | Behavior |
-| --- | --- | --- |
-| `GET` | `/health/live` | 200 with `{"status":"UP"}` when HTTP handling is available |
-| `GET` | `/health/ready` | Database connectivity check; 200 UP or 503 DOWN |
-
-```sh
-curl http://127.0.0.1:8080/health/live
-curl http://127.0.0.1:8080/health/ready
-```
-
-Readiness covers the database, not SMTP acceptance or external hardware. Serve
-production HTTP behind TLS and configure backups, restore drills, retention,
-and monitoring according to the deployment's requirements.
-
-## Commit Guidelines
-
 All contributions must follow these rules:
 
 - Each commit must change exactly one file.
