@@ -14,24 +14,6 @@ curl http://127.0.0.1:8080/v1/health/ready
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
 Crie a primeira marca e o administrador informando as variáveis abaixo:
-Include monitoring, backup and recovery procedures, traceable administrative actions, and clear handling of failed integrations. Repeated requests must not create duplicate reservations, invitations, or package operations. Demonstration data and simulated hardware events must never be represented as real operations.
-
-## Optional Extensions
-
-Additional product scope may include assemblies, polls, voting workflows, financial statements and charge visibility, accounting or payment-provider integrations, utility consumption records, and community classifieds.
-
-These extensions require their own business rules and permissions. Full accounting, payment processing, video hosting, and equipment firmware are not assumed to be built into the initial backend.
-
-## Getting started
-
-### Prerequisites
-
-Install Java 21 and expose it through `JAVA_HOME` or `PATH`. Use the included
-Gradle Wrapper. The first build downloads dependencies and needs internet access.
-PostgreSQL is required when `APP_ENV=production`; development defaults to a local
-H2 file under `data/`.
-
-### Build and test
 
 ```sh
 ./gradlew build
