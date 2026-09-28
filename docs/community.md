@@ -2,9 +2,7 @@
 
 O [OpenAPI](openapi.yaml) define os schemas, as permissões e os códigos de cada operação. O morador acessa recursos pelo prefixo `/v1/memberships/{membershipId}`; a equipe usa `/v1/admin/condominiums/{condominiumId}` ou `/v1/ops`. O servidor confirma o vínculo ativo e aplica o escopo de condomínio e de módulo em cada chamada.
 
-These endpoints use bearer authentication, tenant isolation, active memberships,
-location features, and explicit action permissions. All mutations and their audit
-records run in a database transaction. Lists use `offset` and `limit` (1–200).
+## Comunicação e atendimento
 
 Except notifications, paths below start with `/api/v1/locations/{locationId}`.
 JSON request shapes are Kotlin serializable classes in `community`. Timestamps are
