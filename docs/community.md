@@ -6,7 +6,7 @@ O [OpenAPI](openapi.yaml) define os schemas, as permissões e os códigos de cad
 
 Avisos, eventos, notificações, documentos e contatos têm rotas próprias. Notificações internas persistem independentemente da entrega externa; `readAt` é gravado quando o usuário lê. Avisos podem ser agendados, e um worker processa a entrega. Chamados e ocorrências mantêm estado, comentários e histórico auditável; comentários internos exigem acesso de equipe. Relatórios e exportações podem ser processados em segundo plano e baixados por URL assinada.
 
-## Announcements
+## Acesso e portaria
 
 - `GET /announcements`: published, unexpired notices visible to the current unit;
   publishers can also see scheduled and archived notices. Pinned notices come first.
