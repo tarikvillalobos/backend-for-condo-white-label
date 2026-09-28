@@ -35,16 +35,9 @@ Câmeras precisam das variáveis do provedor de vídeo. Webhooks aceitam destino
 ## Verificação
 
 ```sh
-docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
-```
-
-Keep the database password in your local secret store for future Compose runs.
-Changing this environment variable does not change an existing PostgreSQL user's
-password. Compose's built-in `.env` loading is separate from the native server,
-which reads only the process environment.
-
-## Client lifecycle
-
+./gradlew test installDist
+python3 scripts/smoke_test.py
+python3 scripts/check_commits.py
 `bootstrap` creates a new client and administrator, prints their identifiers,
 and never overwrites existing accounts. Client-wide administrator memberships
 cannot expire. Sensitive permission changes require verification within ten
