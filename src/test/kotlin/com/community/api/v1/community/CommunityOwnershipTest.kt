@@ -23,7 +23,7 @@ class CommunityOwnershipTest {
             f.run("createVehicle", obj("nodeId" to f.otherUnit, "plate" to "ABC1D23", "model" to "Carro", "kind" to "car"))
         }.status)
     }
-    @Test fun `pet lost alerts require ownership and prevent duplicate open alerts`() = CommunityFixture().use { f ->
+    @Test fun `pet lost alerts require ownership and prevent duplicate open alerts`(): Unit = CommunityFixture().use { f ->
         val pet = f.run("createPet", obj("name" to "Nina", "species" to "dog", "sex" to "female"))
         val alert = obj("kind" to "lost", "petId" to pet.id(), "description" to "Desapareceu", "species" to "dog")
         assertEquals(404, assertFailsWith<ApiException> { f.run("createPetAlert", alert, other = true) }.status)
