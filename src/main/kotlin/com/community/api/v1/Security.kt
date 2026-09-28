@@ -99,7 +99,4 @@ private fun enforceModule(c: V1Context, operation: ContractOperation) {
         else if ("/maintenance/" in path || "/work-orders" in path || "/assets" in path || "/vendors" in path) "maintenance" else return
     if (path.startsWith("/audit/")) return
     if (modulesView(c,c.locationId,c.membership)[module] == JsonPrimitive(false)) c.fail(403,"MODULE_DISABLED","Module is disabled")
-    val brandModules = c.store.get("brand",c.brandId).data["modules"] as? JsonObject
-    val condoModules = c.locationId?.let { c.store.get("condominium",it).data["modules"] as? JsonObject }
-    if (brandModules?.get(module) == JsonPrimitive(false) || condoModules?.get(module) == JsonPrimitive(false)) c.fail(403,"MODULE_DISABLED","Module is disabled")
 }
