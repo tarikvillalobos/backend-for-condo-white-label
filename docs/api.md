@@ -18,7 +18,7 @@ curl -sS "$API_BASE/v1/auth/password/login" \
       '{identifier:$identifier,password:$password}')"
 ```
 
-For the following calls, define a helper that sends JSON from standard input:
+O login devolve `accessToken`. Nas operações protegidas, envie `Authorization: Bearer <accessToken>`. Se uma rota exigir `StaffBearer`, use uma sessão de equipe; equipamentos usam `X-Device-Key` nas rotas de hardware autorizadas. Os contextos de morador são listados por `GET /v1/me/contexts`.
 
 ```bash
 api_json() {
