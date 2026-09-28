@@ -28,5 +28,3 @@ Content-Type: application/json
 O provedor deve responder HTTP 202. Se enviar corpo JSON, ele deve conter o mesmo `commandId`. A API então devolve `status: command_sent`, registra o comando na auditoria e aguarda um evento confiável do equipamento para observar a abertura real. A mesma chave de idempotência produz o mesmo `commandId` em uma tentativa repetida, inclusive após perda de resposta do provedor. Sem provedor configurado a operação devolve 501 `PROVIDER_NOT_CONFIGURED`; falha ou recusa do provedor devolve 503. Não use esse comando como comprovante de retirada.
 
 O Compose conserva uploads e PostgreSQL em volumes. Operações em vários hosts precisam de armazenamento compartilhado para arquivos e de testes de carga do banco e dos provedores.
-and provider-specific webhook signature formats still require the selected
-vendor's contract and credentials. No endpoint simulates a physical door opening.
