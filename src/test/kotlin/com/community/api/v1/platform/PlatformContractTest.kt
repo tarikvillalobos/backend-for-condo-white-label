@@ -78,3 +78,11 @@ internal class PlatformFixture : AutoCloseable {
         platformHandlers().getValue(operation).handle(c)
     }
     fun createCondo(): JsonObject {
+        val modules = obj(*Contract.schemas["Modules"]!!.jsonObject["properties"]!!.jsonObject.keys.map { it to true }.toTypedArray())
+        val result = invoke("createCondominium", obj("name" to "Condomínio Teste", "address" to "Rua Exemplo, 1",
+            "timeZone" to "America/Sao_Paulo", "modules" to modules)).body.jsonObject
+        condoId = result["condominium"]!!.jsonObject.string("id")
+        return result
+    }
+    override fun close() = identity.close()
+}
