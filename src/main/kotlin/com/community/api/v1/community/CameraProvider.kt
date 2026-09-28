@@ -15,7 +15,8 @@ internal object CameraProvider {
         val base = System.getenv("CAMERA_PROVIDER_BASE_URL")?.takeIf { it.isNotBlank() }?.trimEnd('/')
             ?: c.fail(501, "CAMERA_PROVIDER_UNAVAILABLE", "Configure um provedor de câmeras")
         val uri = runCatching { URI(base + path) }.getOrElse { c.fail(503, "CAMERA_PROVIDER_CONFIGURATION", "URL do provedor inválida") }
-        if (uri.scheme != "https" && !(System.getenv("APP_ENV") != "production" && uri.scheme == "http"))
+        if (uri.host.isNullOrBlank() || uri.userInfo != null || uri.query != null || uri.fragment != null ||
+            (uri.scheme != "https" && !(System.getenv("APP_ENV") != "production" && uri.scheme == "http")))
             c.fail(503, "CAMERA_PROVIDER_CONFIGURATION", "O provedor exige HTTPS")
         val builder = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(10)).header("Content-Type", "application/json")
         System.getenv("CAMERA_PROVIDER_TOKEN")?.takeIf { it.isNotBlank() }?.let { builder.header("Authorization", "Bearer $it") }
