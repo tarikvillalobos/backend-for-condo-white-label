@@ -10,9 +10,7 @@ As rotas v1 usam transações com locks por escopo, controle de versão, ETag e 
 
 ## Autorização e auditoria
 
-PostgreSQL is the production store. Development defaults to a persistent H2 file;
-tests use isolated in-memory H2 databases in PostgreSQL compatibility mode.
-HikariCP owns connections, and Flyway applies the migration history.
+Sessões de morador, sessões de equipe e chaves de dispositivo têm credenciais distintas. O servidor combina permissões, contexto ativo, escopo do condomínio e módulos habilitados. Operações sensíveis exigem verificação recente da identidade quando o OpenAPI declara `x-step-up`.
 
 Records have an envelope containing `id`, `kind`, `tenantId`, `locationId`,
 `ownerId`, typed JSON `data`, creation/update timestamps, and a version number.
