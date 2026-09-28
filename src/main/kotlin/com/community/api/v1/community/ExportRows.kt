@@ -18,11 +18,7 @@ private val columns = mapOf(
 internal fun V1Context.exportRows(job: com.community.api.core.Record): List<Map<String, String>> {
     val resource = job.data.text("resource")!!
     val filters = job.data["filters"] as? JsonObject ?: obj()
-    val data = if (resource == "audit") exportAudit() else {
-        val exact = filters.filterKeys { it in setOf("status", "kind", "species", "category") }.mapValues { it.value.jsonPrimitive.content }
-        store.list(exportKinds.getValue(resource), locationId, filters = exact).map { it.metadata() }
-    }
-    val selected = data.asSequence().filter { row ->
+    fun accepts(row: JsonObject): Boolean {
         val at = row.text("occurredAt") ?: row.text("createdAt")!!
         (filters.text("nodeId")?.let { inSubtree(row.text("nodeId"), it) } ?: true) &&
             (filters.text("since")?.let { timestamp(at) >= timestamp(it) } ?: true) &&
