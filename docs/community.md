@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-owner identifiers, units, identification numbers, and vaccination attachments.
-
-Permissions: `pets.read.own`, `pets.read.all`, `pets.create`, `pets.manage.own`,
-`pets.manage`. Creation does not confer access to another person's pet.
-
-## Requests, complaints, incidents, and support
-
-- `GET /requests`, `POST /requests`, `GET /requests/{id}`.
-- `POST /requests/{id}/assign`: `{userId,dueAt?}`; assignee must be an active
-  member with scoped request-management access.
-- `POST /requests/{id}/status`: `{status,reason}`.
-- `POST /requests/{id}/escalate`: `{reason,priority,userId?,dueAt?}`; staff may
-  increase or retain priority, optionally reassign, and set a deadline.
-- `GET /requests/{id}/escalations`: staff-only escalation reasons and change history.
-- `GET /requests/{id}/comments`, `POST /requests/{id}/comments`:
-  `{message,internal:false,attachments:[]}`.
-
-`RequestInput`: `title`, `description`, `category` (`request`, `complaint`,
-`incident`, `maintenance`, `support`), `priority` (`normal`, `high`, `urgent`),
-and optional `attachments`.
 
 Transitions: `open → in_progress/cancelled`; `in_progress → resolved/open/cancelled`;
 `resolved → closed/open`; `closed → open`. Cancelled requests are terminal.
