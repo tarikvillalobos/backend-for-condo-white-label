@@ -6,7 +6,7 @@ O contrato está em [openapi.yaml](openapi.yaml), nas seções Reservations e Ad
 
 Cada espaço define horários por dia da semana, duração dos slots, antecedência mínima, horizonte de agendamento, limite de reservas futuras, capacidade, prazo de cancelamento e necessidade de aprovação. A API interpreta os horários no fuso IANA configurado para o condomínio; `startsAt` e `endsAt` são instantes UTC. O período deve caber em um único dia local e respeitar os slots e o horário de abertura.
 
-## Facility rules
+Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de espaço também impedem agendamento. A transação serializa alterações no escopo do condomínio e revalida conflitos ao criar ou aprovar, para impedir dupla reserva sob concorrência. O morador pode cancelar conforme o prazo configurado; a equipe pode aprovar, rejeitar ou cancelar pelas rotas administrativas.
 
 ```json
 {
