@@ -49,6 +49,7 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
         ?: path["parcelId"]?.let { store.get("parcel",it).locationId }
         ?: path["arrivalId"]?.let { store.get("arrival",it).locationId }
         ?: input.string("nodeId")?.let { store.get("node",it).locationId }
+        ?: input.string("gateId")?.let { store.get("gate",it).locationId }
         ?: principal?.deviceId?.let { store.get("device",it).locationId }
     val provisional = V1Context(tx,operation.id,tenantId,brandId,requestId,input,path,query,headers,principal,location,membership)
     if (location != null) {
