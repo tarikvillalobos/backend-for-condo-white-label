@@ -16,8 +16,10 @@ O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados fi
 Crie a primeira marca e o administrador informando as variáveis abaixo:
 
 ```sh
-./gradlew build
-./gradlew test
+export BOOTSTRAP_CLIENT_NAME='Meu condomínio'
+export BOOTSTRAP_EMAIL='admin@example.test'
+export BOOTSTRAP_PASSWORD='uma-senha-forte-de-teste'
+docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
 ```
 
 `build` compiles the service, runs tests, and creates distributions. The tests
