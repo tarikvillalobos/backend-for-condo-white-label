@@ -43,15 +43,6 @@ build/spec-venv/bin/pip install -r requirements-dev.txt
 build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
-CI runs these checks, PostgreSQL integration tests, a container build, and the
-commit-history policy. Python 3.9 or later is needed for the helper scripts.
-
-## Commit policy
-
-Use `python3 scripts/small_commits.py FILE... --push` to split text changes into
-commits of at most 20 added/deleted lines, one file per commit on `main`.
-`python3 scripts/check_commits.py` verifies the entire history, including in CI.
-Binary Gradle Wrapper JAR changes occupy a single-file commit; Git reports no
-textual line count for binary artifacts. Intermediate small commits may not build;
+O smoke test usa um banco temporário e testa bootstrap, login, idempotência, auditoria e persistência após reinício. O workflow de CI também executa testes com PostgreSQL e compila a imagem Docker.
 push after validating each complete batch. Never force-push to resolve a diverged
 remote automatically.
