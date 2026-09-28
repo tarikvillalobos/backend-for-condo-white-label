@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Validate OpenAPI and check coverage against this repository's Ktor route layout."""
-import json
+"""Validate the published contract and require a concrete Ktor handler per operation."""
+from collections import Counter
 from pathlib import Path
 import re
 
