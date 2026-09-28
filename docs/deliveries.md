@@ -1,6 +1,6 @@
 # Encomendas e lockers v1
 
-# Packages and smart lockers
+As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/memberships/{membershipId}/parcels`; a equipe usa `/v1/ops/parcels` para registrar e entregar encomendas e `/v1/admin/condominiums/{condominiumId}/parcels` para administrá-las. O servidor verifica vínculo, permissão, condomínio e estado da encomenda em cada operação.
 
 All human routes require `Authorization: Bearer <session-token>` and an active
 membership in the selected location. The client and location must enable the
