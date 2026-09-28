@@ -77,6 +77,7 @@ object Contract {
                 else if (schema["additionalProperties"] == JsonPrimitive(false)) errors += "$field.$key is not supported"
                 else (schema["additionalProperties"] as? JsonObject)?.let { errors += errors(it, child, "$field.$key") }
             }
+            if (value.size > schema.int("maxProperties", Int.MAX_VALUE)) errors += "$field has too many properties"
             if (value.size < schema.int("minProperties", 0)) errors += "$field requires more properties"
         }
         if (value is JsonArray) {
