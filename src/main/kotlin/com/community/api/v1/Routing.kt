@@ -123,6 +123,7 @@ private fun validateRequest(op: ContractOperation, path: Map<String,String>, que
             val parsed = when(schema.string("type")) {
                 "integer" -> raw.toLongOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
                 "boolean" -> raw.toBooleanStrictOrNull()?.let(::JsonPrimitive) ?: JsonPrimitive(raw)
+                "array" -> JsonArray(raw.split(',').map(::JsonPrimitive))
                 else -> JsonPrimitive(raw)
             }
             Contract.validate(schema,parsed,name)
