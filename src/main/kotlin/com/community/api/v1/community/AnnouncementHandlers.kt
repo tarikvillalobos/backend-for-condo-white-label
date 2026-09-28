@@ -46,7 +46,8 @@ private fun V1Context.checkedAnnouncement(): Record = store.get("announcement", 
     if (!announcementVisible(it)) fail(404, "NOT_FOUND", "Comunicado não encontrado")
 }
 internal fun announcementHandlers(): Map<String, V1Handler> = mapOf(
-    "listAnnouncements" to V1Handler { c -> c.listResponse("announcement") { row ->
+    "listAnnouncements" to V1Handler { c ->
+        val response = c.listResponse("announcement") { row ->
         if (!c.announcementVisible(row) || (c.query["unreadOnly"] == "true" && c.receipt(row.id) != null)) JsonNull else c.announcement(row)
     } },
     "getAnnouncement" to V1Handler { c -> V1Response(c.announcement(c.checkedAnnouncement())) },
