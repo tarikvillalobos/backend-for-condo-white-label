@@ -57,26 +57,6 @@ build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 Crie `build/spec-venv` e instale `requirements-dev.txt` antes do último comando se o ambiente ainda não tiver as dependências Python. Os commits na `main` usam `tarik.villalobos@gmail.com`, um arquivo por commit e até 20 linhas alteradas; `docs/openapi.yaml` é a exceção autorizada.
-```
-
-The default listener is `http://127.0.0.1:8080`. Log in with
-`POST /api/v1/auth/login` and JSON fields `tenantId`, `email`, and `password`.
-Use the returned `accessToken` as `Authorization: Bearer <accessToken>`. Tokens
-are opaque session credentials, not JWTs. Access expires after 15 minutes;
-refresh rotates both tokens and revokes the previous access token.
-
-Use the administrator session to create locations, units, memberships, and
-invitations. Domain routes use `/api/v1/locations/{locationId}`. Creation of
-packages, reservations, account invitations, and visitor invitations requires
-an `Idempotency-Key`; consult each module's retry semantics.
-
-### Runtime configuration
-
-| Variable | Default or requirement |
-| --- | --- |
-| `HOST` | `127.0.0.1`; use `0.0.0.0` inside containers |
-| `PORT` | `8080` |
-| `APP_ENV` | `development`; also accepts `test` or `production` |
 | `DATABASE_URL` | `jdbc:h2:file:./data/community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE` |
 | `DATABASE_USER` | `sa` for local H2; configure a PostgreSQL application user in production |
 | `DATABASE_PASSWORD` | Empty for local H2; required in production |
