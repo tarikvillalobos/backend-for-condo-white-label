@@ -84,6 +84,7 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
             try {
                 processCommunityNotifications(database)
                 processReportExports(database)
+                processFileCleanup(database)
                 processIdentityDataRequests(database)
             } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
