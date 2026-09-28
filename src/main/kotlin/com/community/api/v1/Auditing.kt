@@ -10,7 +10,7 @@ import java.util.UUID
 private val auditFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'").withZone(ZoneOffset.UTC)
 fun auditAt(value: Instant): String = auditFormat.format(value)
 
-fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principal?) {
+fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principal?, brandId: String? = null) {
     if (!postgres) return
     mapOf("request_id" to requestId, "operation_id" to operationId, "actor_id" to actor?.userId,
         "actor_kind" to if (actor?.deviceId != null) "device" else if (actor?.staff == true) "staff" else if (actor != null) "user" else "anonymous",
