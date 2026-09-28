@@ -35,7 +35,7 @@ class CommunityOwnershipTest {
         f.run("resolvePetAlert", ids = mapOf("alertId" to created.id()))
         f.run("deletePet", ids = mapOf("petId" to pet.id()))
     }
-    @Test fun `vaccine dates must be valid and chronological`() = CommunityFixture().use { f ->
+    @Test fun `vaccine dates must be valid and chronological`(): Unit = CommunityFixture().use { f ->
         val pet = f.run("createPet", obj("name" to "Nina", "species" to "cat", "sex" to "female"))
         assertEquals(422, assertFailsWith<ApiException> { f.run("addVaccination", obj("vaccine" to "Raiva", "appliedAt" to "2099-01-01"), mapOf("petId" to pet.id())) }.status)
         val vaccine = f.run("addVaccination", obj("vaccine" to "Raiva", "appliedAt" to "2025-01-01", "nextDueAt" to "2026-01-01"), mapOf("petId" to pet.id()))
