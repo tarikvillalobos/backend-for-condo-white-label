@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-An assignee must be active and have scoped maintenance access; referenced
-contractors must be approved. Workers see assigned work only. Managers see all
-work in their location. Statuses follow `scheduled → in_progress → completed`;
-managers may cancel active work or reopen completed work as scheduled. Notes
-and evidence are stored with the current order, and each transition is audited.
-Contractor registration does not issue gate credentials; visitor invitations
-handle temporary admission separately.
-
-Permissions: `staff.manage`, `maintenance.read`, `maintenance.work`, `maintenance.manage`.
-
-## Documents and contacts
-
-- `GET /documents`, `POST /documents`.
-- `GET /documents/{id}/versions`, `POST /documents/{id}/versions`.
-- `POST /documents/{id}/acknowledge`, `GET /documents/{id}/acknowledgments`.
-- `POST /documents/{id}/archive`.
-- `GET /contacts`, `POST /contacts`, `PUT /contacts/{id}`, `DELETE /contacts/{id}`.
-
-`DocumentInput`: `title`, `description`, `url`, `mediaType`, optional `unitId`,
-`acknowledgmentRequired`. Versions are append-only, individually audience-checked,
 and acknowledgments refer to a specific revision. Supported metadata MIME types:
 PDF, JPEG, PNG, plain text, and DOCX. External document URLs must use HTTPS;
 the storage provider must enforce any required access policy for those URLs.
