@@ -3,6 +3,7 @@ package com.community.api.v1.identity
 import com.community.api.core.*
 import com.community.api.identity.*
 import com.community.api.v1.*
+import com.community.api.v1.platform.nodePathView
 import kotlinx.serialization.json.*
 import java.time.Instant
 
