@@ -74,7 +74,7 @@ internal fun updateParcel(c: V1Context): V1Response {
     var owner = row.ownerId
     if (!changingDeadline && (c.input.containsKey("recipientMembershipId") || c.input.containsKey("nodeId") || c.input.containsKey("recipientKind"))) {
         val kind = data.text("recipientKind") ?: "membership"
-        val member = if (kind == "membership") c.member(data.text("recipientMembershipId") ?: c.fail(422, "RECIPIENT_REQUIRED", "Recipient membership is required")) else null
+        val member = if (kind == "membership") c.member(data.text("recipientMembershipId") ?: c.fail(422, "VALIDATION_ERROR", "Recipient membership is required")) else null
         val nodeId = data.text("nodeId") ?: member?.data?.text("nodeId")
         val node = nodeId?.let { c.store.get("node", it, row.locationId) }
         if (kind == "node" && node?.data?.flag("receivesAsEntity") != true) c.fail(422, "NODE_NOT_RECIPIENT", "Node cannot receive deliveries")
