@@ -51,6 +51,7 @@ private fun listParcels(c: V1Context): V1Response {
     var page = c.page("parcel", c.locationId, descending = true, sortField = "depositedAt", predicate = matches) { c.parcelView(it, admin) }
     if (admin) page = page.changed("totals" to obj("waiting" to rows.count { it.data.text("status") == "waiting" },
         "overdue" to rows.count { it.data.text("status") in setOf("waiting", "manual") && instant(it.data.text("deadline")).isBefore(c.now) }))
+    if (!admin) page = JsonObject((page - "page") + ("pageInfo" to page.getValue("page")))
     return V1Response(page)
 }
 
