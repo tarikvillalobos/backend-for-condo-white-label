@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             data = json.dumps(payload).encode()
         call = urllib.request.Request(base + path, data=data, headers=headers, method=method)
         try:
-            response = urllib.request.urlopen(req, timeout=10)
+            response = urllib.request.urlopen(call, timeout=10)
         except urllib.error.HTTPError as error:
             response = error
         with response:
