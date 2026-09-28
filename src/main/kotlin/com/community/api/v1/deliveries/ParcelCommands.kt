@@ -16,8 +16,8 @@ internal fun registerParcel(c: V1Context): V1Response {
     val recipientKind = c.input.text("recipientKind") ?: if (member != null) "membership" else "node"
     if (recipientKind == "membership" && member == null) c.fail(422, "VALIDATION_ERROR", "Recipient membership is required")
     if (recipientKind == "node") {
-        val node = nodeId?.let { c.store.get("node", it, condoId) } ?: c.fail(422, "RECIPIENT_REQUIRED", "Recipient node is required")
-        if (!node.data.flag("receivesAsEntity")) c.fail(422, "NODE_NOT_RECIPIENT", "Node cannot receive deliveries as an entity")
+        val node = nodeId?.let { c.store.get("node", it, condoId) } ?: c.fail(422, "VALIDATION_ERROR", "Recipient node is required")
+        if (!node.data.flag("receivesAsEntity")) c.fail(422, "NODE_NOT_ADDRESSABLE", "Node cannot receive deliveries as an entity")
     }
     nodeId?.let { c.store.get("node", it, condoId) }
     val carrier = c.input.text("carrier")?.trim().orEmpty()
