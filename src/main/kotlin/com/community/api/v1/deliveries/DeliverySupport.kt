@@ -14,7 +14,7 @@ internal fun JsonObject.changed(vararg values: Pair<String, JsonElement>): JsonO
 internal fun value(text: String?): JsonElement = text?.let(::JsonPrimitive) ?: JsonNull
 internal fun instant(text: String?): Instant = try { Instant.parse(text) }
     catch (_: Exception) { throw com.community.api.core.ApiException(422, "VALIDATION_ERROR", "A valid timestamp is required") }
-internal fun V1Context.condo(): String = locationId ?: input.text("condominiumId") ?: fail(404, "NOT_FOUND", "Condominium not found")
+internal fun V1Context.condo(): String = locationId ?: input.text("condominiumId") ?: fail(404, "RESOURCE_NOT_FOUND", "Condominium not found")
 internal fun V1Context.member(id: String): Record = store.get("membership", id, condo()).also {
     if (it.data.text("status") != "active") fail(422, "DELEGATE_NOT_ELIGIBLE", "An active membership in the same condominium is required")
 }
