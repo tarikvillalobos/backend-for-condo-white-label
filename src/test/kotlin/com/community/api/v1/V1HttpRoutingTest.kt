@@ -34,6 +34,26 @@ class V1HttpRoutingTest {
         val response = client.get("/v1/configuration") { header("X-Brand-Id",brand) }
         assertEquals(HttpStatusCode.OK,response.status)
         assertEquals(brand,com.community.api.core.json.parseToJsonElement(response.bodyAsText()).jsonObject["brandId"]!!.jsonPrimitive.content)
+        val login = client.post("/v1/auth/password/login") {
+            header("X-Brand-Id",brand); header("Content-Type","application/json")
+            setBody(obj("identifier" to "admin@demo.test","password" to "TestingPassphrase123!").toString())
+        }
+        assertEquals(HttpStatusCode.OK,login.status)
+        val token = com.community.api.core.json.parseToJsonElement(login.bodyAsText()).jsonObject["accessToken"]!!.jsonPrimitive.content
+        val modules = Contract.schemas["Modules"]!!.jsonObject["properties"]!!.jsonObject.keys.associateWith { true }
+        repeat(2) { index ->
+            val created = client.post("/v1/admin/condominiums") {
+                header("X-Brand-Id",brand); header("Authorization","Bearer $token")
+                header("Idempotency-Key",java.util.UUID.randomUUID().toString()); header("Content-Type","application/json")
+                setBody(obj("name" to "Condo $index","address" to "Rua $index","timeZone" to "UTC","modules" to modules).toString())
+            }
+            assertEquals(HttpStatusCode.Created,created.status)
+        }
+        val first = client.get("/v1/admin/condominiums?limit=1") {
+            header("X-Brand-Id",brand);header("Authorization","Bearer $token")
+        }
+        assertEquals(HttpStatusCode.OK,first.status)
+        val firstBody = com.community.api.core.json.parseToJsonElement(first.bodyAsText()).jsonObject
     }
 
     @Test fun brandLookupErrorUsesProblemDocument() = testApplication {
