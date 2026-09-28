@@ -17,16 +17,7 @@ Convites são consultados em `GET /v1/auth/invitations/{code}` e aceitos em `POS
 
 `POST /v1/me/verify` confirma identidade recente para operações com `x-step-up`; o contrato informa quando usar o desafio adicional `/v1/me/verify/challenge`. `GET /v1/me/sessions` lista sessões; as rotas `DELETE /v1/me/sessions/{sessionId}` e `POST /v1/me/sessions/revoke-others` as revogam.
 
-| Method and path | Request or behavior |
-| --- | --- |
-| `GET /api/v1/me` | Sanitized account ID, client ID, email, and name. |
-| `PATCH /api/v1/me` | `{ "name": "New name" }`. |
-| `POST /api/v1/me/password` | `currentPassword`, `newPassword`; revokes all sessions and pending security challenges. |
-| `POST /api/v1/me/contact/request` | New `email` and current `password`; delivers verification to the new address. |
-| `POST /api/v1/me/contact/confirm` | `token`; requires the same authenticated account and revokes sessions after confirmation. |
-| `POST /api/v1/me/verify` | `password`; renews the 10-minute verification window for privileged actions. |
-| `GET /api/v1/me/sessions` | Active session IDs, device labels, creation/expiration dates, and current-session indicator. |
-| `DELETE /api/v1/me/sessions` | Revokes all sessions. |
+`GET` e `PATCH /v1/me/privacy` tratam preferências de privacidade. Pedidos de dados usam `POST` e `GET /v1/me/data-requests`, com processamento assíncrono sujeito a retenções legais. O cadastro de instalação push guarda a inscrição em `/v1/devices/{installationId}/push-registration`; o envio push permanece indisponível até configurar um emissor real.
 | `DELETE /api/v1/me/sessions/{id}` | Revokes an owned session; other users' sessions are unavailable. |
 
 Invitation tokens expire after 72 hours, recovery and contact tokens after 30 minutes, and OTPs after five minutes. OTPs permit at most five guesses. Issuing a replacement challenge invalidates the previous challenge of that type. Administrator account deactivation must call `Tx.revokeAccountCredentials` to invalidate outstanding invitations as well as sessions.
