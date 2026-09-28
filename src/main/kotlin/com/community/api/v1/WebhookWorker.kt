@@ -15,7 +15,8 @@ import javax.crypto.spec.SecretKeySpec
 import kotlinx.serialization.json.*
 
 private data class WebhookJob(val tenant:String,val brand:String,val id:String,val url:String,val secret:String,
-    val lease:String,val sequence:Long,val eventId:String,val action:String,val occurredAt:String,val target:JsonElement?)
+    val lease:String,val sequence:Long,val eventId:String,val action:String,val occurredAt:String,
+    val condominiumId:String?,val data:JsonObject)
 private val webhookAliases = mapOf(
     "parcel.registered" to "parcel.deposited",
     "access_invite.validated" to "invite.used",
