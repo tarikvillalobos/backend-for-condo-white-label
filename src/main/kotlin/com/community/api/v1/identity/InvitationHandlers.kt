@@ -102,6 +102,12 @@ private fun V1Context.linkIdentityInvitation(): V1Response {
 }
 
 private fun V1Context.createInvitationMembership(invitation: Record, user: Record): Record {
+    invitation.data.string("assignmentId")?.let { id ->
+        val assignment = store.get("staff_assignment", id)
+        if (assignment.ownerId != user.id || assignment.data.string("status") != "active") fail(409, "INVITATION_REVOKED", "A atribuição não está disponível")
+        store.update(invitation, invitation.data.with("status" to "accepted", "acceptedAt" to now.toString(), "acceptedBy" to user.id))
+        return assignment
+    }
     val condoId = invitation.locationId!!
     val nodeId = invitation.data.string("nodeId")!!
     val condo = store.get("condominium", condoId)
