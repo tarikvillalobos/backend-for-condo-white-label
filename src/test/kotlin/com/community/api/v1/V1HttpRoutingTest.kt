@@ -18,6 +18,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class V1HttpRoutingTest {
+    @Test fun bootstrappedBrandServesItsConfiguration() = testApplication {
+        val db = Database.memory()
+        val brand = "11111111-1111-4111-8111-111111111111"
+        db.tx { tx ->
+            tx.create("client",brand,data=body(ClientSettings("Demo")),id=brand)
+            val account = tx.createAccount(brand,"admin@demo.test","TestingPassphrase123!","Administrator")
+            tx.create("membership",brand,ownerId=account.id,data=body(Membership(account.id,role="client_admin")))
+        }
+        application { module(db,enableLegacyApi=false) }
+        val response = client.get("/v1/configuration") { header("X-Brand-Id",brand) }
+        assertEquals(HttpStatusCode.OK,response.status)
+        assertEquals(brand,com.community.api.core.json.parseToJsonElement(response.bodyAsText()).jsonObject["brandId"]!!.jsonPrimitive.content)
+    }
+
     @Test fun brandLookupErrorUsesProblemDocument() = testApplication {
         val db = Database.memory()
         application { module(db, enableLegacyApi = false) }
