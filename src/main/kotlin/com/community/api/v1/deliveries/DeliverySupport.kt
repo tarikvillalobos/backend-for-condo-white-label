@@ -62,7 +62,7 @@ internal fun timeline(data: JsonObject, type: String, at: Instant): JsonArray =
 internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadline: Instant, parcelId: String): JsonObject {
     val occupied = store.list("parcel", locationId).filter { it.data.text("credentialStatus") == "active" }.mapNotNull { it.data.text("credentialHash") }.toSet()
     val code = generateSequence { SecureRandom().nextInt(100000000).toString().padStart(8, '0') }
-        .take(20).firstOrNull { hash(it) !in occupied } ?: fail(503, "CREDENTIAL_UNAVAILABLE", "Unable to allocate a unique credential")
+        .take(20).firstOrNull { hash(it) !in occupied } ?: fail(503, "SERVICE_UNAVAILABLE", "Unable to allocate a unique credential")
     val expiry = minOf(deadline, now.plusSeconds(86400))
     if (!expiry.isAfter(now)) fail(409, "PARCEL_EXPIRED", "Extend the parcel deadline before issuing a credential")
     revokeCredential(data)
