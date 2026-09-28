@@ -115,6 +115,13 @@ private fun V1Context.createInvitationMembership(invitation: Record, user: Recor
     if (condo.data.string("status") == "inactive" || node.data.string("status") == "inactive") {
         fail(409, "LOCATION_UNAVAILABLE", "O local do convite não está disponível")
     }
+    invitation.data.string("membershipId")?.let { id ->
+        val pending = store.get("membership", id, condoId)
+        if (pending.ownerId != user.id || pending.data.string("status") != "pending") fail(409, "ALREADY_LINKED", "O vínculo não está pendente")
+        val active = store.update(pending, pending.data.with("status" to "active"))
+        store.update(invitation, invitation.data.with("status" to "accepted", "acceptedAt" to now.toString(), "acceptedBy" to user.id))
+        return active
+    }
     if (store.list("membership", condoId, user.id).any {
             it.data.string("nodeId") == nodeId && it.data.string("status") == "active"
         }) fail(409, "ALREADY_LINKED", "Este vínculo já existe")
