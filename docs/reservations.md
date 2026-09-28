@@ -5,9 +5,6 @@ O contrato está em [openapi.yaml](openapi.yaml), nas seções Reservations e Ad
 ## Regras de agenda
 
 Cada espaço define horários por dia da semana, duração dos slots, antecedência mínima, horizonte de agendamento, limite de reservas futuras, capacidade, prazo de cancelamento e necessidade de aprovação. A API interpreta os horários no fuso IANA configurado para o condomínio; `startsAt` e `endsAt` são instantes UTC. O período deve caber em um único dia local e respeitar os slots e o horário de abertura.
-| `POST /reservations/{id}/cancel` | Owner with `reservations.create`, or `reservations.manage` |
-| `POST /reservations/{id}/approve` | `reservations.manage`; pending bookings only |
-| `POST /reservations/{id}/reject` | `reservations.manage`; pending bookings only |
 
 ## Facility rules
 
