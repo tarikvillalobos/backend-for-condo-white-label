@@ -57,17 +57,3 @@ build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 Crie `build/spec-venv` e instale `requirements-dev.txt` antes do último comando se o ambiente ainda não tiver as dependências Python. Os commits na `main` usam `tarik.villalobos@gmail.com`, um arquivo por commit e até 20 linhas alteradas; `docs/openapi.yaml` é a exceção autorizada.
-All contributions must follow these rules:
-
-- Each commit must change exactly one file.
-- Each commit must contain at most 20 changed lines, counting additions and deletions together.
-- There is no limit on the number of commits. Use as many small commits as needed.
-- Split larger changes into multiple commits, including changes to the same file.
-
-For example, 10 added lines and 10 deleted lines reach the 20-line limit. Replacing one line counts as two changed lines: one deletion and one addition.
-
-These limits apply to all commits, including code, tests, documentation, and configuration changes.
-
-## License
-
-Private and proprietary software.
