@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-Push/SMS delivery requires provider setup; an inbox entry is not proof of external
-delivery. Permissions: `notifications.read`, `notifications.manage`.
-
-## Cameras and provider boundaries
-
-- `GET /cameras`, `POST /cameras`, `PUT /cameras/{id}`:
-  `{name,area,enabled,unitId?}`.
-- `POST /cameras/{id}/sessions` requires `cameras.view` and the camera audience.
-- `GET /cameras/{id}/recordings` separately requires `cameras.recordings`.
-
-Both provider operations return `501 integration_unavailable` until a real
-provider adapter is implemented. They never return invented live URLs or
-equipment credentials. Management requires `cameras.manage`.
-
-## Validation and boundaries
-
-Titles generally allow 160 characters, long descriptions 10,000, and attachment
-lists at most 10 URLs. External URLs require HTTPS and reject embedded credentials.
-Invalid bodies produce 400, unauthorized operations 403, out-of-scope identifiers
-404, and invalid state transitions 409. Read-own permission does not authorize
 reading another member's resources or adding internal staff comments.
 These modules store metadata and auditable staff operations; provider-specific
 delivery, live video, gate actuation, and external attachment access policies are
