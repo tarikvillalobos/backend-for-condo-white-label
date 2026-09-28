@@ -134,7 +134,7 @@ private fun V1Context.verifyChain(): JsonObject {
                 checked++
                 if(broken==null && (rows.getString("previous_hash")!=prior || Secrets.hash(prior+JsonObject(entry-"hash").toString())!=rows.getString("hash"))) broken=rows.getString("id")
             }
-            previous=rows.getString("hash")
+            previous[scope]=rows.getString("hash")
         } }
     }
     return obj("since" to since,"until" to until,"entriesChecked" to checked,"intact" to (broken==null),"firstBrokenEntryId" to broken,"checkedAt" to now)
