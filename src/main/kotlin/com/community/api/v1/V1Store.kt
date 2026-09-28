@@ -23,7 +23,10 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
         if (tx.postgres) {
             sql.append(" AND payload::jsonb ->> '_brandId' = ? AND payload::jsonb ->> '_deletedAt' IS NULL")
             parameters += brandId
-            filters.forEach { (key, value) -> sql.append(" AND payload::jsonb ->> ? = ?"); parameters += key; parameters += value }
+            filters.forEach { (key, value) ->
+                require(Regex("[A-Za-z][A-Za-z0-9_]*").matches(key))
+                sql.append(" AND payload::jsonb ->> '$key' = ?"); parameters += value
+            }
         }
         sql.append(" ORDER BY created_at, id")
         return tx.connection.prepareStatement(sql.toString()).use { statement ->
