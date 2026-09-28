@@ -72,7 +72,7 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
     val sql = "SELECT sequence,id,action,created_at,payload FROM audit_log WHERE tenant_id=? AND brand_id=? AND sequence>?$scope AND action IN ($placeholders) ORDER BY sequence LIMIT 1"
     val result = tx.connection.prepareStatement(sql).use { statement ->
         val values = listOf(tenant,brand,data["lastSequence"]?.jsonPrimitive?.longOrNull ?: 0L) +
-            (row.locationId?.let(::listOf) ?: emptyList()) + events
+            (row.locationId?.let(::listOf) ?: emptyList()) + observed
         values.forEachIndexed { index,value -> statement.setObject(index+1,value) }
         statement.executeQuery().use { rows -> if (rows.next()) listOf(rows.getLong(1),rows.getString(2),rows.getString(3),rows.getString(4),rows.getString(5)) else null }
     } ?: return@scopedTx null
