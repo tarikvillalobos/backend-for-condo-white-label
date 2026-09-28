@@ -27,6 +27,8 @@ services:
       DATABASE_URL: jdbc:postgresql://db:5432/community
       DATABASE_USER: community
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
+      API_ENCRYPTION_KEY: ${API_ENCRYPTION_KEY:?Set API_ENCRYPTION_KEY}
+      UPLOAD_DIRECTORY: /app/data/uploads
       SMTP_HOST: mail
       SMTP_PORT: 1025
       SMTP_FROM: community@example.test
