@@ -1,4 +1,4 @@
-> Documento histórico da API `/api/v1`. Consulte o [OpenAPI atual](openapi.yaml) e o [guia operacional](operations.md) para usar `/v1`.
+# Reservas v1
 
 # Facilities and reservations
 
