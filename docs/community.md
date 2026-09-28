@@ -4,10 +4,7 @@ O [OpenAPI](openapi.yaml) define os schemas, as permissões e os códigos de cad
 
 ## Comunicação e atendimento
 
-Except notifications, paths below start with `/api/v1/locations/{locationId}`.
-JSON request shapes are Kotlin serializable classes in `community`. Timestamps are
-ISO-8601 instants with UTC offsets normalized by clients to `Z`. Local scheduling
-should use the location's configured time zone before sending an instant.
+Avisos, eventos, notificações, documentos e contatos têm rotas próprias. Notificações internas persistem independentemente da entrega externa; `readAt` é gravado quando o usuário lê. Avisos podem ser agendados, e um worker processa a entrega. Chamados e ocorrências mantêm estado, comentários e histórico auditável; comentários internos exigem acesso de equipe. Relatórios e exportações podem ser processados em segundo plano e baixados por URL assinada.
 
 ## Announcements
 
