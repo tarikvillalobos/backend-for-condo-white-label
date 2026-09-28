@@ -12,7 +12,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
-
+import uuid
 
 root = Path(__file__).resolve().parents[1]
 command = root / "build/install/community-api/bin/community-api"
