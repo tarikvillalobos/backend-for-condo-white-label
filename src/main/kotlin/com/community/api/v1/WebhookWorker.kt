@@ -29,7 +29,9 @@ private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSe
 
 fun processWebhooks(db: Database): Int {
     val subscriptions = db.scopedTx(null) { tx ->
-        tx.connection.prepareStatement("SELECT tenant_id,payload FROM app_records WHERE kind='v1_webhook' ORDER BY created_at LIMIT 500").use {
+        val filter = if (tx.postgres) "payload::jsonb ->> 'active' = 'true' AND payload::jsonb ->> '_deletedAt' IS NULL"
+            else "payload LIKE '%\"active\":true%' AND payload NOT LIKE '%\"_deletedAt\"%'"
+        tx.connection.prepareStatement("SELECT tenant_id,payload FROM app_records WHERE kind='v1_webhook' AND $filter ORDER BY created_at LIMIT 500").use {
             it.executeQuery().use { rows -> buildList {
                 while (rows.next()) {
                     val data = json.parseToJsonElement(rows.getString("payload")).jsonObject
