@@ -136,6 +136,7 @@ private fun createReservation(c: V1Context): V1Response {
         "cancelledAt" to JsonNull, "cancellationReason" to JsonNull,
     ), condominium(c), c.userId)
     c.audit("reservation.created", row)
+    if (row.data.text("status") == "confirmed") c.audit("reservation.confirmed", row)
     notifyReservation(c, row)
     return V1Response(reservationView(c, row), 201)
 }
