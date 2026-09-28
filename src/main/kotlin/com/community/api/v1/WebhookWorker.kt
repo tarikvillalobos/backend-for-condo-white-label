@@ -36,7 +36,6 @@ fun processWebhooks(db: Database): Int {
         if (subscriptions.isEmpty()) return delivered
         for ((tenant,brand,id) in subscriptions) {
             delivered += processWebhook(db,tenant,brand,id)
-            } }
         }
     }
     var delivered = 0
