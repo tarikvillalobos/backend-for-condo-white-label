@@ -29,7 +29,7 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 - Erros v1 usam `application/problem+json`, com `code`, `detail`, `status` e `requestId`. O servidor também envia `X-Request-ID`.
 - Módulos desativados na marca, no condomínio ou no vínculo respondem 403 `MODULE_DISABLED` nas operações correspondentes.
 
-## 2. Create a location and invite a resident
+## Áreas do contrato
 
 The `condominium` kind supports residential units. For a standalone locker
 deployment, change `kind` to `standalone`; package workflows do not require units.
