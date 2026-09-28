@@ -122,8 +122,8 @@ private fun V1Context.auditPage(table: String): JsonObject {
 private fun V1Context.verifyChain(): JsonObject {
     val since = query["since"] ?: Instant.EPOCH.toString()
     val until = query["until"] ?: now.toString()
-    var previous = ""; var checked=0; var broken:String?=null
-    tx.connection.prepareStatement("SELECT id,previous_hash,hash,payload,created_at FROM audit_log WHERE tenant_id=? AND brand_id=? ORDER BY sequence").use {
+    val previous = mutableMapOf<String,String>(); var checked=0; var broken:String?=null
+    tx.connection.prepareStatement("SELECT id,previous_hash,hash,payload,created_at,chain_scope FROM audit_log WHERE tenant_id=? AND brand_id=? ORDER BY sequence").use {
         it.setString(1,tenantId);it.setString(2,brandId)
         it.executeQuery().use { rows -> while(rows.next()) {
             val entry=json.parseToJsonElement(rows.getString("payload")).jsonObject
