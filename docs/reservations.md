@@ -17,26 +17,6 @@ Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de
 - `POST .../reservations/{reservationId}/approve`, `/reject` e `/cancel` executam as decisões da equipe.
 
 Listas usam cursor e snapshot. Respostas 409 `RESERVATION_CONFLICT` indicam conflito de intervalo ou estado; 422 cobre regras de horário e validação. Use o schema de cada operação no OpenAPI para os campos exatos, cabeçalhos de idempotência, permissões e ETag.
-
-```json
-{
-  "facilityId": "facility-id",
-  "startsAt": "2030-01-02T12:00:00Z",
-  "endsAt": "2030-01-02T14:00:00Z",
-  "attendees": 12,
-  "note": "Family gathering"
-}
-```
-
-An idempotency key is scoped to the member, location, and operation. Matching
-retries return the existing reservation, including its current status. A changed
-payload with the same key returns `409`. Pending approval reserves the interval
-immediately; approval cannot overbook another reservation. Endpoints are
-half-open intervals, so one booking may start exactly when another ends.
-
-Statuses are `PENDING`, `CONFIRMED`, `MAINTENANCE`, `CANCELLED`, and `REJECTED`.
-Pending, confirmed, and maintenance intervals block new reservations. Cancellation
-and rejection release the interval while retaining history. Approval and rejection
 require management permissions. Owners may cancel their own future or ongoing
 bookings; already ended or closed bookings cannot transition again.
 
