@@ -5,8 +5,6 @@ from pathlib import Path
 import re
 import yaml
 from openapi_spec_validator import validate_spec
-import yaml
-
 
 root = Path(__file__).resolve().parents[1]
 spec = yaml.safe_load((root / "docs/openapi.yaml").read_text())
