@@ -58,3 +58,23 @@ private fun V1Context.inviteResident(): V1Response {
     requirePermission("unit.manage")
     val node = residentNode(input.string("nodeId") ?: unitId!!)
     val email = input.string("email")
+    if (email == null) fail(501, "CHANNEL_UNAVAILABLE", "Informe um e-mail; o provedor SMS não está configurado")
+    val invitation = createPlatformInvitation(input.plusFields("nodeId" to node.id, "expiresInDays" to 7, "deliver" to listOf("email")))
+    return V1Response(JsonObject(invitation - "code"), 201)
+}
+
+private fun V1Context.removeResident(): V1Response {
+    requirePermission("unit.manage")
+    val target = store.get("membership", pathId("residentId"), condominiumId())
+    residentNode(target.data.string("nodeId")!!)
+    if (target.ownerId == userId || target.data.string("role") == "owner" || target.data.bool("canManageNode")) {
+        fail(403, "RESPONSIBLE_RESIDENT_PROTECTED", "O responsável não pode ser removido por esta operação")
+    }
+    store.update(target, target.data.plusFields("status" to "ended", "endedAt" to now.toString()))
+    store.list("invitation", condominiumId(), filters = mapOf("membershipId" to target.id, "status" to "pending"))
+        .forEach { store.update(it, it.data.plusFields("status" to "revoked")) }
+    store.list("access_invite", condominiumId(), filters = mapOf("membershipId" to target.id))
+        .forEach { store.update(it, it.data.plusFields("status" to "revoked", "credentialStatus" to "revoked")) }
+    tx.revokeSessions(tenantId, target.ownerId!!)
+    return V1Response(status = 204)
+}
