@@ -79,7 +79,8 @@ class Database(url: String, user: String = "sa", password: String = "", poolSize
                 require(url.startsWith("jdbc:postgresql:")) { "Production requires PostgreSQL" }
                 require(!env["DATABASE_PASSWORD"].isNullOrBlank()) { "DATABASE_PASSWORD is required in production" }
             }
-            return Database(url, env["DATABASE_USER"] ?: "sa", env["DATABASE_PASSWORD"] ?: "")
+            return Database(url, env["DATABASE_USER"] ?: "sa", env["DATABASE_PASSWORD"] ?: "",
+                env["DB_POOL_SIZE"]?.toIntOrNull() ?: 8)
         }
     }
 }
