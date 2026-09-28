@@ -25,7 +25,8 @@ internal fun V1Context.exportRows(job: com.community.api.core.Record): List<Map<
             (filters.text("since")?.let { timestamp(at) >= timestamp(it) } ?: true) &&
             (filters.text("until")?.let { timestamp(at) <= timestamp(it) } ?: true) &&
             (filters.text("q")?.let { needle -> columns.getValue(resource).any { row[it]?.toString()?.contains(needle, true) == true } } ?: true)
-    }.take(100001).toList()
+    }
+    val selected = if (resource == "audit") exportAudit().filter(::accepts) else scanExport(exportKinds.getValue(resource), ::accepts)
     if (selected.size > 100000) fail(413, "EXPORT_TOO_LARGE", "Restrinja a exportação a até 100 mil linhas")
     return selected.map { row -> columns.getValue(resource).associateWith { column ->
         val value = row[column]
