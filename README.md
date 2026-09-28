@@ -22,10 +22,7 @@ export BOOTSTRAP_PASSWORD='uma-senha-forte-de-teste'
 docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
 ```
 
-`build` compiles the service, runs tests, and creates distributions. The tests
-exercise access control, credential lifecycle, state transitions, serialization,
-concurrent allocation, and HTTP contracts. No live hardware or mail provider is
-needed by the test suite.
+O comando imprime o ID da marca. Envie esse ID no cabeçalho `X-Brand-Id` em todas as chamadas de negócio. A marca identifica o tenant e sua configuração; ela não concede permissão. O login é `POST /v1/auth/password/login` com `identifier` e `password`; use o `accessToken` como `Authorization: Bearer ...`. A senha inicial de teste deve atender à política retornada pela API.
 
 ### Bootstrap the first client
 
