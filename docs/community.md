@@ -10,9 +10,7 @@ Avisos, eventos, notificações, documentos e contatos têm rotas próprias. Not
 
 Convites de visitantes, chegadas e credenciais de acesso têm janelas de validade e estado. A portaria usa rotas `/v1/ops/access` para validar e registrar ações; leitores usam credenciais de dispositivo quando o contrato permitir. Revogação, uso único e vínculo ativo são checados pelo servidor. Um comando de acesso ou uma validação digital não prova entrada física sem evento confiável do equipamento.
 
-Permissions: `announcements.read`, `announcements.manage`. Read receipts are
-explicit acknowledgments; delivery does not imply reading. Publication windows
-are evaluated on every read, so scheduled notices do not need a publishing job.
+## Moradores e bens
 
 ## Events
 
