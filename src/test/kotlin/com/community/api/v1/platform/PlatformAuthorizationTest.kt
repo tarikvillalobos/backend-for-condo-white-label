@@ -38,3 +38,23 @@ class PlatformAuthorizationTest {
         val condo = f.createCondo()
         val type = condo["nodeTypes"]!!.jsonArray.first { it.jsonObject.string("code") == "unit" }.jsonObject
         val input = obj("typeId" to type["id"], "parentId" to condo["rootNodeId"], "label" to "101")
+        val old = f.invoke("createNode", input).body.jsonObject
+        val path = mapOf("nodeId" to old.string("id")!!)
+        val removed = f.invoke("deleteNode", path = path)
+        Contract.validate(Contract.schemas.getValue("NodeDeactivation").jsonObject, removed.body)
+        f.invoke("createNode", input)
+        assertEquals(409, assertFailsWith<ApiException> { f.invoke("restoreNode", path = path) }.status)
+    }
+
+    @Test fun `brand block revokes only sessions for its brand`() = PlatformFixture().use { f ->
+        val operator = f.identity.db.tx { tx ->
+            val user = tx.create("account", tenant, data = body(com.community.api.identity.Account("operator@example.test",
+                "Operator", com.community.api.identity.Passwords.hash(password))))
+            indexIdentityAccount(tx, user)
+            user
+        }
+        val tokens = f.identity.invoke("loginWithPassword", obj("identifier" to "operator@example.test", "password" to password)).body.jsonObject
+        f.invoke("updateAccountState", obj("status" to "blocked", "reason" to "Administrative test"), mapOf("userId" to operator.id))
+        assertEquals(401, assertFailsWith<ApiException> {
+            f.identity.invoke("getProfile", token = tokens.string("accessToken"))
+        }.status)
