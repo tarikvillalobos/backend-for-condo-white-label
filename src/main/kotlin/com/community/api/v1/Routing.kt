@@ -54,7 +54,8 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
     var context: V1Context? = null
     var replay = false
     val result = try {
-        val path = parameters.names().associateWith { parameters[it]!! }
+        val path = Regex("\\{([^}]+)\\}").findAll(operation.path).map { it.groupValues[1] }
+            .associateWith { parameters[it]!! }
         val query = request.queryParameters.names().associateWith { request.queryParameters[it]!! }
         val headers = request.headers.names().associateWith { request.headers[it]!! } + ("X-Remote-Host" to request.local.remoteHost)
         val input = if (operation.definition.containsKey("requestBody")) {
