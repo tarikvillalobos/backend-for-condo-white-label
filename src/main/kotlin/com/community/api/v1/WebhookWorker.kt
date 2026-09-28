@@ -118,10 +118,8 @@ internal fun webhookSignature(secret:String,timestamp:String,body:String):String
 private fun sendWebhook(job:WebhookJob):Boolean {
     validateWebhookUrl(job.url)
     val timestamp = Instant.now().epochSecond.toString()
-    val body = obj("id" to job.eventId,"event" to job.action,"occurredAt" to job.occurredAt,
-        "brandId" to job.brand,"target" to job.target).toString()
-    val mac = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(job.secret.toByteArray(),"HmacSHA256")) }
-    val signature = mac.doFinal("$timestamp.$body".toByteArray()).joinToString("") { "%02x".format(it) }
+    val body = webhookEnvelope(job.eventId,job.action,job.occurredAt,job.brand,job.condominiumId,job.data).toString()
+    val signature = webhookSignature(job.secret,timestamp,body)
     val request = HttpRequest.newBuilder(URI(job.url)).timeout(Duration.ofSeconds(10))
         .header("Content-Type","application/json").header("X-Community-Event-Id",job.eventId)
         .header("X-Community-Timestamp",timestamp).header("X-Community-Signature","sha256=$signature")
