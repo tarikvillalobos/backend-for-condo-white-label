@@ -97,7 +97,7 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
         val values = listOf(tenant,brand,data["lastSequence"]?.jsonPrimitive?.longOrNull ?: 0L,auditAt(now.minusSeconds(86400))) +
             (row.locationId?.let(::listOf) ?: emptyList()) + observed
         values.forEachIndexed { index,value -> statement.setObject(index+1,value) }
-        statement.executeQuery().use { rows -> if (rows.next()) listOf(rows.getLong(1),rows.getString(2),rows.getString(3),rows.getString(4),rows.getString(5)) else null }
+        statement.executeQuery().use { rows -> if (rows.next()) listOf(rows.getLong(1),rows.getString(2),rows.getString(3),rows.getString(4),rows.getString(5),rows.getString(6)) else null }
     } ?: return@scopedTx null
     val lease = UUID.randomUUID().toString()
     store.update(row,JsonObject(data+obj("leaseId" to lease,"leaseUntil" to now.plusSeconds(30))))
