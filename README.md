@@ -31,12 +31,16 @@ O comando imprime o ID da marca. Envie esse ID no cabeçalho `X-Brand-Id` em tod
 - JSON servido pela API: [http://127.0.0.1:8080/v1/openapi.json](http://127.0.0.1:8080/v1/openapi.json)
 - Arquivo versionado: [docs/openapi.yaml](docs/openapi.yaml)
 
-| Variable | Purpose |
-| --- | --- |
-| `BOOTSTRAP_CLIENT_NAME` | Display name for the first client |
-| `BOOTSTRAP_EMAIL` | Initial client administrator's email |
-| `BOOTSTRAP_PASSWORD` | Initial password, 12–256 characters |
-| `BOOTSTRAP_CLIENT_ID` | Optional UUID; generated when omitted |
+A interface Swagger carrega seus recursos de uma CDN; os arquivos YAML e JSON são servidos pelo próprio contêiner. `GET /v1/health/live` responde quando o servidor está vivo; `GET /v1/health/ready` verifica o banco e retorna 503 quando não está pronto.
+
+## Funcionalidade
+
+Os 294 métodos do contrato têm handlers registrados. Há fluxos para identidade e sessões, estrutura condominial, moradores e equipe, organizações, portaria e visitantes, encomendas, lockers e equipamentos, reservas, comunicação, pets, veículos, documentos, manutenção, relatórios, exportações e auditoria. O armazenamento é segregado por tenant e marca; permissões dependem do vínculo, do papel e do contexto.
+
+A API valida entradas e respostas com os schemas do OpenAPI, exige chaves de idempotência onde o contrato determina e usa ETag/`If-Match` nas alterações versionadas. A auditoria registra requisições, eventos e alterações de linhas; exportações e avisos agendados rodam em workers. Arquivos privados usam URLs assinadas por tempo limitado e validação de tamanho, tipo e assinatura do conteúdo.
+
+Recursos externos dependem de configuração real. O Compose captura e-mail no Mailpit; SMS e WhatsApp indicam indisponibilidade. Vídeo de câmeras exige um provedor configurado. Operações físicas de lockers e portões exigem equipamento e credenciais próprios: a API não transforma um comando em prova de retirada ou entrada. O canal push ainda requer integração de envio com o provedor.
+
 
 ```sh
 ./gradlew run --args=bootstrap
