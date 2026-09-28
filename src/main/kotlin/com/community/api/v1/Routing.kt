@@ -72,7 +72,7 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
             db.scopedQuery(scope) { tx ->
                 val c = authorizeV1(tx,operation,brandId!!,tenantId!!,headers,path,input,query,requestId)
                 context = c
-                tx.requestMetadata(requestId,operation.id,c.principal)
+                tx.requestMetadata(requestId,operation.id,c.principal,c.brandId)
                 val (response,wasReplay) = c.idempotent(operation,handler)
                 replay = wasReplay
                 if (operation.id == "createCondominium") {
