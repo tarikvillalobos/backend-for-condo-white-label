@@ -38,3 +38,23 @@ fun processWebhooks(db: Database): Int {
             val store = V1Store(tx,tenant,brand)
             val row = store.find("webhook",id) ?: return@scopedTx
             if (row.data.string("leaseId") != job.lease) return@scopedTx
+            val next = if (ok) obj("lastSequence" to job.sequence,"attempts" to 0,"nextAttemptAt" to null)
+                else obj("attempts" to ((row.data["attempts"]?.jsonPrimitive?.intOrNull ?: 0) + 1),
+                    "nextAttemptAt" to Instant.now().plusSeconds((30L shl (row.data["attempts"]?.jsonPrimitive?.intOrNull ?: 0).coerceAtMost(7)).coerceAtMost(3600)))
+            store.update(row,JsonObject(row.data+next+obj("leaseId" to null,"leaseUntil" to null)))
+        }
+        if (ok) delivered++
+    }
+    return delivered
+}
+
+private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):WebhookJob? = db.scopedTx("webhook:$tenant:$brand:$id") { tx ->
+    val store = V1Store(tx,tenant,brand)
+    val row = store.find("webhook",id) ?: return@scopedTx null
+    val data = row.data
+    val now = Instant.now()
+    if (data["active"] != JsonPrimitive(true) || data.string("leaseUntil")?.let { Instant.parse(it).isAfter(now) } == true ||
+        data.string("nextAttemptAt")?.let { Instant.parse(it).isAfter(now) } == true) return@scopedTx null
+    val events = data["events"]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
+    if (events.isEmpty()) return@scopedTx null
+    val placeholders = events.joinToString(",") { "?" }
