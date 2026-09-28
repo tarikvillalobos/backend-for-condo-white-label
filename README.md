@@ -1,6 +1,6 @@
 # Community API
 
-Shared monolithic backend for the `smartlocker-app` and `condo-app` white-label applications.
+API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotlin, Ktor e PostgreSQL. O contrato público está em [docs/openapi.yaml](docs/openapi.yaml). A versão publicada usa o prefixo `/v1`.
 
 ## Overview
 
