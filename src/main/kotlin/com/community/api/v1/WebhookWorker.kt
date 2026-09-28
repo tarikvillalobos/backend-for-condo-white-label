@@ -103,7 +103,16 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
     store.update(row,JsonObject(data+obj("leaseId" to lease,"leaseUntil" to now.plusSeconds(30))))
     val payload = json.parseToJsonElement(result[4].toString()).jsonObject
     WebhookJob(tenant,brand,id,data.string("url")!!,Secrets.unseal(data.string("sealedSecret")!!),lease,
-        result[0] as Long,result[1].toString(),webhookAliases[result[2].toString()] ?: result[2].toString(),result[3].toString(),payload["target"])
+        result[0] as Long,result[1].toString(),webhookAliases[result[2].toString()] ?: result[2].toString(),result[3].toString(),
+        result[5] as? String,obj("target" to payload["target"],"details" to payload["details"]))
+}
+
+internal fun webhookEnvelope(id:String,event:String,occurredAt:String,brandId:String,condominiumId:String?,data:JsonObject):JsonObject =
+    obj("id" to id,"event" to event,"occurredAt" to occurredAt,"brandId" to brandId,"condominiumId" to condominiumId,"data" to data)
+
+internal fun webhookSignature(secret:String,timestamp:String,body:String):String {
+    val mac = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(secret.toByteArray(),"HmacSHA256")) }
+    return mac.doFinal("$timestamp.$body".toByteArray()).joinToString("") { "%02x".format(it) }
 }
 
 private fun sendWebhook(job:WebhookJob):Boolean {
