@@ -8,14 +8,7 @@ Avisos, eventos, notificações, documentos e contatos têm rotas próprias. Not
 
 ## Acesso e portaria
 
-- `GET /announcements`: published, unexpired notices visible to the current unit;
-  publishers can also see scheduled and archived notices. Pinned notices come first.
-- `POST /announcements`, `PUT /announcements/{id}`: `AnnouncementInput` with
-  `title`, `message`, optional `unitId`, `publishAt`, `expiresAt`, `pinned`,
-  `priority` (`normal`, `high`, `urgent`), `attachments`, and `acknowledgmentRequired`.
-- `POST /announcements/{id}/archive`: archive a notice.
-- `POST /announcements/{id}/read`: persist one receipt per person and notice.
-- `GET /announcements/{id}/receipts`: publisher access to receipts.
+Convites de visitantes, chegadas e credenciais de acesso têm janelas de validade e estado. A portaria usa rotas `/v1/ops/access` para validar e registrar ações; leitores usam credenciais de dispositivo quando o contrato permitir. Revogação, uso único e vínculo ativo são checados pelo servidor. Um comando de acesso ou uma validação digital não prova entrada física sem evento confiável do equipamento.
 
 Permissions: `announcements.read`, `announcements.manage`. Read receipts are
 explicit acknowledgments; delivery does not imply reading. Publication windows
