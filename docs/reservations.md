@@ -8,16 +8,7 @@ Cada espaço define horários por dia da semana, duração dos slots, antecedên
 
 Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de espaço também impedem agendamento. A transação serializa alterações no escopo do condomínio e revalida conflitos ao criar ou aprovar, para impedir dupla reserva sob concorrência. O morador pode cancelar conforme o prazo configurado; a equipe pode aprovar, rejeitar ou cancelar pelas rotas administrativas.
 
-```json
-{
-  "name": "Party room",
-  "timeZone": "America/Sao_Paulo",
-  "capacity": 40,
-  "opensAt": "08:00",
-  "closesAt": "22:00",
-  "weekdays": [1, 2, 3, 4, 5, 6, 7],
-  "maxDurationMinutes": 240,
-  "minNoticeMinutes": 60,
+## Operações principais
   "maxDaysAhead": 90,
   "maxActivePerMember": 5,
   "requiresApproval": true,
