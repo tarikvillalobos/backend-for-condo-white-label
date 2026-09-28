@@ -18,7 +18,7 @@ fun webhookHandlers(): Map<String,V1Handler> = mapOf(
         val row = c.store.create("webhook",obj("url" to url,"events" to c.input["events"],"condominiumId" to location,
             "active" to true,"sealedSecret" to c.seal(secret),"lastSequence" to sequence,"attempts" to 0,
             "nextAttemptAt" to null,"leaseUntil" to null),location)
-        V1Response(c.project("WebhookSubscription",row.document()+obj("secret" to secret)),201)
+        V1Response(c.project("WebhookSubscription",JsonObject(row.document()+obj("secret" to secret))),201)
     },
     "deleteWebhook" to V1Handler { c ->
         val row = c.store.get("webhook",c.path.getValue("webhookId"))
