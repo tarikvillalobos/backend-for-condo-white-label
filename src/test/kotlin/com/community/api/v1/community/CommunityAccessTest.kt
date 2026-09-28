@@ -38,7 +38,7 @@ class CommunityAccessTest {
         repeat(10) { assertFalse(f.run("validateAccessCredential", body, staff = true).body.jsonObject["valid"]!!.jsonPrimitive.boolean) }
         assertEquals(429, assertFailsWith<ApiException> { f.run("validateAccessCredential", body, staff = true) }.status)
     }
-    @Test fun `arrival can only be decided once by a resident in target scope`() = CommunityFixture().use { f ->
+    @Test fun `arrival can only be decided once by a resident in target scope`(): Unit = CommunityFixture().use { f ->
         val arrival = f.run("createArrival", obj("nodeId" to f.unit, "visitorName" to "Visitante", "visitorKind" to "visitor", "channel" to "porter"), staff = true)
         assertEquals(0, f.run("listMyArrivals", other = true).items().size)
         assertEquals(404, assertFailsWith<ApiException> { f.run("residentDecideArrival", obj("decision" to "approve"), mapOf("arrivalId" to arrival.id()), other = true) }.status)
