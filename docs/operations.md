@@ -5,7 +5,6 @@
 Instale e inicie o Docker Desktop. Na raiz do projeto, crie `.env` com `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY`. A senha pode ser gerada com `openssl rand -hex 24`; a chave precisa codificar 32 bytes em Base64 URL, por exemplo `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os reinícios: trocar a senha não redefine o usuário do PostgreSQL já criado, e trocar a chave torna dados cifrados ilegíveis.
 
 ```sh
-export DATABASE_PASSWORD="$(openssl rand -hex 24)"
 docker compose up -d --build
 ```
 
