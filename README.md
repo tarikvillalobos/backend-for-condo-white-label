@@ -13,16 +13,7 @@ curl http://127.0.0.1:8080/v1/health/ready
 
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
-Manage properties, buildings, blocks, floors, units, common areas, addresses, contacts, and operating rules.
-
-Support users linked to multiple authorized locations or units, with explicit context selection. Include standalone locations for smart locker deployments outside residential communities.
-
-### Residents and Memberships
-
-Manage residents, owners, tenants, dependents, authorized household members, and their unit relationships. Support invitations, approval, move-in, move-out, and membership expiration or revocation.
-
-Ownership or household membership must not automatically grant administrative privileges or access to every package addressed to that unit.
-
+Crie a primeira marca e o administrador informando as variáveis abaixo:
 ### Packages and Smart Lockers
 
 Register deliveries received at reception desks or lockers, identify recipients, track status and storage location, and provide package details, history, reminders, and collection deadlines.
