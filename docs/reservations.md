@@ -10,11 +10,11 @@ Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de
 
 ## Operações principais
 
-Provide the property's IANA time zone explicitly when creating a facility; the
-default is `America/Sao_Paulo`. Weekdays use ISO numbering (Monday = 1). Local
-operating hours must open and close on the same day. Bookings must also start
-and finish within one local day. The server converts submitted UTC instants to
-the facility zone, including daylight saving changes, before checking hours.
+- `GET /v1/memberships/{membershipId}/spaces/{spaceId}/availability` mostra intervalos disponíveis segundo as regras atuais.
+- `POST /v1/memberships/{membershipId}/reservations` cria reserva `pending` quando há aprovação ou `confirmed` caso contrário.
+- `POST /v1/memberships/{membershipId}/reservations/{reservationId}/cancel` aplica o prazo de cancelamento.
+- `POST /v1/admin/condominiums/{condominiumId}/spaces/{spaceId}/blocks` bloqueia um intervalo; `DELETE .../blocks/{blockId}` libera o bloqueio.
+- `POST .../reservations/{reservationId}/approve`, `/reject` e `/cancel` executam as decisões da equipe.
 
 Each reservation exclusively occupies the facility for its interval. Capacity
 is the maximum attendance for that booking, not a pool of separately bookable
