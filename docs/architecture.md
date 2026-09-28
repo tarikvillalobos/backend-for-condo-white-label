@@ -21,26 +21,6 @@ Workers processam e-mail, notificações, exportações, webhooks, limpeza de up
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
 Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
-Roles are permission sets; custom roles and direct grants are constrained by the
-assigning administrator's authority. Client administrators have explicit
-client-wide privileges. Other roles remain scoped to their memberships.
-Unit membership alone never grants collection rights for another person's parcel.
-Owner, tenant, dependent, and household classifications describe a unit relationship;
-they do not add role permissions. Location policies can require vaccination
-references, restrict species, and limit registered pets per unit.
-
-Brands select presentation and application configuration. They do not establish
-tenant ownership or bypass permissions. Standalone locker locations belong to a
-client but need neither a condominium nor a unit.
-
-Resident lists filter by owner or audience. Staff-only request comments are
-filtered separately from resident-visible history. Public lost-pet notices omit
-private owner/unit/vaccination data. Inbox entries cease to be visible when their
-location membership or feature access is revoked. Uploaded private attachments
-require ownership or an explicit read-all grant; published attachments require
-location document access.
-
-## Domain consistency
 
 - Package reports do not confirm physical pickup. Authorized staff or validated
   integration events must confirm collection and consume the pickup credential.
