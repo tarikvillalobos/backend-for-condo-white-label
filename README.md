@@ -50,7 +50,10 @@ As rotas `/v1` usam transações e locks por escopo, índices para consultas pri
 ## Verificação e commits
 
 ```sh
-./gradlew run --args=bootstrap
+./gradlew test installDist
+python3 scripts/smoke_test.py
+python3 scripts/check_commits.py
+build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 Bootstrap creates a client and administrator in one transaction and prints their
