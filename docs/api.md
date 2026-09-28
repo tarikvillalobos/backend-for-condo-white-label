@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-The result is `COLLECTED`. The credential is consumed and any locker compartment
-is released in the same transaction. A second confirmation fails with `409`.
-The resident's separate `/report-pickup` action records a report and keeps the
-delivery outstanding until staff or an authenticated provider confirms it.
-
-## 4. Create a facility and reserve tomorrow's local afternoon
-
-```bash
-FACILITY=$(printf '%s' '{"name":"Meeting room","timeZone":"America/Sao_Paulo","capacity":10,"opensAt":"08:00","closesAt":"22:00"}' |
-  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/facilities")
-FACILITY_ID=$(printf '%s' "$FACILITY" | jq -er .id)
-
-START_AT=$(python3 - <<'PY'
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
-tomorrow = datetime.now(ZoneInfo("America/Sao_Paulo")) + timedelta(days=1)
-start = tomorrow.replace(hour=14, minute=0, second=0, microsecond=0)
-print(start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
-PY
-)
 END_AT=$(python3 - "$START_AT" <<'PY'
 import sys
 from datetime import datetime, timedelta
