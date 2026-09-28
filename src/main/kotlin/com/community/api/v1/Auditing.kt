@@ -16,10 +16,11 @@ fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principa
     }
 }
 
-fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: String = "success", details: JsonObject = obj()): JsonObject {
-    c.tx.lock("audit:${c.tenantId}:${c.brandId}")
-    val previous = c.tx.connection.prepareStatement("SELECT hash FROM audit_log WHERE tenant_id = ? AND brand_id = ? ORDER BY sequence DESC LIMIT 1").use {
-        it.setString(1, c.tenantId); it.setString(2, c.brandId)
+fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: String = "success", details: JsonObject = obj(), source: String = "server", occurredAt: String? = null): JsonObject {
+    val chainScope = c.locationId?.let { "condominium:$it" } ?: "brand"
+    c.tx.lock("audit:${c.tenantId}:${c.brandId}:$chainScope")
+    val previous = c.tx.connection.prepareStatement("SELECT hash FROM audit_log WHERE tenant_id = ? AND brand_id = ? AND chain_scope = ? ORDER BY sequence DESC LIMIT 1").use {
+        it.setString(1, c.tenantId); it.setString(2, c.brandId); it.setString(3, chainScope)
         it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else "" }
     }
     val id = UUID.randomUUID().toString()
