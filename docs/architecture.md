@@ -21,26 +21,6 @@ Workers processam e-mail, notificações, exportações, webhooks, limpeza de up
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
 Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
-
-Authentication email has a real SMTP adapter. In-app notifications are persisted
-independently of external push/SMS/email delivery. Camera live view/recording,
-physical locker opening, and other hardware commands require real provider
-adapters and credentials; unsupported operations return an explicit 501.
-The integration event contract accepts trusted provider events but does not
-simulate hardware or claim that a physical action occurred.
-
-Managed attachments are stored in the database with a 2 MiB decoded limit,
-PNG/JPEG/PDF signature checks, ownership, and download authorization. This is
-suitable for small files; larger deployments should add object storage, scanning,
-retention, and tested authorization-preserving download adapters. Domain metadata
-may also reference HTTPS documents hosted elsewhere; those providers enforce
-their URL access policies independently.
-
-## Runtime and operations
-
-`/health/live` confirms HTTP handling. `/health/ready` checks the database and
-returns 503 when unavailable. It does not certify SMTP or hardware availability.
-The default listener is `127.0.0.1`; containers use an explicit `HOST=0.0.0.0`.
 Production configuration requires PostgreSQL credentials and authenticated SMTP
 with STARTTLS. TLS termination, database encryption/backups, restore drills,
 monitoring, and retention must be configured for the deployment.
