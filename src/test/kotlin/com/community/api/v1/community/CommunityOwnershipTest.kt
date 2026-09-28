@@ -6,7 +6,7 @@ import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class CommunityOwnershipTest {
-    @Test fun `vehicles enforce membership ownership duplicate plates and version`() = CommunityFixture().use { f ->
+    @Test fun `vehicles enforce membership ownership duplicate plates and version`(): Unit = CommunityFixture().use { f ->
         val vehicle = f.run("createVehicle", obj("plate" to "ABC1D23", "model" to "Carro", "kind" to "car"))
         assertEquals(1, f.run("listVehicles").items().size)
         assertEquals(0, f.run("listVehicles", other = true).items().size)
