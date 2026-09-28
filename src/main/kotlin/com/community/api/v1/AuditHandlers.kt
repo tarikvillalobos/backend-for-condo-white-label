@@ -102,8 +102,16 @@ private fun V1Context.auditPage(table: String): JsonObject {
     query["since"]?.let { sql.append(" AND created_at >= ?"); values += auditAt(Instant.parse(it)) }
     query["until"]?.let { sql.append(" AND created_at < ?"); values += auditAt(Instant.parse(it)) }
     if (cursor != null) { sql.append(" AND (created_at < ? OR (created_at = ? AND $idColumn > ?))"); values.addAll(listOf(cursor.string("at")!!,cursor.string("at")!!,cursor.string("last")!!)) }
-    if (tx.postgres) mapOf("category" to "category","action" to "action","outcome" to "outcome","severity" to "severity","operationId" to "operationId").forEach { (queryKey,payloadKey) ->
-        query[queryKey]?.let { sql.append(" AND payload::jsonb ->> ? = ?"); values.addAll(listOf(payloadKey,it)) }
+    if (tx.postgres) {
+        mapOf("category" to "category","outcome" to "outcome","operationId" to "operationId").forEach { (key,field) ->
+            query[key]?.let { sql.append(" AND payload::jsonb ->> '$field' = ?"); values += it }
+        }
+        query["action"]?.let { sql.append(" AND LEFT(payload::jsonb ->> 'action', LENGTH(?)) = ?"); values.addAll(listOf(it,it)) }
+        query["severity"]?.let {
+            val minimum = mapOf("info" to 1,"notice" to 2,"warning" to 3,"critical" to 4)[it] ?: 1
+            sql.append(" AND CASE payload::jsonb ->> 'severity' WHEN 'info' THEN 1 WHEN 'notice' THEN 2 WHEN 'warning' THEN 3 WHEN 'critical' THEN 4 ELSE 0 END >= ?")
+            values += minimum
+        }
     }
     sql.append(" ORDER BY created_at DESC,$idColumn LIMIT ?"); values += limit+1
     val rows = tx.connection.prepareStatement(sql.toString()).use { statement ->
