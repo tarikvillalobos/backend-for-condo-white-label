@@ -101,7 +101,7 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
         return
     }
     result.headers.filterKeys { !it.equals("Content-Type",true) }.forEach { (name,value) -> response.headers.append(name,value) }
-    if (result.status == 204) respond(HttpStatusCode.NoContent)
+    if (result.body == JsonNull && result.status < 400) respond(HttpStatusCode.fromValue(result.status))
     else respondText(result.body.toString(),ContentType.parse(if (result.status >= 400) "application/problem+json" else "application/json"),HttpStatusCode.fromValue(result.status))
 }
 
