@@ -127,6 +127,8 @@ private fun V1Context.verifyChain(): JsonObject {
         it.setString(1,tenantId);it.setString(2,brandId)
         it.executeQuery().use { rows -> while(rows.next()) {
             val entry=json.parseToJsonElement(rows.getString("payload")).jsonObject
+            val scope = rows.getString("chain_scope") ?: "brand"
+            val prior = previous[scope].orEmpty()
             val inRange=Instant.parse(rows.getString("created_at")).let { at -> !at.isBefore(Instant.parse(since)) && at.isBefore(Instant.parse(until)) }
             if(inRange) {
                 checked++
