@@ -111,8 +111,8 @@ private fun reservations(c: V1Context): V1Response {
 }
 
 internal fun occupied(c: V1Context, spaceId: String, start: Instant, end: Instant, except: String? = null): Boolean =
-    c.store.list("reservation", condominium(c)).any {
-        it.id != except && it.data.text("spaceId") == spaceId && BookingRules.active(it.data) && BookingRules.overlaps(it.data, start, end)
+    c.store.list("reservation", condominium(c), filters = mapOf("spaceId" to spaceId)).any {
+        it.id != except && BookingRules.active(it.data) && BookingRules.overlaps(it.data, start, end)
     }
 
 internal fun blocked(c: V1Context, spaceId: String, start: Instant, end: Instant): Boolean =
