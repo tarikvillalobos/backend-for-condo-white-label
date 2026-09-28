@@ -67,7 +67,7 @@ fun Route.fileRoutes(db: Database) {
                 if (call.request.contentType().withoutParameters().toString() != type) c.fail(415,"VALIDATION_ERROR","Content type does not match upload ticket")
                 validateFile(type,bytes)
                 persistFile(file.id,bytes)
-                tx.requestMetadata(c.requestId,c.operationId,c.principal)
+                tx.requestMetadata(c.requestId,c.operationId,c.principal,c.brandId)
                 val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
                 val updated = c.store.update(file,JsonObject(file.data+obj("status" to "complete","completedAt" to c.now,"checksum" to checksum)))
                 c.audit("file.uploaded",updated)
