@@ -116,7 +116,7 @@ internal fun occupied(c: V1Context, spaceId: String, start: Instant, end: Instan
     }
 
 internal fun blocked(c: V1Context, spaceId: String, start: Instant, end: Instant): Boolean =
-    c.store.list("space_block", condominium(c)).any { it.data.text("spaceId") == spaceId && BookingRules.overlaps(it.data, start, end) }
+    c.store.list("space_block", condominium(c), filters = mapOf("spaceId" to spaceId)).any { BookingRules.overlaps(it.data, start, end) }
 
 private fun createReservation(c: V1Context): V1Response {
     val facility = space(c, c.input.text("spaceId")!!)
