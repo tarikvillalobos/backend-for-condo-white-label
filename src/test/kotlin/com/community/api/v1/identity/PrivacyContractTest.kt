@@ -38,3 +38,15 @@ class PrivacyContractTest {
             val store = V1Store(tx, tenant, brand)
             store.create("data_request", obj("kind" to "deletion", "status" to "received",
                 "requestedAt" to Instant.now().minusSeconds(86400), "executeAfter" to Instant.now().minusSeconds(1)), ownerId = f.user.id)
+        }
+        assertEquals(1, runBlocking { processIdentityDataRequests(f.db) })
+        f.db.tx { tx ->
+            val user = tx.get("account", f.user.id, tenant)!!.decode<Account>()
+            assertFalse(user.active)
+            assertEquals("", user.email)
+            assertEquals("", user.passwordHash)
+            assertTrue(tx.list("v1_identifier", tenant, ownerId = f.user.id).isEmpty())
+            assertNull(V1Store(tx, tenant, brand).find("profile", f.user.id))
+        }
+    }
+}
