@@ -38,3 +38,9 @@ fun processFileCleanup(db: Database): Int {
             val directory = Path.of(System.getenv("UPLOAD_DIRECTORY") ?: "data/uploads").toAbsolutePath()
             Files.deleteIfExists(directory.resolve(id))
             store.update(file, kotlinx.serialization.json.JsonObject(file.data + obj("_deletedAt" to Instant.now(),"status" to "expired")))
+            true
+        }
+        if (cleaned) removed++
+    }
+    return removed
+}
