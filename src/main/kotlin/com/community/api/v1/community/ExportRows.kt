@@ -33,6 +33,19 @@ internal fun V1Context.exportRows(job: com.community.api.core.Record): List<Map<
         when (value) { null, JsonNull -> ""; is JsonPrimitive -> value.content; else -> redact(value).toString() }
     } }
 }
+private fun V1Context.scanExport(kind: String, accepts: (JsonObject) -> Boolean): List<JsonObject> {
+    val sql = "SELECT * FROM app_records WHERE kind = ? AND tenant_id = ? AND location_id = ? ORDER BY created_at,id"
+    return tx.connection.prepareStatement(sql).use { statement ->
+        statement.fetchSize = 200
+        statement.setString(1, "v1_$kind"); statement.setString(2, tenantId); statement.setString(3, locationId)
+        statement.executeQuery().use { rows -> buildList {
+            while (size <= 100000 && rows.next()) {
+                val row = rows.v1Record().logical()
+                if (row.data.text("_brandId") == brandId && row.data.text("_deletedAt") == null && accepts(row.metadata())) add(row.metadata())
+            }
+        } }
+    }
+}
 private fun V1Context.exportAudit(): List<JsonObject> = tx.connection.prepareStatement(
     "SELECT payload FROM audit_log WHERE tenant_id = ? AND brand_id = ? AND location_id = ? ORDER BY created_at LIMIT 100001",
 ).use { statement ->
