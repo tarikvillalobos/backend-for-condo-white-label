@@ -54,7 +54,7 @@ private fun saveLocker(c: V1Context): V1Response {
     if (device != null && (device.data.text("type") != "locker" || device.data.text("status") != "active"))
         c.fail(422, "VALIDATION_ERROR", "Locker requires an active locker device")
     if (device != null && c.store.list("locker", c.condo()).any { it.id != previous?.id && it.data.text("deviceId") == device.id })
-        c.fail(409, "DEVICE_ASSIGNED", "Device already belongs to another locker")
+        c.fail(409, "DEVICE_IN_USE", "Device already belongs to another locker")
     data = data.changed("address" to value(c.store.get("condominium", c.condo()).data.text("address")))
     val saved = if (previous == null) c.store.create("locker", data, c.condo()) else c.store.update(previous, data)
     device?.let { c.store.update(it, it.data.changed("lockerId" to JsonPrimitive(saved.id))) }
