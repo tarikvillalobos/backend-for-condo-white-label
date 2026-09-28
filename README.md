@@ -26,8 +26,10 @@ O comando imprime o ID da marca. Envie esse ID no cabeçalho `X-Brand-Id` em tod
 
 ## Ver o OpenAPI
 
-Set these environment variables through your shell or secret manager before
-running the command. Credentials must not be committed:
+- Interface Swagger: [http://127.0.0.1:8080/docs](http://127.0.0.1:8080/docs)
+- YAML servido pela API: [http://127.0.0.1:8080/v1/openapi.yaml](http://127.0.0.1:8080/v1/openapi.yaml)
+- JSON servido pela API: [http://127.0.0.1:8080/v1/openapi.json](http://127.0.0.1:8080/v1/openapi.json)
+- Arquivo versionado: [docs/openapi.yaml](docs/openapi.yaml)
 
 | Variable | Purpose |
 | --- | --- |
