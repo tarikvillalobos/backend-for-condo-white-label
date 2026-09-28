@@ -172,3 +172,23 @@ private fun V1Context.acceptClientEvent(index:Int,event:JsonObject):JsonObject {
     store.create("client_event",obj("entryId" to entry["id"]),scoped.locationId,principal?.userId,id=fingerprint)
     return result("accepted",id=entry.string("id"))
 }
+
+private fun V1Context.objectHistory(): JsonObject {
+    val type = path.getValue("targetType")
+    val id = path.getValue("targetId")
+    val events = auditRows("audit_log",mapOf("target_type" to type,"target_id" to id)).map { row ->
+        obj("at" to row["createdAt"],"layer" to "event","requestId" to row["requestId"],
+            "actor" to row["actor"],"summary" to row["action"],"data" to redact(row).jsonObject)
+    }
+    val changes = auditRows("audit_changes",mapOf("row_id" to id)).filter { it.string("table") == "v1_$type" ||
+        type == "user" && it.string("table") == "account" }.map { row ->
+        val kind = row.string("actorKind")?.takeIf { it in setOf("user","staff","device","database","system") } ?: "database"
+        obj("at" to row["createdAt"],"layer" to "change","requestId" to row["requestId"],
+            "actor" to obj("kind" to kind,"userId" to null,"deviceId" to null,"name" to null,"role" to row["actorRole"],"context" to null),
+            "summary" to row["op"],"data" to row)
+    }
+    val physical = if (type in setOf("parcel","locker")) store.list("locker_event",locationId,
+        filters=mapOf((if(type=="parcel") "parcelId" else "lockerId") to id)).map { row ->
+        obj("at" to (row.data.string("occurredAt") ?: row.createdAt),"layer" to "physical","requestId" to null,
+            "actor" to obj("kind" to "device","userId" to null,"deviceId" to null,"name" to null,"role" to null,"context" to null),
+            "summary" to (row.data.string("type") ?: "locker.event"),
