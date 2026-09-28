@@ -18,3 +18,20 @@ fun webhookHandlers(): Map<String,V1Handler> = mapOf(
         val row = c.store.create("webhook",obj("url" to url,"events" to c.input["events"],"condominiumId" to location,
             "active" to true,"sealedSecret" to c.seal(secret),"lastSequence" to sequence,"attempts" to 0,
             "nextAttemptAt" to null,"leaseUntil" to null),location)
+        V1Response(c.project("WebhookSubscription",row.document()+obj("secret" to secret)),201)
+    },
+    "deleteWebhook" to V1Handler { c ->
+        val row = c.store.get("webhook",c.path.getValue("webhookId"))
+        c.store.update(row,JsonObject(row.data+obj("active" to false,"sealedSecret" to null,"leaseUntil" to null)))
+        V1Response(status=204)
+    },
+)
+
+internal fun validateWebhookUrl(value: String) {
+    val uri = runCatching { URI(value) }.getOrElse { throw com.community.api.core.ApiException(422,"VALIDATION_ERROR","Invalid webhook URL") }
+    if (uri.scheme != "https" || uri.host.isNullOrBlank() || uri.userInfo != null || uri.fragment != null || uri.port !in setOf(-1,443))
+        throw com.community.api.core.ApiException(422,"VALIDATION_ERROR","HTTPS webhook on port 443 required")
+    val addresses = runCatching { InetAddress.getAllByName(uri.host) }.getOrElse { throw com.community.api.core.ApiException(422,"VALIDATION_ERROR","Webhook host cannot be resolved") }
+    if (addresses.isEmpty() || addresses.any { it.isAnyLocalAddress || it.isLoopbackAddress || it.isLinkLocalAddress || it.isSiteLocalAddress || it.isMulticastAddress })
+        throw com.community.api.core.ApiException(422,"VALIDATION_ERROR","Webhook host must resolve to public addresses")
+}
