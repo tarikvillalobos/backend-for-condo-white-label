@@ -66,7 +66,8 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
         data.string("nextAttemptAt")?.let { Instant.parse(it).isAfter(now) } == true) return@scopedTx null
     val events = data["events"]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
     if (events.isEmpty()) return@scopedTx null
-    val placeholders = events.joinToString(",") { "?" }
+    val observed = (events + webhookAliases.filterValues { it in events }.keys).distinct()
+    val placeholders = observed.joinToString(",") { "?" }
     val scope = if (row.locationId == null) "" else " AND location_id=?"
     val sql = "SELECT sequence,id,action,created_at,payload FROM audit_log WHERE tenant_id=? AND brand_id=? AND sequence>?$scope AND action IN ($placeholders) ORDER BY sequence LIMIT 1"
     val result = tx.connection.prepareStatement(sql).use { statement ->
