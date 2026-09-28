@@ -66,7 +66,7 @@ fun Application.configureHttp() {
             call.respondHttpError(HttpStatusCode.PayloadTooLarge, "payload_too_large", "Request exceeds the route size limit")
         }
         exception<ApiException> { call, cause ->
-            call.respond(HttpStatusCode.fromValue(cause.status), ApiError(cause.code, cause.message, call.callId))
+            call.respondHttpError(HttpStatusCode.fromValue(cause.status), cause.code, cause.message)
         }
         exception<BadRequestException> { call, _ ->
             call.respond(HttpStatusCode.BadRequest, ApiError("bad_request", "Invalid request", call.callId))
