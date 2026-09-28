@@ -9,16 +9,7 @@ O fluxo completo está no [OpenAPI](openapi.yaml), nas seções Authentication e
 - `POST /v1/auth/refresh` renova a sessão; `POST /v1/auth/logout` a encerra. Rotação e revogação invalidam credenciais antigas.
 - Equipe que precisa de segundo fator usa `POST /v1/auth/mfa/{challengeId}/verify`, conforme a resposta de autenticação e as exigências do contrato.
 
-| Method and path | Request | Behavior |
-| --- | --- | --- |
-| `POST /api/v1/auth/login` | `tenantId`, `email`, `password`, optional `device` | Issues access and refresh tokens. |
-| `POST /api/v1/auth/refresh` | `refreshToken` | Rotates both tokens; the old access token immediately stops working. |
-| `POST /api/v1/auth/activate` | `token`, `password` | Consumes an administrator invitation and activates the account. |
-| `POST /api/v1/auth/recovery/request` | `tenantId`, `email` | Returns the same acknowledgment for existing and unknown accounts. |
-| `POST /api/v1/auth/recovery/confirm` | `token`, `password` | Consumes a recovery token and revokes all existing sessions and challenges. |
-| `POST /api/v1/auth/otp/request` | `tenantId`, `email` | Queues a code when the client's `otpLogin` policy is enabled. |
-| `POST /api/v1/auth/otp/confirm` | `tenantId`, `email`, `code`, optional `device` | Consumes a valid code and issues tokens. |
-| `POST /api/v1/auth/logout` | Authenticated, no body | Revokes the current session. |
+Use `Authorization: Bearer <accessToken>` nas rotas protegidas. `GET /v1/me/contexts`, `/v1/me/memberships` e `/v1/me/staff-assignments` mostram os contextos disponíveis. Permissão de equipe e acesso de morador são avaliados pelo vínculo e pelo escopo de cada requisição.
 
 Passwords require 12–256 characters and are stored with PBKDF2-HMAC-SHA256, 600,000 iterations, independent random salts, and constant-time hash comparison. Password login defaults to enabled; OTP defaults to disabled. Login, recovery, verification, and renewal have persistent per-account and per-source rate limits, with fixed hash buckets to bound storage. Source addresses come from the actual connection, so forwarding headers cannot spoof the rate-limit identity. Configure a trusted proxy explicitly before adding proxy-aware extraction.
 
