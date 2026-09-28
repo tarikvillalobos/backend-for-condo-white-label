@@ -7,6 +7,22 @@ import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class PlatformContractTest {
+    @Test fun `brand module toggle preserves condominium preference`() = PlatformFixture().use { f ->
+        f.createCondo()
+        val names = Contract.schemas["Modules"]!!.jsonObject["properties"]!!.jsonObject.keys
+        f.invoke("updateBrandSettings", obj("modules" to names.associateWith { it != "parcels" }))
+        f.identity.db.tx { tx ->
+            val c = V1Context(tx, "getBrandSettings", tenant, brand, java.util.UUID.randomUUID().toString())
+            assertEquals(JsonPrimitive(false), modulesView(c, f.condoId)["parcels"])
+            assertEquals(JsonPrimitive(true), V1Store(tx, tenant, brand).get("condominium", f.condoId!!).data["modules"]!!.jsonObject["parcels"])
+        }
+        f.invoke("updateBrandSettings", obj("modules" to names.associateWith { true }))
+        f.identity.db.tx { tx ->
+            val c = V1Context(tx, "getBrandSettings", tenant, brand, java.util.UUID.randomUUID().toString())
+            assertEquals(JsonPrimitive(true), modulesView(c, f.condoId)["parcels"])
+        }
+    }
+
     @Test fun `condominium creation seeds valid types and a single root`() = PlatformFixture().use { f ->
         val created = f.createCondo()
         Contract.validate(Contract.schemas.getValue("CondominiumCreated").jsonObject, created)
