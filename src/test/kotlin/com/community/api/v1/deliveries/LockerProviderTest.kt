@@ -38,3 +38,6 @@ class LockerProviderTest {
             assertEquals(command, received.get().first)
             assertEquals("Bearer test-token", received.get().second)
             assertTrue(received.get().third.contains("\"commandId\":\"$command\""))
+        } finally { server.stop(0) }
+    }
+}
