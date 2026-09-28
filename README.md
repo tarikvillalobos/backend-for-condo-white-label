@@ -14,26 +14,6 @@ curl http://127.0.0.1:8080/v1/health/ready
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
 Crie a primeira marca e o administrador informando as variáveis abaixo:
-Visitor credentials and integration accounts are separate from human administrative roles. A visitor invitation must not grant general platform access, and a hardware account must not inherit a resident or administrator session.
-
-Permissions must distinguish actions such as viewing one's own packages, registering a delivery, confirming collection, viewing a camera, managing a reservation, publishing a notice, checking in a visitor, and assigning a role.
-
-Every operation must validate the enabled feature, authorized client/property context, permitted action, and resource-specific access. Knowing a resource identifier, selecting a brand, or hiding a screen in the app is not authorization. Users must not be able to assign privileges beyond their delegated authority.
-
-## White-Label and Data Isolation
-
-The same backend will serve multiple clients and brands without requiring duplicated business logic for each application.
-
-Branding, supported features, communication channels, operational policies, and integrations may vary by deployment. Access must remain isolated by client and constrained by property membership, role, and resource ownership.
-
-Using the same backend does not automatically link accounts across clients or make their data visible between brands. Any cross-client relationship requires an explicit, authorized business rule.
-
-## Data Protection and Operational Requirements
-
-Protect credentials, personal information, attachments, camera access, and collection records. Keep sensitive integration credentials outside applications and source control.
-
-Define retention, archival, deletion, and authorized export rules for each data category. File uploads require size/type restrictions and appropriate validation. Account deactivation and membership removal must revoke the corresponding access.
-
 Include monitoring, backup and recovery procedures, traceable administrative actions, and clear handling of failed integrations. Repeated requests must not create duplicate reservations, invitations, or package operations. Demonstration data and simulated hardware events must never be represented as real operations.
 
 ## Optional Extensions
