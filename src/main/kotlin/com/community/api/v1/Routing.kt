@@ -40,6 +40,7 @@ fun Route.v1Routes(db: Database) {
 }
 
 private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractOperation, handler: V1Handler) {
+    attributes.put(v1Handled,true)
     if (operation.id in setOf("healthLive","healthReady")) {
         val healthy = operation.id == "healthLive" || db.healthy()
         respondText(obj("status" to if (healthy) "ok" else "down").toString(), ContentType.Application.Json,
