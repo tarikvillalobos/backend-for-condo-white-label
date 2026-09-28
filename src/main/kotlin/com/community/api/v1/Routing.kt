@@ -61,7 +61,6 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
             if (text.isBlank()) obj() else json.parseToJsonElement(text) as? JsonObject ?: throw ApiException(422,"VALIDATION_ERROR","JSON object required")
         } else obj()
         validateRequest(operation,path,query,headers,input)
-        val health = operation.id in setOf("healthLive","healthReady")
         brandId = headers.entries.firstOrNull { it.key.equals("X-Brand-Id",true) }?.value
         if (!health && brandId.isNullOrBlank()) throw ApiException(400,"VALIDATION_ERROR","X-Brand-Id is required")
         if (health) handler.handle(V1Context(db.scopedTx(null) { it },operation.id,"","",requestId))
