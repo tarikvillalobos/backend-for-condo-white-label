@@ -13,6 +13,7 @@ fun auditAt(value: Instant): String = auditFormat.format(value)
 fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principal?, brandId: String? = null) {
     if (!postgres) return
     mapOf("request_id" to requestId, "operation_id" to operationId, "actor_id" to actor?.userId,
+        "brand_id" to brandId,
         "actor_kind" to if (actor?.deviceId != null) "device" else if (actor?.staff == true) "staff" else if (actor != null) "user" else "anonymous",
         "actor_role" to if (actor?.staff == true) "staff" else "resident").forEach { (key, value) ->
         connection.prepareStatement("SELECT set_config(?, ?, true)").use {
