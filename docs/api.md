@@ -1,6 +1,6 @@
 # Guia da API v1
 
-# API walkthrough
+O contrato completo é [openapi.yaml](openapi.yaml). Com Docker ativo, consulte a interface em `http://127.0.0.1:8080/docs`, o YAML em `/v1/openapi.yaml` e o JSON em `/v1/openapi.json`. Todas as rotas de negócio começam em `/v1`.
 
 The complete request and response contract is [openapi.yaml](openapi.yaml).
 It describes 161 implemented operations, including the public authentication
