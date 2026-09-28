@@ -1,6 +1,6 @@
 # Reservas v1
 
-# Facilities and reservations
+O contrato está em [openapi.yaml](openapi.yaml), nas seções Reservations e Admin · Reservas. Um morador lista espaços em `GET /v1/memberships/{membershipId}/spaces`, consulta disponibilidade em `/spaces/{spaceId}/availability` e cria a reserva em `POST /v1/memberships/{membershipId}/reservations`. A equipe administra espaços e reservas em `/v1/admin/condominiums/{condominiumId}`.
 
 Routes use `/api/v1/locations/{locationId}`, a human bearer session, active
 membership, and the `reservations` feature enabled for the client and location.
