@@ -29,7 +29,7 @@ fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: S
         it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else "" }
     }
     val id = UUID.randomUUID().toString()
-    val at = Instant.now().toString()
+    val at = auditAt(Instant.now())
     val actor = c.principal
     val operation = Contract.operations.firstOrNull { it.id == c.operationId }?.definition
     val metadata = operation?.get("x-audit")?.jsonObject.orEmpty()
