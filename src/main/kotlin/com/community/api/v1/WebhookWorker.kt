@@ -30,16 +30,12 @@ private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSe
 private val webhookScanAfter = AtomicReference<Pair<Database,Pair<String,String>>?>(null)
 
 fun processWebhooks(db: Database): Int {
-    val subscriptions = db.scopedTx(null) { tx ->
-        val filter = if (tx.postgres) "payload::jsonb ->> 'active' = 'true' AND payload::jsonb ->> '_deletedAt' IS NULL"
-            else "payload LIKE '%\"active\":true%' AND payload NOT LIKE '%\"_deletedAt\"%'"
-        tx.connection.prepareStatement("SELECT tenant_id,payload FROM app_records WHERE kind='v1_webhook' AND $filter ORDER BY created_at LIMIT 500").use {
-            it.executeQuery().use { rows -> buildList {
-                while (rows.next()) {
-                    val data = json.parseToJsonElement(rows.getString("payload")).jsonObject
-                    if (data["active"] == JsonPrimitive(true) && data.string("_deletedAt") == null)
-                        add(Triple(rows.getString("tenant_id"),data.string("_brandId")!!,data.string("_id")!!))
-                }
+    var delivered = 0
+    repeat(5) {
+        val subscriptions = nextWebhookBatch(db)
+        if (subscriptions.isEmpty()) return delivered
+        for ((tenant,brand,id) in subscriptions) {
+            delivered += processWebhook(db,tenant,brand,id)
             } }
         }
     }
