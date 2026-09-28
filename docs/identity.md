@@ -11,7 +11,7 @@ O fluxo completo está no [OpenAPI](openapi.yaml), nas seções Authentication e
 
 Use `Authorization: Bearer <accessToken>` nas rotas protegidas. `GET /v1/me/contexts`, `/v1/me/memberships` e `/v1/me/staff-assignments` mostram os contextos disponíveis. Permissão de equipe e acesso de morador são avaliados pelo vínculo e pelo escopo de cada requisição.
 
-Passwords require 12–256 characters and are stored with PBKDF2-HMAC-SHA256, 600,000 iterations, independent random salts, and constant-time hash comparison. Password login defaults to enabled; OTP defaults to disabled. Login, recovery, verification, and renewal have persistent per-account and per-source rate limits, with fixed hash buckets to bound storage. Source addresses come from the actual connection, so forwarding headers cannot spoof the rate-limit identity. Configure a trusted proxy explicitly before adding proxy-aware extraction.
+## Convites, conta e segurança
 
 Access tokens expire after 15 minutes. Refresh tokens expire after 30 days from the original login. All tokens contain 256 random bits; only hashes are stored in session records. Refresh is single-use: replaying a previously consumed token revokes that session, including its replacement tokens. Clients must serialize refresh calls and discard the old pair after success. There are at most 20 unrevoked sessions per account; the oldest sessions are revoked when necessary. Client and account activation are checked on every authenticated request.
 
