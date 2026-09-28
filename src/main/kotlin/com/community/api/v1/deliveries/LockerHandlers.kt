@@ -18,8 +18,16 @@ internal fun lockerHandlers(): Map<String, V1Handler> = mapOf(
     "validatePickupCredential" to V1Handler(::validateCredential),
     "adminOpenCompartment" to V1Handler { c ->
         val locker = c.lockerRecord()
-        if (locker.data.array("compartments").none { it.jsonObject.text("code") == c.path["compartmentCode"] }) c.fail(404, "RESOURCE_NOT_FOUND", "Compartment not found")
-        c.fail(501, "PROVIDER_NOT_CONFIGURED", "Remote compartment opening requires a configured hardware provider")
+        val code = c.path.getValue("compartmentCode")
+        val compartment = locker.data.array("compartments").map { it.jsonObject }.firstOrNull { it.text("code") == code }
+            ?: c.fail(404, "RESOURCE_NOT_FOUND", "Compartment not found")
+        if (!locker.data.flag("available") || compartment.text("status") in setOf("faulty", "disabled"))
+            c.fail(409, "COMPARTMENT_UNAVAILABLE", "Compartimento indisponível")
+        val device = locker.data.text("deviceId")?.let { c.store.get("device", it, locker.locationId) }
+            ?: c.fail(409, "DEVICE_UNKNOWN", "Locker sem equipamento associado")
+        if (device.data.text("status") != "active") c.fail(409, "DEVICE_REVOKED", "Equipamento inativo")
+        val reason = c.input.text("reason")?.trim()?.takeIf { it.length >= 3 }
+            ?: c.fail(422, "VALIDATION_ERROR", "Informe o motivo da abertura")
     },
 )
 
