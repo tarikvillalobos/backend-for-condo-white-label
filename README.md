@@ -6,7 +6,10 @@ API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotli
 
 Configure uma vez `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY` no arquivo `.env` da raiz. Gere a senha com `openssl rand -hex 24` e a chave com `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os próximos reinícios. O arquivo `.env` é ignorado pelo Git.
 
-Keep brand identity separate from data ownership and access permissions. A client may manage multiple properties or standalone locker locations.
+```sh
+docker compose up -d --build
+curl http://127.0.0.1:8080/v1/health/ready
+```
 
 ### Condominiums, Locations, and Units
 
