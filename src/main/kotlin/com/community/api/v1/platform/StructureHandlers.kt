@@ -40,6 +40,15 @@ private fun V1Context.saveNodeType(update: Boolean): V1Response {
     }
     val known = store.list("node_type", condominiumId()).map { it.data.string("code") }.toSet() + code
     if (input.arr("allowedParents").any { it.jsonPrimitive.content !in known }) fail(422, "INVALID_PARENT_TYPE", "Tipo de pai desconhecido")
+    if (existing != null) {
+        val nodes = store.list("node", condominiumId(), filters = mapOf("typeId" to existing.id))
+        if (!input.bool("addressable") && store.list("membership", condominiumId()).any { member ->
+                member.data.string("status") in setOf("active", "pending") && nodes.any { it.id == member.data.string("nodeId") }
+            }) fail(409, "NODE_TYPE_HAS_MEMBERSHIPS", "O tipo possui nós com vínculos")
+        if (nodes.any { node -> node.data.string("parentId")?.let { parentId ->
+                JsonPrimitive(store.get("node", parentId).data.string("typeCode")) !in input.arr("allowedParents")
+            } == true }) fail(409, "NODE_TYPE_IN_USE", "A alteração invalidaria nós existentes")
+    }
     val data = JsonObject(obj("allowedParents" to emptyList<String>(), "sortOrder" to 0) + input)
     val record = if (existing == null) store.create("node_type", data, condominiumId()) else platformUpdate(existing, data)
     return platformResult("NodeType", record, if (update) 200 else 201)
