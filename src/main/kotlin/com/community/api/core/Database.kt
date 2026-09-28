@@ -10,7 +10,8 @@ import java.sql.ResultSet
 import java.time.Instant
 import java.util.UUID
 
-class Database(url: String, user: String = "sa", password: String = "") : AutoCloseable {
+class Database(url: String, user: String = "sa", password: String = "", poolSize: Int = 8) : AutoCloseable {
+    init { require(poolSize in 2..64) { "DB_POOL_SIZE must be between 2 and 64" } }
     private val source = HikariDataSource(HikariConfig().apply {
         jdbcUrl = url
         username = user
