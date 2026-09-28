@@ -77,7 +77,7 @@ private fun manualPickup(c: V1Context): V1Response {
     val undo = c.operationId == "undoManualPickup"
     if (!undo && row.data.text("status") == "manual") return V1Response(c.parcelView(row))
     if (undo && (row.data.text("status") != "manual" || !instant(row.data.text("manualAt")).plusSeconds(600).isAfter(c.now)))
-        c.fail(409, "MANUAL_UNDO_EXPIRED", "Manual pickup can no longer be reversed")
+        c.fail(409, "MANUAL_PICKUP_NOT_REVERSIBLE", "Manual pickup can no longer be reversed")
     c.revokeCredential(row.data)
     val updated = c.store.update(row, row.data.changed("status" to JsonPrimitive(if (undo) "waiting" else "manual"),
         "manualAt" to (if (undo) JsonNull else JsonPrimitive(c.now.toString())), "credentialStatus" to JsonPrimitive("revoked"),
