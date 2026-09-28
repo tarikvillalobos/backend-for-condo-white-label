@@ -5,7 +5,7 @@ import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class CommunityWorkflowTest {
-    @Test fun `event capacity is enforced and cancellation ends attendance`() = CommunityFixture().use { f ->
+    @Test fun `event capacity is enforced and cancellation ends attendance`(): Unit = CommunityFixture().use { f ->
         val event = f.run("adminCreateEvent", obj("title" to "Assembleia", "kind" to "assembly", "startsAt" to future(60),
             "endsAt" to future(3600), "allDay" to false, "notify" to false, "capacity" to 1, "rsvpEnabled" to true), staff = true)
         f.run("attendEvent", ids = mapOf("eventId" to event.id()))
