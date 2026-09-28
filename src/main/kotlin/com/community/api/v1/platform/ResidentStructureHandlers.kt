@@ -38,3 +38,23 @@ private fun V1Context.residentNode(id: String): Record {
 
 private fun V1Context.residentUnit(): V1Response {
     val node = residentNode(unitId ?: fail(404, "UNIT_NOT_FOUND", "Vínculo sem unidade"))
+    val visible = nodeDescendants(node.id)
+    val residents = store.list("membership", condominiumId(), filters = mapOf("status" to "active"))
+        .filter { it.data.string("nodeId") in visible }.map { membership ->
+            val account = tx.get("account", membership.ownerId!!, tenantId)!!
+            val profile = profileData(account)
+            val sharedPhone = (profile["privacy"] as? JsonObject)?.bool("shareContactWithNeighbors") == true
+            obj("id" to membership.id, "name" to account.data["name"], "role" to membership.data["role"],
+                "isSelf" to (membership.ownerId == userId), "node" to nodeRef(this, membership.data.string("nodeId")!!),
+                "phone" to if (sharedPhone) profile["phone"] else null, "createdAt" to membership.createdAt)
+        }
+    return V1Response(obj("id" to node.id, "label" to node.data["label"], "condominiumId" to condominiumId(),
+        "blockLabel" to nodePathView(this, node.id).map { it.jsonObject }.firstOrNull { it.string("type") in setOf("tower", "block") }?.get("label"),
+        "node" to structureNodeView(this, node), "residents" to residents,
+        "canManageResidents" to ("unit.manage" in principal!!.permissions || "*" in principal.permissions)))
+}
+
+private fun V1Context.inviteResident(): V1Response {
+    requirePermission("unit.manage")
+    val node = residentNode(input.string("nodeId") ?: unitId!!)
+    val email = input.string("email")
