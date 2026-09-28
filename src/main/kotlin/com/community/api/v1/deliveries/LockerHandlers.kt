@@ -18,7 +18,7 @@ internal fun lockerHandlers(): Map<String, V1Handler> = mapOf(
     "validatePickupCredential" to V1Handler(::validateCredential),
     "adminOpenCompartment" to V1Handler { c ->
         val locker = c.lockerRecord()
-        if (locker.data.array("compartments").none { it.jsonObject.text("code") == c.path["compartmentCode"] }) c.fail(404, "NOT_FOUND", "Compartment not found")
+        if (locker.data.array("compartments").none { it.jsonObject.text("code") == c.path["compartmentCode"] }) c.fail(404, "RESOURCE_NOT_FOUND", "Compartment not found")
         c.fail(501, "PROVIDER_NOT_CONFIGURED", "Remote compartment opening requires a configured hardware provider")
     },
 )
