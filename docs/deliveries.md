@@ -25,11 +25,7 @@ Content-Type: application/json
 {"commandId":"uuid-estavel","deviceId":"uuid-do-dispositivo","reason":"motivo"}
 ```
 
-Omit both locker fields for reception desk storage. The deadline is an
-informational collection target. A reminder is an explicit staff action.
-Reusing an idempotency key with the same body returns the original receipt;
-reusing it with a different body returns `409`. Receipt creation, compartment
-allocation, audit, and recipient notification commit in one transaction.
+O provedor deve responder HTTP 202. Se enviar corpo JSON, ele deve conter o mesmo `commandId`. A API então devolve `status: command_sent`, registra o comando na auditoria e aguarda um evento confiável do equipamento para observar a abertura real. A mesma chave de idempotência produz o mesmo `commandId` em uma tentativa repetida, inclusive após perda de resposta do provedor. Sem provedor configurado a operação devolve 501 `PROVIDER_NOT_CONFIGURED`; falha ou recusa do provedor devolve 503. Não use esse comando como comprovante de retirada.
 
 Issue a credential with `{"validForMinutes":30}`; validity can be 1 to 1440
 minutes. The response contains `credential` and `expiresAt` with `Cache-Control:
