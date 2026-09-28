@@ -7,8 +7,10 @@ import kotlinx.serialization.json.*
 
 fun authenticateV1Session(tx: Tx, tenantId: String, brandId: String, token: String): Actor {
     val actor = tx.authenticate(token)
-    val metadata = V1Store(tx, tenantId, brandId).find("session", actor.sessionId)
-    if (actor.tenantId != tenantId || metadata?.data?.string("brandId") != brandId) {
+    val store = V1Store(tx, tenantId, brandId)
+    val metadata = store.find("session", actor.sessionId)
+    if (actor.tenantId != tenantId || metadata?.data?.string("brandId") != brandId ||
+        store.find("profile", actor.userId)?.data?.string("accountStatus") == "blocked") {
         identityFailure(401, "SESSION_REVOKED", "Sessão inválida para esta marca")
     }
     return actor
