@@ -143,7 +143,7 @@ internal fun reissue(c: V1Context): V1Response {
     val row = c.parcel()
     if (c.header("If-Match") != null) c.requireVersion(row)
     if (row.data.text("status") != "waiting") c.fail(409, "PARCEL_NOT_EDITABLE", "Only waiting parcels can receive a credential")
-    val id = c.input.text("membershipId") ?: c.fail(422, "COLLECTOR_REQUIRED", "Collector membership is required")
+    val id = c.input.text("membershipId") ?: c.fail(422, "VALIDATION_ERROR", "Collector membership is required")
     val member = c.member(id)
     val nodeRecipient = row.data.text("recipientKind") == "node" && c.nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == member.data.text("nodeId") }
     if (row.data.text("membershipId") != id && row.data.array("delegates").none { it.jsonPrimitive.content == id } && !nodeRecipient)
