@@ -36,7 +36,7 @@ private val responseHeaders = createApplicationPlugin("PrivateApiHeaders") {
 
 fun Application.configureHttp() {
     install(responseHeaders)
-    install(RequestBodyLimit) { bodyLimit { 3L * 1024 * 1024 } }
+    install(RequestBodyLimit) { bodyLimit { call -> if (call.request.uri.startsWith("/v1/files/")) 10L * 1024 * 1024 else 3L * 1024 * 1024 } }
     install(ContentNegotiation) { json(com.community.api.core.json) }
     install(CallId) {
         generate { UUID.randomUUID().toString() }
