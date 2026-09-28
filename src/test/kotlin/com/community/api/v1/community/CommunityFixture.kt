@@ -42,6 +42,7 @@ internal class CommunityFixture : AutoCloseable {
         val c = V1Context(tx, operation, tenant, brand, UUID.randomUUID().toString(), input, path, query, headers, principal, condo, membership)
         val response = communityHandlers().getValue(operation).handle(c)
         val op = Contract.operations.single { it.id == operation }
+        assertTrue(response.status.toString() in op.definition["responses"]!!.jsonObject, "$operation returned undocumented status ${response.status}")
         val schema = op.definition["responses"]!!.jsonObject[response.status.toString()]?.jsonObject?.get("content")
             ?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject
         if (schema != null) {
