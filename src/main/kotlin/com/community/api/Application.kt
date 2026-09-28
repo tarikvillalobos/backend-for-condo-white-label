@@ -101,5 +101,6 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
         deliveryRoutes(database)
         reservationRoutes(database)
         communityRoutes(database)
+        }
     }
 }
