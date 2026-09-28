@@ -32,7 +32,7 @@ class CommunityAccessTest {
         assertEquals("revoked", result["status"]!!.jsonPrimitive.content)
         assertEquals("Visitante", result["visitor"]!!.jsonObject["name"]!!.jsonPrimitive.content)
     }
-    @Test fun `unknown admission codes are rate limited for each operator`() = CommunityFixture().use { f ->
+    @Test fun `unknown admission codes are rate limited for each operator`(): Unit = CommunityFixture().use { f ->
         val gate = f.run("adminCreateGate", obj("name" to "Portaria", "kind" to "pedestrian"), staff = true)
         val body = obj("code" to "999999", "direction" to "entry", "gateId" to gate.id())
         repeat(10) { assertFalse(f.run("validateAccessCredential", body, staff = true).body.jsonObject["valid"]!!.jsonPrimitive.boolean) }
