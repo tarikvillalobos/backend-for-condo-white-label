@@ -19,7 +19,7 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
     val security = (operation.definition["security"] ?: Contract.document["security"])!!.jsonArray
     val accepted = security.flatMap { it.jsonObject.keys }.toSet()
     var principal: V1Principal? = null
-    if (security.isNotEmpty()) {
+    if (security.isNotEmpty() && security.none { it.jsonObject.isEmpty() }) {
         val key = header("X-Device-Key")
         if (key != null && "DeviceKey" in accepted) {
             val deviceId = key.substringBefore('.')
