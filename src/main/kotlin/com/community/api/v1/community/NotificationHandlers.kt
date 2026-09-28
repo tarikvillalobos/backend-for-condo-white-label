@@ -38,7 +38,10 @@ internal fun notificationHandlers(): Map<String, V1Handler> = mapOf(
         }
         V1Response(status = 204)
     },
-    "listDeliveryNotices" to V1Handler { c -> c.listResponse("notification", true, mapOf("kind" to "parcel")) { c.notification(it, true) } },
+    "listDeliveryNotices" to V1Handler { c ->
+        val page = c.listResponse("notification", true, mapOf("kind" to "parcel")) { c.notification(it, true) }.body.jsonObject
+        V1Response(obj("items" to page["items"], "pageInfo" to page["page"], "unreadCount" to c.unreadNotifications(true)))
+    },
     "markNoticeRead" to V1Handler { c ->
         val row = c.record("notification", "noticeId")
         if (row.data.text("kind") != "parcel") c.fail(404, "NOT_FOUND", "Aviso não encontrado")
