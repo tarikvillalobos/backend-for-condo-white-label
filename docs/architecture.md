@@ -16,7 +16,7 @@ As rotas de negócio registram requisições; operações auditadas registram ev
 
 ## Processos externos
 
-Workers processam e-mail, notificações, exportações, webhooks, limpeza de uploads e pedidos de exclusão de dados. O Compose usa Mailpit para capturar e-mails de teste. SMS, WhatsApp e push exigem provedores próprios; a API informa indisponibilidade onde não há integração ativa.
+Workers processam e-mail, notificações, lembretes de prazo de encomendas, exportações, webhooks, limpeza de uploads e pedidos de exclusão de dados. O Compose usa Mailpit para capturar e-mails de teste. SMS, WhatsApp e push exigem provedores próprios; a API informa indisponibilidade onde não há integração ativa.
 
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
