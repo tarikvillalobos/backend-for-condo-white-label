@@ -7,7 +7,7 @@ import java.util.UUID
 import kotlin.test.*
 
 class CommunityAccessTest {
-    @Test fun `single use invitation consumes credential and exit remains possible`() = CommunityFixture().use { f ->
+    @Test fun `single use invitation consumes credential and exit remains possible`(): Unit = CommunityFixture().use { f ->
         val gate = f.run("adminCreateGate", obj("name" to "Portaria", "kind" to "pedestrian"), staff = true)
         val visitor = f.run("createVisitor", obj("name" to "Visitante", "kind" to "visitor", "document" to "12345678900"))
         assertEquals("***8900", visitor.body.jsonObject["document"]!!.jsonPrimitive.content)
