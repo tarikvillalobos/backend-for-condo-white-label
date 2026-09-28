@@ -1,7 +1,7 @@
 package com.community.api.v1
 
 import com.community.api.core.Database
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
