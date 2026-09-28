@@ -77,7 +77,7 @@ internal fun updateParcel(c: V1Context): V1Response {
         val member = if (kind == "membership") c.member(data.text("recipientMembershipId") ?: c.fail(422, "VALIDATION_ERROR", "Recipient membership is required")) else null
         val nodeId = data.text("nodeId") ?: member?.data?.text("nodeId")
         val node = nodeId?.let { c.store.get("node", it, row.locationId) }
-        if (kind == "node" && node?.data?.flag("receivesAsEntity") != true) c.fail(422, "NODE_NOT_RECIPIENT", "Node cannot receive deliveries")
+        if (kind == "node" && node?.data?.flag("receivesAsEntity") != true) c.fail(422, "NODE_NOT_ADDRESSABLE", "Node cannot receive deliveries")
         c.revokeCredential(row.data)
         data = data.changed("membershipId" to value(member?.id), "nodeId" to value(nodeId), "credentialStatus" to JsonPrimitive("revoked"),
             "sealedCode" to JsonNull, "credentialHash" to JsonNull, "delegates" to JsonArray(emptyList()))
