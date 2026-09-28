@@ -81,7 +81,7 @@ fun Application.configureHttp() {
             if (cause is CancellationException) throw cause
             // Exception messages may contain secrets; correlate by request ID instead.
             this@configureHttp.log.error("Unhandled {} requestId={}", cause.javaClass.simpleName, call.callId)
-            call.respond(HttpStatusCode.InternalServerError, ApiError("internal_error", "An unexpected error occurred", call.callId))
+            call.respondHttpError(HttpStatusCode.InternalServerError, "internal_error", "An unexpected error occurred")
         }
         status(HttpStatusCode.NotFound) { call, status ->
             if (call.attributes.getOrNull(v1Handled) == true) return@status
