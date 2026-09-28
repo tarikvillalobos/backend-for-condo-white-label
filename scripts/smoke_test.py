@@ -19,7 +19,7 @@ command = root / "build/install/community-api/bin/community-api"
 if not command.is_file():
     raise SystemExit("Run ./gradlew installDist first")
 
-with tempfile.TemporaryDirectory(prefix="community-smoke-") as temporary:
+with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
