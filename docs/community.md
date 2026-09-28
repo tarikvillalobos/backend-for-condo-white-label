@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-and acknowledgments refer to a specific revision. Supported metadata MIME types:
-PDF, JPEG, PNG, plain text, and DOCX. External document URLs must use HTTPS;
-the storage provider must enforce any required access policy for those URLs.
-`ContactInput`: `name`, `category` (`emergency`, `administration`, `maintenance`,
-`service`), optional `phone`, `email`, `website`, `operatingHours`. At least one
-contact method is required. Contacts are deliberately published by managers.
-
-Permissions: `documents.read`, `documents.manage`, `contacts.read`, `contacts.manage`.
-
-## Notification inbox and preferences
-
-Paths here start with `/api/v1/notifications`:
-
-- `GET /`, `GET /unread-count`, `POST /{id}/read`.
-- `GET /preferences`, `PUT /preferences`: `{push,email,sms,language}`; languages
-  are `pt-BR`, `en`, and `es`.
-
-Each user can access only their own inbox. Removed memberships and disabled
-location features hide related messages immediately. Marking a message read is
-idempotent. Preferences persist independently of external channel availability.
 Push/SMS delivery requires provider setup; an inbox entry is not proof of external
 delivery. Permissions: `notifications.read`, `notifications.manage`.
 
