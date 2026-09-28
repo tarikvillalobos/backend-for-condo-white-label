@@ -33,16 +33,7 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
-```bash
-LOCATION=$(printf '%s' '{"name":"API walkthrough","kind":"condominium","timeZone":"America/Sao_Paulo"}' |
-  api_json POST "$ADMIN_TOKEN" /api/v1/locations)
-LOCATION_ID=$(printf '%s' "$LOCATION" | jq -er .id)
-
-RESIDENT_EMAIL=resident-walkthrough@example.test
-INVITATION=$(jq -nc \
-  --arg email "$RESIDENT_EMAIL" --arg locationId "$LOCATION_ID" \
-  '{email:$email,name:"Walkthrough resident",locationId:$locationId,role:"resident"}' |
-  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/invitations" \
+`GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
     -H "Idempotency-Key: resident-$LOCATION_ID")
 RESIDENT_ID=$(printf '%s' "$INVITATION" | jq -er .userId)
 ACTIVATION_TOKEN=$(printf '%s' "$INVITATION" | jq -er .token)
