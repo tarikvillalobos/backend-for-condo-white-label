@@ -192,3 +192,9 @@ private fun V1Context.objectHistory(): JsonObject {
         obj("at" to (row.data.string("occurredAt") ?: row.createdAt),"layer" to "physical","requestId" to null,
             "actor" to obj("kind" to "device","userId" to null,"deviceId" to null,"name" to null,"role" to null,"context" to null),
             "summary" to (row.data.string("type") ?: "locker.event"),
+            "data" to obj("eventId" to row.data["eventId"],"result" to row.data["result"],"reason" to row.data["reason"]))
+    } else emptyList()
+    val timeline = (events+changes+physical).sortedByDescending { Instant.parse(it.string("at")) }
+    val page = pageItems(timeline)
+    return obj("targetType" to type,"targetId" to id,"label" to null,"items" to page["items"],"page" to page["page"])
+}
