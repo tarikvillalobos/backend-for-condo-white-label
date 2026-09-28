@@ -27,6 +27,7 @@ private val webhookAliases = mapOf(
 )
 private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3))
     .followRedirects(HttpClient.Redirect.NEVER).build()
+private val webhookScanAfter = AtomicReference<Pair<Database,Pair<String,String>>?>(null)
 
 fun processWebhooks(db: Database): Int {
     val subscriptions = db.scopedTx(null) { tx ->
