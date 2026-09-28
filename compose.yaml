@@ -41,4 +41,5 @@ services:
       mail:
         condition: service_started
 volumes:
+  uploads:
   database:
