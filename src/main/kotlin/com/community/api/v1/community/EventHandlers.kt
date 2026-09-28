@@ -56,6 +56,7 @@ internal fun eventHandlers(): Map<String, V1Handler> = mapOf(
     "unattendEvent" to V1Handler { c -> c.changeAttendance(false) },
     "adminListAttendance" to V1Handler { c ->
         c.store.get("event", c.id("eventId"), c.locationId)
-        c.listResponse("attendance", filters = mapOf("eventId" to c.id("eventId"))) { c.view("Attendance", it) }
+        val response = c.listResponse("attendance", filters = mapOf("eventId" to c.id("eventId"))) { c.view("Attendance", it) }
+        V1Response(response.body.jsonObject.merge(obj("total" to c.store.list("attendance", c.locationId, filters = mapOf("eventId" to c.id("eventId"))).size)))
     },
 )
