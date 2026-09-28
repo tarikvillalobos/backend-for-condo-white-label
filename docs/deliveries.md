@@ -1,3 +1,5 @@
+> Documento histórico da API `/api/v1`. Consulte o [OpenAPI atual](openapi.yaml) e o [guia operacional](operations.md) para usar `/v1`.
+
 # Packages and smart lockers
 
 All human routes require `Authorization: Bearer <session-token>` and an active
