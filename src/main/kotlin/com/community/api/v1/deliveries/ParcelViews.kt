@@ -36,7 +36,7 @@ internal fun V1Context.pickupView(row: Record): JsonObject {
     val data = row.data
     if (data.text("status") != "waiting" || data.text("credentialStatus") != "active" || !instant(data.text("credentialExpiresAt")).isAfter(now))
         fail(410, "CREDENTIAL_EXPIRED", "Pickup credential is no longer active")
-    if (membershipId != null && data.text("credentialMemberId") != membershipId) fail(403, "FORBIDDEN", "Credential belongs to another collector")
+    if (membershipId != null && data.text("credentialMemberId") != membershipId) fail(403, "ACCESS_DENIED", "Credential belongs to another collector")
     data.text("lockerId")?.let {
         val locker = store.get("locker", it, row.locationId)
         if (!locker.data.flag("available") || !lockerOnline(locker.data, now) ||
