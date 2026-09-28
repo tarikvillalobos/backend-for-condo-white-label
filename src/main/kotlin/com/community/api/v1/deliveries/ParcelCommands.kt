@@ -84,7 +84,7 @@ internal fun updateParcel(c: V1Context): V1Response {
         owner = member?.ownerId
     }
     if (data.text("carrier").isNullOrBlank()) c.fail(422, "VALIDATION_ERROR", "Carrier is required")
-    val updated = c.store.update(row, data)
+    val updated = c.store.update(row, data, ownerId = owner)
     if (owner != row.ownerId || c.input.containsKey("recipientMembershipId")) c.notifyParcel(updated, "Encomenda atribuída a você")
     c.audit(if (changingDeadline) "parcel.deadline_extended" else "parcel.updated", updated)
     return V1Response(c.parcelView(updated, true))
