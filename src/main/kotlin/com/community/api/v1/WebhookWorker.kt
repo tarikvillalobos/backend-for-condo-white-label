@@ -74,9 +74,7 @@ private fun processWebhook(db: Database, tenant: String, brand: String, id: Stri
                     "nextAttemptAt" to Instant.now().plusSeconds((30L shl (row.data["attempts"]?.jsonPrimitive?.intOrNull ?: 0).coerceAtMost(7)).coerceAtMost(3600)))
             store.update(row,JsonObject(row.data+next+obj("leaseId" to null,"leaseUntil" to null)))
         }
-        if (ok) delivered++
-    }
-    return delivered
+        return if (ok) 1 else 0
 }
 
 private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):WebhookJob? = db.scopedTx("webhook:$tenant:$brand:$id") { tx ->
