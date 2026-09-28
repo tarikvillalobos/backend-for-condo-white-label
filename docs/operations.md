@@ -38,26 +38,6 @@ Câmeras precisam das variáveis do provedor de vídeo. Webhooks aceitam destino
 ./gradlew test installDist
 python3 scripts/smoke_test.py
 python3 scripts/check_commits.py
-`bootstrap` creates a new client and administrator, prints their identifiers,
-and never overwrites existing accounts. Client-wide administrator memberships
-cannot expire. Sensitive permission changes require verification within ten
-minutes; authenticate again or call `POST /api/v1/me/verify`.
-
-Suspending a client is an operator action with database access, outside tenant
-sessions. Export `CLIENT_ID` and `CLIENT_ACTIVE=false` or `true`, then execute:
-
-```sh
-./gradlew run --args=client-state
-```
-
-Suspension revokes current credentials and records an audit event. Reactivation
-requires users to authenticate again. A client administrator can restore a
-disabled location through its normal update endpoint.
-
-## Persistence and consistency
-
-Flyway applies versioned SQL migrations on startup. Data uses indexed,
-tenant-scoped relational envelopes with typed JSON payloads. A database row lock
 serializes transactions across processes, preserving pickup and reservation
 invariants. This deliberately limits throughput; measure load before increasing
 scale and replace it with narrower locks and constraints alongside regression
