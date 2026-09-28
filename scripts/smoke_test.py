@@ -109,4 +109,4 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             assert request("GET", f"/v1/admin/condominiums/{condo_id}/structure", token=admin)["id"]
         finally:
             stop(process)
-print("Smoke test passed: bootstrap, login, invitation, delivery, pickup, reservation conflict, and persistence after restart.")
+    print("V1 packaged smoke test passed: bootstrap, login, idempotency, audit, and restart persistence.")
