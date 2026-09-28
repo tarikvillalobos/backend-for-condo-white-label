@@ -16,6 +16,12 @@ import com.community.api.deliveries.deliveryRoutes
 import com.community.api.reservations.reservationRoutes
 import com.community.api.health.healthRoutes
 import com.community.api.plugins.configureHttp
+import com.community.api.v1.Secrets
+import com.community.api.v1.migrateLegacyBrands
+import com.community.api.v1.v1Routes
+import com.community.api.v1.community.processCommunityNotifications
+import com.community.api.v1.community.processReportExports
+import com.community.api.v1.identity.processIdentityDataRequests
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.log
