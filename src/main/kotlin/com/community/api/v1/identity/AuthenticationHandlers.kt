@@ -70,6 +70,7 @@ private fun V1Context.verifyPasswordRecovery(): V1Response {
     verified.failure?.let { return it }
     val user = verified.account!!
     val updated = tx.update(user, body(user.decode<Account>().copy(passwordHash = Passwords.hash(password))))
+    saveProfile(updated, profileData(updated).with("emailVerifiedAt" to now.toString()))
     tx.list("session", tenantId, ownerId = user.id).forEach { revokeIdentitySession(it.id) }
     consumeOtherChallenges(user.id)
     return V1Response(issueIdentitySession(updated))
