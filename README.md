@@ -2,7 +2,7 @@
 
 API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotlin, Ktor e PostgreSQL. O contrato público está em [docs/openapi.yaml](docs/openapi.yaml). A versão publicada usa o prefixo `/v1`.
 
-## Overview
+## Testar com Docker
 
 Community API provides shared identity, scoped access, and business workflows for residents, smart locker users, concierge teams, property managers, and client administrators.
 
