@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-## 5. Publish an event linked to that reservation
-
-The administrator can link another member's reservation because the role has
-`reservations.manage`. A publisher without that permission can link only their
-own booking. The event must fit the booking interval, and a booking can back
-only one active event.
-
-```bash
-BOOKING_ID=$(printf '%s' "$BOOKING" | jq -er .id)
-jq -nc --arg reservationId "$BOOKING_ID" \
-  --arg startsAt "$START_AT" --arg endsAt "$END_AT" \
-  '{title:"Community meeting",description:"Walkthrough event",capacity:3,reservationId:$reservationId,startsAt:$startsAt,endsAt:$endsAt}' |
-  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/events"
-```
-
-Links do not approve a pending booking or synchronize cancellations. Cancelling
-an event and cancelling its reservation are separate operations.
-
-## Response conventions
-
 - Most administration and community resources use a `Record` envelope with
   `id`, `kind`, `tenantId`, `locationId`, `ownerId`, `data`, timestamps, and version.
 - Packages, lockers, reservations, visitors, and attachments use dedicated safe
