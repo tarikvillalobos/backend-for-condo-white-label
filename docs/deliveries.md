@@ -28,25 +28,5 @@ Content-Type: application/json
 O provedor deve responder HTTP 202. Se enviar corpo JSON, ele deve conter o mesmo `commandId`. A API então devolve `status: command_sent`, registra o comando na auditoria e aguarda um evento confiável do equipamento para observar a abertura real. A mesma chave de idempotência produz o mesmo `commandId` em uma tentativa repetida, inclusive após perda de resposta do provedor. Sem provedor configurado a operação devolve 501 `PROVIDER_NOT_CONFIGURED`; falha ou recusa do provedor devolve 503. Não use esse comando como comprovante de retirada.
 
 O Compose conserva uploads e PostgreSQL em volumes. Operações em vários hosts precisam de armazenamento compartilhado para arquivos e de testes de carga do banco e dos provedores.
-
-```json
-{
-  "eventId": "provider-event-123",
-  "packageId": "package-id",
-  "compartmentId": "A1",
-  "collectorId": "recipient-or-delegate-id",
-  "occurredAt": "2030-01-02T12:00:00Z",
-  "type": "pickup_confirmed"
-}
-```
-
-The provider must establish the physical collection and collector identity before
-sending an event. The server checks integration binding, location, compartment,
-recipient authorization, and event time. A repeated event with the same payload
-returns its original result. Reuse of an event ID with changed content returns
-`409`. Events predating receipt or arriving after cancellation/collection are
-recorded as `ignored`; events more than five minutes in the future are rejected.
-
-This is an authenticated ingestion contract, not a hardware adapter. Door opening
 and provider-specific webhook signature formats still require the selected
 vendor's contract and credentials. No endpoint simulates a physical door opening.
