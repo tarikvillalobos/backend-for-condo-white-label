@@ -62,9 +62,8 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
         } else obj()
         validateRequest(operation,path,query,headers,input)
         brandId = headers.entries.firstOrNull { it.key.equals("X-Brand-Id",true) }?.value
-        if (!health && brandId.isNullOrBlank()) throw ApiException(400,"VALIDATION_ERROR","X-Brand-Id is required")
-        if (health) handler.handle(V1Context(db.scopedTx(null) { it },operation.id,"","",requestId))
-        else {
+        if (brandId.isNullOrBlank()) throw ApiException(400,"VALIDATION_ERROR","X-Brand-Id is required")
+        run {
             tenantId = db.scopedQuery(null) { it.tenantForBrand(brandId!!) }
             val scope = db.scopedQuery(null) { tx -> scopeFor(tx,operation,tenantId!!,brandId!!,path,input) }
             db.scopedQuery(scope) { tx ->
