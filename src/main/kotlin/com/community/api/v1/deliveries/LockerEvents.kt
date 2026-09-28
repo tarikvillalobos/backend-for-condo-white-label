@@ -41,7 +41,7 @@ internal fun lockerEvents(c: V1Context): V1Response {
                 catch (failure: ApiException) { failure.code.lowercase() }
             val result = if (reason == null) "accepted" else "rejected"
             val stored = c.store.create("locker_event", obj("eventId" to eventId, "lockerId" to locker.id, "fingerprint" to fingerprint,
-                "type" to input.text("type"), "occurredAt" to input.text("occurredAt"), "compartmentCode" to input["compartmentCode"],
+                "type" to input.text("type"), "parcelId" to parcelBefore, "occurredAt" to input.text("occurredAt"), "compartmentCode" to input["compartmentCode"],
                 "result" to result, "reason" to reason, "parcelExternalRef" to input["parcelExternalRef"],
                 "payloadEncrypted" to c.seal((input["payload"] ?: JsonNull).toString())), locker.locationId, id = key)
             c.audit("locker.event_$result", stored)
