@@ -21,20 +21,3 @@ Workers processam e-mail, notificações, exportações, webhooks, limpeza de up
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
 Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
-Production configuration requires PostgreSQL credentials and authenticated SMTP
-with STARTTLS. TLS termination, database encryption/backups, restore drills,
-monitoring, and retention must be configured for the deployment.
-
-HTTP logs contain method, status, and a generated request ID. Errors return a
-stable code and safe message with that ID. Unexpected-error logs omit exception
-messages that might contain secrets. Request bodies, credentials, and private
-records are not written to HTTP logs.
-
-Bootstrap runs as an operator CLI command and creates a client administrator in
-one transaction. The client-state CLI can disable a client and revoke associated
-credentials. Application HTTP endpoints do not expose unrestricted cross-client
-administration. Shutdown cancels managed worker coroutines and closes the pool.
-
-The [README](../README.md) maps working modules to the broader product scope.
-The [OpenAPI contract](openapi.yaml) lists routes and request models; the module
-guides explain domain rules and external-provider boundaries.
