@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
         API_ENCRYPTION_KEY=base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("="))
     env.pop("BOOTSTRAP_CLIENT_ID", None)
     result = subprocess.run([str(command), "bootstrap"], env=env, cwd=root, capture_output=True, text=True, check=True)
-    tenant = re.search(r"Client created: ([a-f0-9-]+)", result.stdout).group(1)
+    brand = re.search(r"Brand ID \(X-Brand-Id\): ([a-f0-9-]+)", result.stdout).group(1)
     for key in list(env):
         if key.startswith("BOOTSTRAP_"):
             del env[key]
