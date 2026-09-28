@@ -53,3 +53,5 @@ internal fun notificationHandlers(): Map<String, V1Handler> = mapOf(
         V1Response(obj("notificationId" to row.id, "channels" to JsonArray(deliveries.map { it.data })))
     },
 )
+private fun V1Context.unreadNotifications(delivery: Boolean) = store.list("notification", locationId, userId, mapOf("membershipId" to membershipId!!))
+    .count { it.data.text("readAt") == null && (!delivery || it.data.text("kind") == "parcel") }
