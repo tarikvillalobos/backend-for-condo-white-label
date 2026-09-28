@@ -1,6 +1,7 @@
 package com.community.api.v1
 
 import com.community.api.core.*
+import com.community.api.plugins.v1Handled
 import com.community.api.v1.community.communityHandlers
 import com.community.api.v1.deliveries.deliveryHandlers
 import com.community.api.v1.identity.identityHandlers
