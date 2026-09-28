@@ -56,6 +56,10 @@ object Contract {
         schema["oneOf"]?.jsonArray?.let { choices ->
             if (choices.count { errors(it.jsonObject, value, field).isEmpty() } != 1) errors += "$field must match exactly one permitted form"
         }
+        schema["if"]?.jsonObject?.let { condition ->
+            val branch = if (errors(condition,value,field).isEmpty()) "then" else "else"
+            schema[branch]?.jsonObject?.let { errors += errors(it,value,field) }
+        }
         schema["not"]?.jsonObject?.let { if (errors(it, value, field).isEmpty()) errors += "$field has a forbidden combination" }
         schema["enum"]?.jsonArray?.let { if (value !in it) errors += "$field is not an allowed value" }
         schema["const"]?.let { if (value != it) errors += "$field has an invalid constant" }
