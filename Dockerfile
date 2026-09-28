@@ -14,5 +14,5 @@ RUN mkdir -p /app/data && chown 10001:10001 /app/data
 USER 10001:10001
 ENV HOST=0.0.0.0 PORT=8080
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail --silent http://127.0.0.1:8080/health/ready || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail --silent http://127.0.0.1:8080/v1/health/ready || exit 1
 ENTRYPOINT ["/app/bin/community-api"]
