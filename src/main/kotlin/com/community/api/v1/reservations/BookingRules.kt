@@ -60,7 +60,7 @@ internal object BookingRules {
         val duration = Duration.between(start, end)
         val slot = rules.number("slotMinutes")!!.toLong()
         if (duration > Duration.ofMinutes(rules.number("maxDurationMinutes")!!.toLong()) || duration.seconds % (slot * 60) != 0L)
-            bookingError("INVALID_DURATION", "Reservation duration must follow the space slots and limit")
+            bookingError("VALIDATION_ERROR", "Reservation duration must follow the space slots and limit")
         val guests = input.number("guestsCount") ?: 0
         if (guests < 0 || rules.number("capacity")?.let { guests > it } == true)
             bookingError("CAPACITY_EXCEEDED", "Guest count exceeds space capacity")
