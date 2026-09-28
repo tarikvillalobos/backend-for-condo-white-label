@@ -5,26 +5,6 @@ API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotli
 ## Testar com Docker
 
 Configure uma vez `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY` no arquivo `.env` da raiz. Gere a senha com `openssl rand -hex 24` e a chave com `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os próximos reinícios. O arquivo `.env` é ignorado pelo Git.
-configuration, operational documentation, and an OpenAPI contract. The broader
-[Product scope](#product-scope) records requirements and possible extensions;
-provider-dependent features and optional workflows are identified separately.
-
-## Implemented capabilities
-
-| Module | Working behavior | Boundary or extension |
-| --- | --- | --- |
-| Identity | Invitations/activation, password and OTP login, recovery, verified contact changes, profile, rotating sessions, revocation, rate limits | SMTP must be configured for email verification/recovery; SMS login is not integrated |
-| Client and location administration | Clients, brands, feature flags, locations, units, owner/tenant/household relationships, scoped roles, account activation, invitations | Cross-client onboarding/state changes use explicit operator CLI commands |
-| Deliveries and lockers | Receipt, compartment allocation, history, deadlines, reminders, single-use pickup credentials, delegation, confirmed collection, provider-event deduplication | Physical locker opening needs a vendor adapter and returns 501 |
-| Facilities and reservations | Operating hours, local time zones, capacity, availability, maintenance blocks, approval, cancellation, concurrency protection | Waitlists, recurring bookings, and payments are extensions |
-| Announcements and events | Scheduled/expiring announcements, unit audiences, attachments, receipts, events linked to reservations, attendance capacity, cancellation | Notification campaigns are an extension |
-| Pets | Private pet/unit records, photos, vaccination requirements, species and unit limits, lost notices, resolution | Vaccination document authenticity needs administrative review |
-| Requests and incidents | Categories/priorities, ownership, staff-only notes, assignment, deadlines, escalation history, reopen/resolve flows | Automatic escalation and SLA jobs are extensions |
-| Visitors and concierge | Unit-scoped invitations, admission credentials, expiry, revocation, single-use rules, staff check-in/out, shift notes | Gate hardware commands require a supported integration |
-| Vehicles and parking | Private vehicle records, temporary authorization, space allocation, staff entry/exit history | Physical vehicle-access providers and complex parking policies are separate integrations |
-| Staff and maintenance | Staff responsibilities, approved contractor records, equipment, assignments, work orders, status history, evidence | Recurring inspection scheduling is not automated |
-| Documents and contacts | Versioned document metadata, audience checks, acknowledgments, published useful contacts | External document providers enforce access to their own URLs |
-| Attachments | Authorized PNG/JPEG/PDF upload/download/delete, 2 MiB limit, signatures, ownership and location visibility | Database-backed storage; antivirus and object storage adapters are not included |
 | Notifications | Private inbox, unread count, read status, preferences, generic SMTP email, delivery status and retries | Push and SMS need provider adapters; SMTP acceptance does not confirm reading |
 | Cameras | Camera metadata, enabled state, unit audience, separate live/recording permissions | Live sessions and recordings return 501 until a real provider is configured |
 | Reporting and audit | Permission-filtered counts, statuses, CSV exports, recent-authentication checks, audit records | External analytics pipelines and automated retention are operational extensions |
