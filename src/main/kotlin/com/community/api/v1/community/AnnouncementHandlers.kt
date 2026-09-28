@@ -22,7 +22,7 @@ internal fun V1Context.receipts(row: Record, revision: Int? = null): V1Response 
     val done = allEligible.count { saved[it.id] != null }
     return V1Response(pageRecords(eligible) { member -> obj("membershipId" to member.id,
         "residentName" to personName(member.data.text("userId") ?: member.ownerId), "node" to node(member.data.text("nodeId")),
-        "at" to saved[member.id]?.data?.get("at")) })
+        "at" to saved[member.id]?.data?.get("at")) }.merge(obj("totals" to obj("done" to done, "pending" to allEligible.size - done))))
 }
 private fun V1Context.announcementVisible(row: Record): Boolean {
     if (membershipId == null) return true
