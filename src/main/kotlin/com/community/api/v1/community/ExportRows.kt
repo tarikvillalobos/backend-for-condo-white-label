@@ -20,7 +20,8 @@ internal fun V1Context.exportRows(job: com.community.api.core.Record): List<Map<
     val filters = job.data["filters"] as? JsonObject ?: obj()
     fun accepts(row: JsonObject): Boolean {
         val at = row.text("occurredAt") ?: row.text("createdAt")!!
-        (filters.text("nodeId")?.let { inSubtree(row.text("nodeId"), it) } ?: true) &&
+        return filters.filterKeys { it in setOf("status", "kind", "species", "category") }.all { (key, value) -> row[key] == value } &&
+            (filters.text("nodeId")?.let { inSubtree(row.text("nodeId"), it) } ?: true) &&
             (filters.text("since")?.let { timestamp(at) >= timestamp(it) } ?: true) &&
             (filters.text("until")?.let { timestamp(at) <= timestamp(it) } ?: true) &&
             (filters.text("q")?.let { needle -> columns.getValue(resource).any { row[it]?.toString()?.contains(needle, true) == true } } ?: true)
