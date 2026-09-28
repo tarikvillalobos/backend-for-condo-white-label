@@ -25,7 +25,9 @@ fun authorizeV1(tx: Tx, operation: ContractOperation, brandId: String, tenantId:
             val deviceId = key.substringBefore('.')
             val device = store.find("device", deviceId) ?: throw ApiException(401,"DEVICE_UNKNOWN","Invalid device credential")
             if (device.data.string("status") != "active" || device.data.string("keyHash") != Secrets.hash(key)) throw ApiException(401,"DEVICE_REVOKED","Invalid device credential")
-            principal = V1Principal(deviceId = device.id)
+            val permissions = if (device.data.string("type") == "access_reader") setOf("visitors.checkin") else emptySet()
+            if (operation.path.startsWith("/ops/access/") && device.data.string("type") != "access_reader") throw ApiException(403,"ACCESS_DENIED","Access reader required")
+            principal = V1Principal(deviceId = device.id, permissions = permissions)
             path["lockerId"]?.let { if (device.data.string("lockerId") != it) throw ApiException(404,"RESOURCE_NOT_FOUND","Locker not found") }
         } else {
             if (accepted.none { it in setOf("SessionBearer","StaffBearer") }) throw ApiException(401,"DEVICE_UNKNOWN","Device credential required")
