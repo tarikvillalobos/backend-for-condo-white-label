@@ -64,7 +64,7 @@ internal fun V1Context.credentialData(data: JsonObject, memberId: String, deadli
     val code = generateSequence { SecureRandom().nextInt(100000000).toString().padStart(8, '0') }
         .take(20).firstOrNull { hash(it) !in occupied } ?: fail(503, "SERVICE_UNAVAILABLE", "Unable to allocate a unique credential")
     val expiry = minOf(deadline, now.plusSeconds(86400))
-    if (!expiry.isAfter(now)) fail(409, "PARCEL_EXPIRED", "Extend the parcel deadline before issuing a credential")
+    if (!expiry.isAfter(now)) fail(409, "DEADLINE_INVALID", "Extend the parcel deadline before issuing a credential")
     revokeCredential(data)
     store.create("pickup_credential", obj("parcelId" to parcelId, "membershipId" to memberId, "hash" to hash(code),
         "issuedAt" to now.toString(), "expiresAt" to expiry.toString(), "revokedAt" to null, "consumedAt" to null), locationId, id = hash(code + parcelId + now.toString()))
