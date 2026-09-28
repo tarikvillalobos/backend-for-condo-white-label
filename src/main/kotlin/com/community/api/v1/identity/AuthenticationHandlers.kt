@@ -85,6 +85,7 @@ private fun V1Context.verifyStaffMfa(): V1Response {
     val verified = verifyIdentityChallenge(identityPath("challengeId"), "staff_mfa", true)
     verified.failure?.let { return it }
     val user = verified.account!!
+    saveProfile(user, profileData(user).with("emailVerifiedAt" to now.toString()))
     if (identityStaff(user).isEmpty()) fail(403, "STAFF_ASSIGNMENT_REQUIRED", "Atribuição de equipe indisponível")
     val id = principal!!.sessionId!!
     val metadata = store.get("session", id)
