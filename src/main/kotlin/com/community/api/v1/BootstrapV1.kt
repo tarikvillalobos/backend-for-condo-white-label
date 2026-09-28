@@ -19,6 +19,7 @@ fun bootstrapV1(tx: Tx, tenantId: String, userId: String, name: String, brandId:
             if (complete != support) store.update(brand,JsonObject(brand.data+obj("support" to complete)))
         }
         return
+    }
     tx.connection.prepareStatement("INSERT INTO v1_brands (brand_id,tenant_id) VALUES (?,?)").use {
         it.setString(1,brandId); it.setString(2,tenantId); it.executeUpdate()
     }
