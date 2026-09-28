@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
                 if process.poll() is not None:
                     raise RuntimeError("Server exited before becoming ready")
                 try:
-                    if request("GET", "/health/ready")["status"] == "UP":
+                    if request("GET", "/v1/health/ready", brand_header=False)["status"] == "ok":
                         return process
                 except (urllib.error.URLError, TimeoutError):
                     time.sleep(0.1)
