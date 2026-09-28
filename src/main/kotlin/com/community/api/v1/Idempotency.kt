@@ -35,3 +35,9 @@ fun V1Context.idempotent(operation: ContractOperation, handler: V1Handler): Pair
     }
     return result to false
 }
+
+private fun canonicalJson(value: JsonElement): JsonElement = when(value) {
+    is JsonObject -> JsonObject(value.toSortedMap().mapValues { canonicalJson(it.value) })
+    is JsonArray -> JsonArray(value.map(::canonicalJson))
+    else -> value
+}
