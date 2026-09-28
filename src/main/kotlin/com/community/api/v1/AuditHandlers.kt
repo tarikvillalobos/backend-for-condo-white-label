@@ -171,7 +171,8 @@ private fun V1Context.acceptClientEvent(index:Int,event:JsonObject):JsonObject {
     val fingerprint=hash("${principal?.userId}:${principal?.deviceId}:$event")
     store.find("client_event",fingerprint)?.let { return result("duplicate",id=it.data.string("entryId")) }
     val scoped=V1Context(tx,operationId,tenantId,brandId,requestId,principal=principal,locationId=member?.locationId ?: target?.locationId)
-    val entry=appendAudit(scoped,type,target,details=obj("reportedEvent" to event,"observedByServer" to false))
+    val entry=appendAudit(scoped,type,target,details=obj("reportedEvent" to event,"observedByServer" to false),
+        source=if(principal?.deviceId!=null) "device" else "client",occurredAt=event.string("occurredAt"))
     store.create("client_event",obj("entryId" to entry["id"]),scoped.locationId,principal?.userId,id=fingerprint)
     return result("accepted",id=entry.string("id"))
 }
