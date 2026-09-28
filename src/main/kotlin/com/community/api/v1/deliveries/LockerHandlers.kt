@@ -88,7 +88,7 @@ private fun updateCompartment(c: V1Context): V1Response {
     if (c.header("If-Match") != null) c.requireVersion(locker)
     val code = c.path.getValue("compartmentCode")
     val previous = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
-        ?: c.fail(404, "NOT_FOUND", "Compartment not found")
+        ?: c.fail(404, "RESOURCE_NOT_FOUND", "Compartment not found")
     if (previous.text("parcelId") != null) c.fail(409, "COMPARTMENT_NOT_EMPTY", "Occupied compartments are managed through parcel operations")
     val updated = JsonObject(previous + c.input + obj("updatedAt" to c.now.toString()))
     val saved = c.store.update(locker, locker.data.changed("compartments" to JsonArray(locker.data.array("compartments").map {
