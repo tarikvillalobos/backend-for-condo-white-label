@@ -58,3 +58,23 @@ class PlatformContractTest {
         }
     }
 }
+
+internal class PlatformFixture : AutoCloseable {
+    val identity = IdentityFixture()
+    var condoId: String? = null
+    init {
+        identity.db.tx { tx ->
+            val store = V1Store(tx, tenant, brand)
+            val modules = obj(*Contract.schemas["Modules"]!!.jsonObject["properties"]!!.jsonObject.keys.map { it to true }.toTypedArray())
+            store.create("brand", obj("name" to "Test Brand", "modules" to modules, "termsVersion" to "1"), id = brand)
+            store.create("staff_assignment", obj("brandId" to brand, "role" to "brand_admin", "status" to "active",
+                "scope" to "brand", "permissions" to listOf("*"), "mfaRequired" to false), ownerId = identity.user.id)
+        }
+    }
+    fun invoke(operation: String, input: JsonObject = obj(), path: Map<String, String> = emptyMap()): V1Response = identity.db.tx { tx ->
+        val c = V1Context(tx, operation, tenant, brand, java.util.UUID.randomUUID().toString(), input,
+            path + condoId?.let { mapOf("condominiumId" to it) }.orEmpty(),
+            principal = V1Principal(actor = Actor(identity.user.id, tenant, "test-session"), staff = true, permissions = setOf("*")))
+        platformHandlers().getValue(operation).handle(c)
+    }
+    fun createCondo(): JsonObject {
