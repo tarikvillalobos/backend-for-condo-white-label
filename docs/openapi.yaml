@@ -13932,9 +13932,10 @@ paths:
       tags:
       - Admin · Lockers e equipamentos
       summary: Abrir compartimento remotamente
-      description: Uso excepcional (falha, encomenda presa). Motivo obrigatório. Sem provedor configurado → 501
-        PROVIDER_NOT_CONFIGURED; nada é simulado. Exige confirmação de identidade recente (POST /me/verify); sem
-        ela 403 VERIFICATION_REQUIRED.
+      description: Uso excepcional (falha, encomenda presa). Motivo obrigatório. Com provedor configurado, 202
+        confirma apenas que o comando foi aceito pelo provedor; a abertura física exige evento door_opened do equipamento.
+        Sem provedor configurado → 501 PROVIDER_NOT_CONFIGURED. Exige confirmação de identidade recente
+        (POST /me/verify); sem ela 403 VERIFICATION_REQUIRED.
       x-required-permission: lockers.manage
       parameters:
       - $ref: '#/components/parameters/BrandId'
@@ -17988,6 +17989,7 @@ components:
           - DEVICE_REVOKED
           - DUPLICATE_EVENT
           - COMPARTMENT_OCCUPIED
+          - COMPARTMENT_UNAVAILABLE
           - PARCEL_NOT_EDITABLE
           - DEADLINE_INVALID
           - COMPARTMENT_NOT_EMPTY
