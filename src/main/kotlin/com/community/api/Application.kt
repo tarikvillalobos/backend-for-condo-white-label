@@ -47,6 +47,7 @@ fun main(args: Array<String>) {
     }
     require(args.isEmpty()) { "Supported commands: bootstrap, client-state" }
     val config = AppConfig.fromEnvironment()
+    Secrets.sign("startup")
     val server = serverConfig {
         developmentMode = config.environment == Environment.DEVELOPMENT
         module { module(mailConfig = MailConfig.fromEnvironment()) }
