@@ -1,6 +1,6 @@
 # Operação da Community API
 
-## Configuration and deployment
+## Subir localmente
 
 Use Java 21, a PostgreSQL JDBC `DATABASE_URL`, `DATABASE_USER`, and
 `DATABASE_PASSWORD` in production. Set `APP_ENV=production`, `HOST=0.0.0.0`, and
