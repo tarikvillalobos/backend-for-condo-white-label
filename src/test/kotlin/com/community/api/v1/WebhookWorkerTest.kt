@@ -18,3 +18,12 @@ class WebhookWorkerTest {
                     "lastSequence" to 0, "attempts" to 0, "leaseUntil" to null, "nextAttemptAt" to null))
                 if (index == 500) lastId = row.id
             }
+            appendAudit(V1Context(tx, "testWebhook", "tenant", "brand", UUID.randomUUID().toString()), "target")
+        }
+        assertEquals(0, processWebhooks(db))
+        db.scopedTx(null) { tx ->
+            val last = V1Store(tx, "tenant", "brand").get("webhook", lastId)
+            assertEquals(1, last.data["attempts"]!!.jsonPrimitive.int)
+        }
+    }
+}
