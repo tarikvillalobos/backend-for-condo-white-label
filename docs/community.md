@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-
-- `GET /shift-notes`, `POST /shift-notes`: `{message,incident:false}`.
-
-Both operations require the explicit `concierge.notes` permission and the
-`visitors` feature. The default concierge and manager roles can participate;
-residents cannot publish or read these records. Notes are immutable, scoped to
-their location, timestamped, and attributed to their author. Text allows up to
-10,000 characters. The incident flag identifies an operational incident without
-publishing a resident-visible request or sending private handover text in notifications.
-
-## Vehicles and parking
-
-- `GET /vehicles`, `POST /vehicles`, `PUT /vehicles/{id}`, `DELETE /vehicles/{id}`.
-- `GET /vehicles/{id}/movements`, `POST /vehicles/{id}/movements`:
-  `{direction:"entry"}` or `{direction:"exit"}`.
-- `GET /parking`, `POST /parking`, `PUT /parking/{id}`.
-
-`VehicleInput`: `plate`, `model`, `color`, optional `unitId`, `validUntil`.
-Plates are normalized and unique per location. Resident visibility is restricted
-to owned vehicles, movements, and allocated spaces. `ParkingInput` has `name`
 and nullable `vehicleId`; setting null releases the allocation. Allocated
 vehicles and vehicles currently checked in cannot be deleted. Staff enter movements with sequence validation;
 expired vehicle authorization and inactive owner membership prevent entry.
