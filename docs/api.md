@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-permissions. Omitted locker fields mean reception desk storage.
-
-```bash
-PARCEL=$(jq -nc --arg recipientId "$RESIDENT_ID" \
-  '{recipientId:$recipientId,description:"Walkthrough parcel",carrier:"Example carrier"}' |
-  api_json POST "$ADMIN_TOKEN" "/api/v1/locations/$LOCATION_ID/packages" \
-    -H "Idempotency-Key: parcel-$LOCATION_ID")
-PACKAGE_ID=$(printf '%s' "$PARCEL" | jq -er .id)
-
-PICKUP=$(printf '%s' '{"validForMinutes":30}' |
-  api_json POST "$RESIDENT_TOKEN" \
-    "/api/v1/locations/$LOCATION_ID/packages/$PACKAGE_ID/credential")
-PICKUP_CREDENTIAL=$(printf '%s' "$PICKUP" | jq -er .credential)
-
-jq -nc --arg collectorId "$RESIDENT_ID" --arg credential "$PICKUP_CREDENTIAL" \
-  '{collectorId:$collectorId,credential:$credential}' |
-  api_json POST "$ADMIN_TOKEN" \
-    "/api/v1/locations/$LOCATION_ID/packages/$PACKAGE_ID/confirm-pickup"
-```
-
 The result is `COLLECTED`. The credential is consumed and any locker compartment
 is released in the same transaction. A second confirmation fails with `409`.
 The resident's separate `/report-pickup` action records a report and keeps the
