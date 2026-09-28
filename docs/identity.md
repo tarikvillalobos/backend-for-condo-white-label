@@ -18,7 +18,6 @@ Convites são consultados em `GET /v1/auth/invitations/{code}` e aceitos em `POS
 `POST /v1/me/verify` confirma identidade recente para operações com `x-step-up`; o contrato informa quando usar o desafio adicional `/v1/me/verify/challenge`. `GET /v1/me/sessions` lista sessões; as rotas `DELETE /v1/me/sessions/{sessionId}` e `POST /v1/me/sessions/revoke-others` as revogam.
 
 `GET` e `PATCH /v1/me/privacy` tratam preferências de privacidade. Pedidos de dados usam `POST` e `GET /v1/me/data-requests`, com processamento assíncrono sujeito a retenções legais. O cadastro de instalação push guarda a inscrição em `/v1/devices/{installationId}/push-registration`; o envio push permanece indisponível até configurar um emissor real.
-| `DELETE /api/v1/me/sessions/{id}` | Revokes an owned session; other users' sessions are unavailable. |
 
 Invitation tokens expire after 72 hours, recovery and contact tokens after 30 minutes, and OTPs after five minutes. OTPs permit at most five guesses. Issuing a replacement challenge invalidates the previous challenge of that type. Administrator account deactivation must call `Tx.revokeAccountCredentials` to invalidate outstanding invitations as well as sessions.
 
