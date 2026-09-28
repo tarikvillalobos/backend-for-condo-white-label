@@ -51,7 +51,7 @@ internal object BookingRules {
         val start = timestamp(input.text("startsAt"))
         val end = timestamp(input.text("endsAt"))
         val rules = space.objectAt("rules")
-        if (!space.flag("active")) bookingError("SPACE_UNAVAILABLE", "Space is inactive", 409)
+        if (!space.flag("active")) bookingError("RESERVATION_CONFLICT", "Space is inactive", 409)
         if (!start.isBefore(end) || !start.isAfter(now)) bookingError("VALIDATION_ERROR", "Reservation must occupy a future interval")
         if (start.isBefore(now.plusSeconds(rules.number("minAdvanceMinutes")!!.toLong() * 60)))
             bookingError("MIN_ADVANCE_REQUIRED", "Reservation does not meet the minimum notice")
