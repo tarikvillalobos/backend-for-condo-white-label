@@ -152,7 +152,7 @@ private fun transition(c: V1Context): V1Response {
     if (c.operationId == "cancelReservation" && !BookingRules.cancellable(row.data, facility.data.objectAt("rules"), c.now))
         c.fail(422, "VALIDATION_ERROR", "Cancellation deadline has passed")
     if (action in setOf("confirmed", "rejected") && row.data.text("status") != "pending")
-        c.fail(409, "RESERVATION_NOT_PENDING", "Only pending reservations can be approved or rejected")
+        c.fail(409, "RESERVATION_CONFLICT", "Only pending reservations can be approved or rejected")
     if (action == "confirmed" && (!facility.data.flag("active") || occupied(c, facility.id, timestamp(row.data.text("startsAt")), timestamp(row.data.text("endsAt")), row.id) ||
             blocked(c, facility.id, timestamp(row.data.text("startsAt")), timestamp(row.data.text("endsAt")))))
         c.fail(409, "RESERVATION_CONFLICT", "The requested period is unavailable")
