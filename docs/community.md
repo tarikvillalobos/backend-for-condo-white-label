@@ -18,4 +18,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
+O adaptador chama `POST {CAMERA_PROVIDER_BASE_URL}/sessions` com `cameraRef`, `provider`, `recordingId` quando houver reprodução e `ttlSeconds: 120`. A resposta precisa conter `id`, `url` e `expiresAt`; `protocol` aceita `hls` ou `webrtc`, e `iceServers` e `maxViewers` são opcionais. Para encerrar, chama `DELETE .../sessions` com `{"id":"id-do-provedor"}`. A busca de gravações usa `POST .../recordings/search` com `cameraRef`, período, cursor e limite e deve devolver o schema `RecordingPage`. Em produção, a URL de mídia precisa ser HTTPS e expirar em no máximo dez minutos.
+
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
