@@ -6,16 +6,16 @@ O contrato completo é [openapi.yaml](openapi.yaml). Com Docker ativo, consulte 
 
 Siga o [README](../README.md) para iniciar o Compose e criar a primeira marca com `bootstrap`. Guarde o ID impresso pelo comando e envie-o em `X-Brand-Id`. O cabeçalho seleciona a marca; cada operação ainda exige a autenticação e as permissões indicadas no OpenAPI.
 
-## 1. Sign in as the bootstrapped administrator
-
-Use the client ID printed by bootstrap and the administrator credentials you
-configured. The password is read from the terminal without echoing it.
-
-```bash
-export API_BASE=http://localhost:8080
-export TENANT_ID=replace-with-bootstrap-client-id
-export ADMIN_EMAIL=admin@example.test
-read -r -s -p 'Administrator password: ' ADMIN_PASSWORD; printf '\n'
+```sh
+export API_BASE=http://127.0.0.1:8080
+export BRAND_ID='id-impresso-pelo-bootstrap'
+export ADMIN_EMAIL='admin@example.test'
+read -r -s -p 'Senha: ' ADMIN_PASSWORD; printf '\n'
+curl -sS "$API_BASE/v1/configuration" -H "X-Brand-Id: $BRAND_ID"
+curl -sS "$API_BASE/v1/auth/password/login" \
+  -H "X-Brand-Id: $BRAND_ID" -H 'Content-Type: application/json' \
+  -d "$(jq -nc --arg identifier "$ADMIN_EMAIL" --arg password "$ADMIN_PASSWORD" \
+      '{identifier:$identifier,password:$password}')"
 
 ADMIN_SESSION=$(jq -nc \
   --arg tenantId "$TENANT_ID" --arg email "$ADMIN_EMAIL" \
