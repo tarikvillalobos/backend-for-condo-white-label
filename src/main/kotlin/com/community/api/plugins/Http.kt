@@ -19,6 +19,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
+import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
