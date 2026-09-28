@@ -7,6 +7,9 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+private val auditFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'").withZone(ZoneOffset.UTC)
+fun auditAt(value: Instant): String = auditFormat.format(value)
+
 fun Tx.requestMetadata(requestId: String, operationId: String, actor: V1Principal?) {
     if (!postgres) return
     mapOf("request_id" to requestId, "operation_id" to operationId, "actor_id" to actor?.userId,
