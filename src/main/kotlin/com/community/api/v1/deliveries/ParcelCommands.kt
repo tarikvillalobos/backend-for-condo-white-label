@@ -46,8 +46,8 @@ internal fun registerParcel(c: V1Context): V1Response {
 }
 
 private fun occupy(c: V1Context, parcelId: String, condoId: String) {
-    val lockerId = c.input.text("lockerId") ?: c.fail(422, "LOCKER_REQUIRED", "Locker storage requires a locker")
-    val code = c.input.text("compartmentCode") ?: c.fail(422, "COMPARTMENT_REQUIRED", "Locker storage requires a compartment")
+    val lockerId = c.input.text("lockerId") ?: c.fail(422, "VALIDATION_ERROR", "Locker storage requires a locker")
+    val code = c.input.text("compartmentCode") ?: c.fail(422, "VALIDATION_ERROR", "Locker storage requires a compartment")
     val locker = c.store.get("locker", lockerId, condoId)
     if (!locker.data.flag("available")) c.fail(409, "LOCKER_UNAVAILABLE", "Locker is unavailable")
     val compartment = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
