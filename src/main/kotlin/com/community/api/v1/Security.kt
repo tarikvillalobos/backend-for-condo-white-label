@@ -92,16 +92,13 @@ fun effectivePermissions(c: V1Context, userId: String): Set<String> {
 }
 
 private fun enforceModule(c: V1Context, operation: ContractOperation) {
-    val tag = operation.definition["tags"]?.jsonArray?.firstOrNull()?.jsonPrimitive?.content ?: return
-    val module = when {
-        tag.contains("Parcels",true) || tag.contains("Encomendas",true) -> "parcels"
-        tag.contains("Reservations",true) || tag.contains("Reservas",true) -> "reservations"
-        tag.contains("Cameras",true) || tag.contains("Câmeras",true) -> "cameras"
-        tag == "Pets" -> "pets"
-        tag == "Access" -> "visitors"
-        tag == "Documents" -> "documents"
-        else -> return
-    }
+    val path = operation.path.lowercase()
+    val module = listOf("parcels","lockers","cameras","pets","reservations","vehicles","announcements","requests","occurrences","events","documents","contacts")
+        .firstOrNull { "/$it" in path }
+        ?: if ("/access/" in path || "/visitors" in path || "/gates" in path) "visitors"
+        else if ("/maintenance/" in path || "/work-orders" in path || "/assets" in path || "/vendors" in path) "maintenance" else return
+    if (path.startsWith("/audit/")) return
+    if (modulesView(c,c.locationId,c.membership)[module] == JsonPrimitive(false)) c.fail(403,"MODULE_DISABLED","Module is disabled")
     val brandModules = c.store.get("brand",c.brandId).data["modules"] as? JsonObject
     val condoModules = c.locationId?.let { c.store.get("condominium",it).data["modules"] as? JsonObject }
     if (brandModules?.get(module) == JsonPrimitive(false) || condoModules?.get(module) == JsonPrimitive(false)) c.fail(403,"MODULE_DISABLED","Module is disabled")
