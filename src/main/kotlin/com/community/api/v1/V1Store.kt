@@ -32,7 +32,8 @@ class V1Store(val tx: Tx, val tenantId: String, val brandId: String) {
         }.filter { it.data.string("_brandId") == brandId && it.data.string("_deletedAt") == null && filters.all { (k,v) -> it.data.string(k) == v } }.map { it.logical() }
     }
     fun create(kind: String, data: JsonObject, locationId: String? = null, ownerId: String? = null, id: String = UUID.randomUUID().toString()): Record {
-        val record = tx.create(prefix(kind), tenantId, locationId, ownerId, JsonObject(data + obj("_brandId" to brandId, "_id" to id)), physicalId(kind, id))
+        val scopedLocation = if (prefix(kind) == "v1_condominium") id else locationId
+        val record = tx.create(prefix(kind), tenantId, scopedLocation, ownerId, JsonObject(data + obj("_brandId" to brandId, "_id" to id)), physicalId(kind, id))
         if (!tx.postgres) history(record)
         return record.logical()
     }
