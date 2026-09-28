@@ -11,7 +11,7 @@ docker compose up -d --build
 curl http://127.0.0.1:8080/v1/health/ready
 ```
 
-### Condominiums, Locations, and Units
+O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
 Manage properties, buildings, blocks, floors, units, common areas, addresses, contacts, and operating rules.
 
