@@ -60,6 +60,7 @@ fun V1Context.page(
             val eligible = filters.all { (k,v) -> logical.data.string(k) == v } && predicate(logical)
             if (eligible && result.size == limit) { hasMore = true; break }
             lastCreated = if (sortField == "createdAt") record.createdAt else record.data.string(sortField) ?: record.createdAt
+            if (tx.postgres) lastCreated = stableInstant(lastCreated)
             lastId = logical.id
             if (eligible) result += transform(logical)
         }
