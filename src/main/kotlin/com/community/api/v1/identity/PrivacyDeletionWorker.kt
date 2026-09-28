@@ -43,6 +43,9 @@ private fun V1Context.completeIdentityDeletion(request: Record) {
         "visitor", "access_invite", "reservation", "attendance", "ticket", "comment", "occurrence", "notification", "upload")
     for (kind in personalKinds) {
         store.list(kind, ownerId = userId).forEach { record ->
+            if (kind == "upload" && runCatching { UUID.fromString(record.id) }.isSuccess) {
+                Files.deleteIfExists(Path.of(System.getenv("UPLOAD_DIRECTORY") ?: "data/uploads").resolve(record.id))
+            }
             val anonymous = obj("status" to "deleted", "anonymizedAt" to now.toString(), "_deletedAt" to now.toString())
             val updated = store.update(record, anonymous)
             tx.connection.prepareStatement("UPDATE v1_record_versions SET payload = ? WHERE id = ?").use {
