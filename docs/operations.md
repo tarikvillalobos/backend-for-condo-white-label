@@ -38,20 +38,6 @@ Câmeras precisam das variáveis do provedor de vídeo. Webhooks aceitam destino
 ./gradlew test installDist
 python3 scripts/smoke_test.py
 python3 scripts/check_commits.py
-External push/SMS, camera streaming/recordings, and gate/locker opening adapters
-still require provider contracts and credentials. Never infer a physical event
-from a command request. Optional financial, voting, waitlist, and recurrence
-features remain outside this implementation.
-
-## Verification
-
-Run `./gradlew build installDist` and `python3 scripts/smoke_test.py` for local
-tests and a complete HTTP journey with restart persistence. The smoke test uses
-an isolated temporary database and generated credentials, then removes them.
-
-The OpenAPI validator also checks that every implemented route is documented:
-
-```sh
 python3 -m venv build/spec-venv
 build/spec-venv/bin/pip install -r requirements-dev.txt
 build/spec-venv/bin/python scripts/check_openapi.py
