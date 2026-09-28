@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-
-Transitions: `open → in_progress/cancelled`; `in_progress → resolved/open/cancelled`;
-`resolved → closed/open`; `closed → open`. Cancelled requests are terminal.
-Owners may cancel open requests or reopen resolved/closed requests. Staff control
-the remaining transitions. Staff-only comments require management permission and
-are excluded from resident and read-only audit responses. Closed/cancelled
-requests reject new comments. Assignment and status changes create inbox updates.
-Only open/in-progress requests can be escalated; resolved/closed requests must be
-reopened first. Escalation preserves lifecycle status and never lowers priority.
-An optional assignee must have scoped management access. The current priority,
-assignee, and deadline are visible to the owner; escalation reasons and prior
-assignment details remain in staff-only history. Inbox updates contain generic
-text and omit private escalation reasons. Escalation and its history are atomic.
-
-Permissions: `requests.create`, `requests.read.own`, `requests.read.all`,
-`requests.comment`, `requests.manage`.
-
-## Visitors
-
-- `GET /visitors`, `POST /visitors`.
 - `POST /visitors/{id}/revoke`.
 - `POST /visitors/{id}/check-in`: `{admissionCode}`.
 - `POST /visitors/{id}/check-out`.
