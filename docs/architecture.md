@@ -22,26 +22,6 @@ Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura rem
 
 Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
 
-- Package reports do not confirm physical pickup. Authorized staff or validated
-  integration events must confirm collection and consume the pickup credential.
-- Package receipt, reservations, account invitations, and visitor invitations
-  require idempotency keys. Read the module contracts for return/replay semantics;
-  one-time invitation credentials are never reissued on a duplicate request.
-- Locker provider events have dedicated credentials, binding to configured
-  integrations, event deduplication, timestamp checks, and state validation.
-- Reservations use facility time zones, operating rules, and half-open intervals.
-  Pending approvals reserve capacity, preventing approval-time overbooking.
-- Event attendance, document acknowledgments, notice receipts, and inbox read
-  status avoid duplicate records for repeated actions.
-- Visitor admissions require the staff action, a valid credential, an active
-  inviter, the allowed time window, and the configured single-use rule.
-- Work orders, request status changes, vehicle movements, and administrative
-  changes retain audit/history records under the same tenant/location boundary.
-- Request escalation reasons and concierge handovers remain staff-only. Event
-  reservation links validate ownership, location, time coverage, and exclusive use.
-
-## Provider and storage boundaries
-
 Authentication email has a real SMTP adapter. In-app notifications are persisted
 independently of external push/SMS/email delivery. Camera live view/recording,
 physical locker opening, and other hardware commands require real provider
