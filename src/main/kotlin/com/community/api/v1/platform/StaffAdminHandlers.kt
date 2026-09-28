@@ -81,6 +81,7 @@ private fun V1Context.updatePlatformRole(): V1Response {
     }
     if (role == "brand_admin") fail(403, "PROTECTED_ROLE", "O papel administrador da marca é protegido")
     val permissions = checkedPermissions(input.arr("permissions"))
+    if (!defaultPlatformRolePermissions(role).containsAll(permissions)) fail(422, "ROLE_EXCEEDS_BASE", "As permissões excedem o escopo original do papel")
     val existing = store.find("role", role)
     if (existing == null) store.create("role", obj("permissions" to permissions), id = role)
     else store.update(existing, existing.data.plusFields("permissions" to permissions))
