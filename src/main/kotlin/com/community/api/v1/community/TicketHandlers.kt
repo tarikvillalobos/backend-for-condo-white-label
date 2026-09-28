@@ -21,6 +21,7 @@ private fun V1Context.newTicket(kind: String): V1Response {
     val reference = "${if (kind == "occurrence") "OC" else "SR"}-${UUID.randomUUID().toString().take(8).uppercase()}"
     val row = save("ticket", input.merge(obj("kind" to kind, "reference" to reference,
         "status" to "received", "nodeId" to unitId, "priority" to (input.text("priority") ?: "normal"))))
+    if (kind == "occurrence") audit("occurrence.created", row)
     return V1Response(ticket(row), 201)
 }
 private fun V1Context.ticketBy(key: String, kind: String? = null): Record = record("ticket", key).also {
