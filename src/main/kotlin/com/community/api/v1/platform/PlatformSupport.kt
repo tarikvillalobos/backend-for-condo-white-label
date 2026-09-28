@@ -30,6 +30,10 @@ internal val roleRanks = mapOf("brand_admin" to 7, "org_admin" to 6, "property_m
 fun platformRolePermissions(c: V1Context, role: String): Set<String> {
     val customized = c.store.find("role", role)?.data?.arr("permissions")
     if (customized != null) return customized.map { it.jsonPrimitive.content }.toSet()
+    return defaultPlatformRolePermissions(role)
+}
+
+internal fun defaultPlatformRolePermissions(role: String): Set<String> {
     val catalog = Contract.document["x-permission-catalog"]!!.jsonArray.map { it.jsonObject }
     val residents = catalog.filter { it.string("audience") == "resident" }.map { it.string("code")!! }.toSet()
     val staff = catalog.filter { it.string("audience") in setOf("resident", "staff") }.map { it.string("code")!! }.toSet()
