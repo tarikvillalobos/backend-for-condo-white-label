@@ -10,7 +10,16 @@ docker compose ps
 curl http://127.0.0.1:8080/v1/health/ready
 ```
 
-Export `BOOTSTRAP_CLIENT_NAME`, `BOOTSTRAP_EMAIL`, and `BOOTSTRAP_PASSWORD`, then:
+A primeira marca é criada com `docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap`, depois de exportar essas três variáveis no shell. O comando imprime o ID a usar como `X-Brand-Id`. O Mailpit de desenvolvimento fica em `http://127.0.0.1:8025`. `docker compose down` conserva os volumes; mantenha cópias de segurança do banco e dos uploads.
+
+O contrato pode ser visto em `/docs`, `/v1/openapi.yaml` e `/v1/openapi.json`. O login por senha é `POST /v1/auth/password/login`. Cada operação indica no OpenAPI os cabeçalhos de autenticação, idempotência e `If-Match` necessários.
+
+## Produção
+
+Use Java 21, PostgreSQL, `APP_ENV=production`, `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY`. Configure SMTP autenticado com STARTTLS para desafios e mensagens. Termine HTTPS em um proxy confiável. Mantenha credenciais em um gerenciador de segredos; não grave o arquivo `.env` no Git. A distribuição é criada por `./gradlew installDist`; o Dockerfile executa a mesma distribuição como UID 10001.
+
+O endpoint `/v1/health/live` verifica a resposta HTTP. `/v1/health/ready` consulta o banco e retorna 503 quando indisponível. Monitore falhas 5xx, disponibilidade do banco, filas de e-mail, exportações, webhooks e espaço dos volumes. Os logs HTTP contêm método, status e ID de requisição, sem corpos ou tokens.
+
 
 ```sh
 docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
