@@ -14,26 +14,6 @@ curl http://127.0.0.1:8080/v1/health/ready
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
 Crie a primeira marca e o administrador informando as variáveis abaixo:
-Support lost-and-found notices and property-specific pet rules. Restrict access to private pet and owner records according to the user's responsibilities.
-
-### Common Areas and Reservations
-
-Manage bookable facilities, availability, capacity, operating hours, booking limits, maintenance blocks, and property-specific reservation rules.
-
-Support creation, approval when required, confirmation, cancellation, history, and optional waitlists. Prevent conflicting reservations, including simultaneous requests, and respect the property's local time.
-
-### Events and Community Calendar
-
-Publish community events, scheduled activities, maintenance interruptions, and relevant dates. Support audience targeting, attendance registration where needed, and links between events and facility reservations.
-
-### Announcements and Notices
-
-Create, schedule, publish, update, and archive announcements for a property, building, unit, or authorized audience.
-
-Support attachments, priority, expiration, pinned notices, and read acknowledgments when required. Keep delivery status distinct from confirmation that a person has read a notice.
-
-### Requests, Incidents, and Support
-
 Handle resident requests, complaints, incidents, maintenance reports, and support tickets with categories, priority, attachments, responsible teams, status, and response history.
 
 Support assignment, internal notes, deadlines, escalation, resolution, and reopening. Separate staff-only information from resident-visible communication and protect sensitive reports from unrelated users.
