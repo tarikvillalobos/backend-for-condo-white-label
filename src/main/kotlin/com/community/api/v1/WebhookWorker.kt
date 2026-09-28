@@ -15,6 +15,15 @@ import kotlinx.serialization.json.*
 
 private data class WebhookJob(val tenant:String,val brand:String,val id:String,val url:String,val secret:String,
     val lease:String,val sequence:Long,val eventId:String,val action:String,val occurredAt:String,val target:JsonElement?)
+private val webhookAliases = mapOf(
+    "parcel.registered" to "parcel.deposited",
+    "access_invite.validated" to "invite.used",
+    "access_invite.revoked" to "invite.revoked",
+    "arrival.created" to "access.arrival_requested",
+    "arrival.decided" to "access.arrival_decided",
+    "ticket.status_changed" to "request.updated",
+    "ticket.commented" to "request.updated",
+)
 private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3))
     .followRedirects(HttpClient.Redirect.NEVER).build()
 
