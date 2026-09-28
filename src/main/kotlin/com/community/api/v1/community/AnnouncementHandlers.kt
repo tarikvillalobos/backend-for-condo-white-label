@@ -17,7 +17,9 @@ internal fun V1Context.receipts(row: Record, revision: Int? = null): V1Response 
         .filter { revision == null || it.data.number("revision") >= revision }.associateBy { it.data.text("membershipId") }
     val allEligible = members().filter { member -> row.data.array("targetNodeIds").let { targets ->
         targets.isEmpty() || targets.any { inSubtree(member.data.text("nodeId"), it.jsonPrimitive.content) }
-    } }.filter { query["pending"] != "true" || saved[it.id] == null }
+    } }.filter { member -> query["nodeId"]?.let { inSubtree(member.data.text("nodeId"), it) } ?: true }
+    val eligible = allEligible.filter { query["pending"] != "true" || saved[it.id] == null }
+    val done = allEligible.count { saved[it.id] != null }
     return V1Response(pageRecords(eligible) { member -> obj("membershipId" to member.id,
         "residentName" to personName(member.data.text("userId") ?: member.ownerId), "node" to node(member.data.text("nodeId")),
         "at" to saved[member.id]?.data?.get("at")) })
