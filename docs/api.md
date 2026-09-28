@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-    -H "Idempotency-Key: resident-$LOCATION_ID")
-RESIDENT_ID=$(printf '%s' "$INVITATION" | jq -er .userId)
-ACTIVATION_TOKEN=$(printf '%s' "$INVITATION" | jq -er .token)
-```
-
-Invitations require recent password verification. If the API returns
-`403 verification_required`, verify and repeat the invitation with the same key:
-
-```bash
-jq -nc --arg password "$ADMIN_PASSWORD" '{password:$password}' |
-  api_json POST "$ADMIN_TOKEN" /api/v1/me/verify
-```
-
-In an actual onboarding flow, securely hand the activation token to the invited
-person. For this local walkthrough, activate the resident directly:
-
-```bash
-read -r -s -p 'Resident password, at least 12 characters: ' RESIDENT_PASSWORD; printf '\n'
-jq -nc --arg token "$ACTIVATION_TOKEN" --arg password "$RESIDENT_PASSWORD" \
-  '{token:$token,password:$password}' |
   curl -fsS "$API_BASE/api/v1/auth/activate" \
     -H 'Content-Type: application/json' --data-binary @-
 
