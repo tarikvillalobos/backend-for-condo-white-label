@@ -34,7 +34,7 @@ fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: S
         "condominiumId" to c.locationId, "node" to null,
         "target" to record?.let { obj("type" to it.kind.removePrefix("v1_"), "id" to it.id, "label" to null) },
         "channel" to if (actor?.deviceId != null) "device" else "api", "requestId" to c.requestId,
-        "changes" to null, "details" to redact(details), "createdAt" to at, "source" to "server", "occurredAt" to at)
+        "changes" to null, "details" to redact(details), "createdAt" to at, "source" to source, "occurredAt" to (occurredAt ?: at))
     val hash = Secrets.hash(previous + entry.toString())
     val saved = JsonObject(entry + obj("hash" to hash))
     c.tx.connection.prepareStatement("INSERT INTO audit_log (id,tenant_id,brand_id,location_id,request_id,actor_id,action,target_type,target_id,created_at,previous_hash,hash,payload) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
