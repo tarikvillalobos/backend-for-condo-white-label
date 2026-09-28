@@ -24,7 +24,7 @@ fun structureNodeView(c: V1Context, record: Record, depth: Int = 0): JsonObject 
     val type = c.store.get("node_type", record.data.string("typeId")!!, record.locationId)
     val path = nodePathView(c, record.id)
     val children = c.store.list("node", record.locationId, filters = mapOf("parentId" to record.id))
-        .filter { c.query["includeInactive"] == "true" || it.data.bool("active", true) }
+        .filter { (c.principal?.staff == true && c.query["includeInactive"] == "true") || it.data.bool("active", true) }
         .sortedWith(compareBy({ it.data["sortOrder"]?.jsonPrimitive?.intOrNull ?: 0 }, { it.data.string("label") }))
     return c.project("StructureNode", record.document().plusFields("type" to c.project("NodeType", type.document()),
         "path" to path, "depth" to (path.size - 1), "childrenCount" to children.size,
