@@ -54,6 +54,13 @@ class V1HttpRoutingTest {
         }
         assertEquals(HttpStatusCode.OK,first.status)
         val firstBody = com.community.api.core.json.parseToJsonElement(first.bodyAsText()).jsonObject
+        val cursor = firstBody["page"]!!.jsonObject["nextCursor"]!!.jsonPrimitive.content
+        val next = client.get("/v1/admin/condominiums?limit=1&cursor=${java.net.URLEncoder.encode(cursor,"UTF-8")}") {
+            header("X-Brand-Id",brand);header("Authorization","Bearer $token")
+        }
+        assertEquals(HttpStatusCode.OK,next.status)
+        val nextBody = com.community.api.core.json.parseToJsonElement(next.bodyAsText()).jsonObject
+        assertNotEquals(firstBody["items"]!!.jsonArray[0].jsonObject["id"],nextBody["items"]!!.jsonArray[0].jsonObject["id"])
     }
 
     @Test fun brandLookupErrorUsesProblemDocument() = testApplication {
