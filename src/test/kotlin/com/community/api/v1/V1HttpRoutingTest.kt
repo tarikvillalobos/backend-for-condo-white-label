@@ -7,6 +7,8 @@ import com.community.api.core.body
 import com.community.api.identity.createAccount
 import com.community.api.module
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
