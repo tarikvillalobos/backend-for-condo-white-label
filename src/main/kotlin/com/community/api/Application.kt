@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
     Secrets.sign("startup")
     val server = serverConfig {
         developmentMode = config.environment == Environment.DEVELOPMENT
-        module { module(mailConfig = MailConfig.fromEnvironment()) }
+        module { module(mailConfig = MailConfig.fromEnvironment(), enableLegacyApi = false) }
     }
     embeddedServer(Netty, server) {
         connector {
