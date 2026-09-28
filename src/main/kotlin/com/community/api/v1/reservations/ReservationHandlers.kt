@@ -148,7 +148,7 @@ private fun transition(c: V1Context): V1Response {
     if (action == "cancelled" && row.data.text("status") == "cancelled")
         return V1Response(if (c.operationId.startsWith("admin")) adminView(c, row) else reservationView(c, row))
     if (!BookingRules.active(row.data) || !timestamp(row.data.text("endsAt")).isAfter(c.now))
-        c.fail(409, "RESERVATION_CLOSED", "Reservation cannot be changed in this state")
+        c.fail(409, "RESERVATION_CONFLICT", "Reservation cannot be changed in this state")
     if (c.operationId == "cancelReservation" && !BookingRules.cancellable(row.data, facility.data.objectAt("rules"), c.now))
         c.fail(422, "CANCELLATION_DEADLINE", "Cancellation deadline has passed")
     if (action in setOf("confirmed", "rejected") && row.data.text("status") != "pending")
