@@ -56,16 +56,7 @@ python3 scripts/check_commits.py
 build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
-Bootstrap creates a client and administrator in one transaction and prints their
-IDs. Keep the client ID for login. Run bootstrap before starting the local H2
-server; use the same database environment for both commands. An existing client
-ID is rejected without overwriting data. A new bootstrap operation is an explicit
-operator action for creating another isolated client.
-
-### Run locally
-
-```sh
-./gradlew run
+Crie `build/spec-venv` e instale `requirements-dev.txt` antes do último comando se o ambiente ainda não tiver as dependências Python. Os commits na `main` usam `tarik.villalobos@gmail.com`, um arquivo por commit e até 20 linhas alteradas; `docs/openapi.yaml` é a exceção autorizada.
 ```
 
 The default listener is `http://127.0.0.1:8080`. Log in with
