@@ -4,10 +4,7 @@ A API é um monólito Kotlin/Ktor para SmartLocker e Condo. A aplicação públi
 
 ## Persistência e isolamento
 
-Community API serves both white-label applications from one Kotlin/JVM service.
-Ktor/Netty handles HTTP, Kotlin serialization defines typed JSON contracts, and
-Gradle targets Java 21. Module boundaries group related routes and business rules
-without requiring separate services or duplicated package records.
+PostgreSQL 17 é o banco de produção. Flyway aplica as migrações em `src/main/resources/db/migration/` e `db/postgresql/`; H2 em modo compatível é usado nos testes e no smoke test da distribuição. `app_records` armazena os registros de domínio com `tenant_id`, `location_id`, proprietário, versão e payload JSON. `V1Store` verifica tenant e marca em leituras e alterações. A marca é resolvida a partir de `X-Brand-Id`, mas o cabeçalho não concede permissão.
 
 ```text
 src/main/kotlin/com/community/api/
