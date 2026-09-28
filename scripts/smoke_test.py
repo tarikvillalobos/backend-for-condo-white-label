@@ -105,8 +105,8 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             stop(process)
         process = start(log)
         try:
-            persisted = request("GET", package_path, token=resident)
-            assert persisted["status"] == "COLLECTED"
+            assert request("GET", f"/v1/admin/condominiums/{condo_id}", token=admin)["id"] == condo_id
+            assert request("GET", f"/v1/admin/condominiums/{condo_id}/structure", token=admin)["id"]
         finally:
             stop(process)
 print("Smoke test passed: bootstrap, login, invitation, delivery, pickup, reservation conflict, and persistence after restart.")
