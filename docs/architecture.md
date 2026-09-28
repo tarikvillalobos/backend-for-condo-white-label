@@ -12,11 +12,7 @@ As rotas v1 usam transações com locks por escopo, controle de versão, ETag e 
 
 Sessões de morador, sessões de equipe e chaves de dispositivo têm credenciais distintas. O servidor combina permissões, contexto ativo, escopo do condomínio e módulos habilitados. Operações sensíveis exigem verificação recente da identidade quando o OpenAPI declara `x-step-up`.
 
-Records have an envelope containing `id`, `kind`, `tenantId`, `locationId`,
-`ownerId`, typed JSON `data`, creation/update timestamps, and a version number.
-The database stores the envelope in indexed columns and JSON payloads as text.
-This keeps common tenancy, ownership, audit, and migration handling consistent
-while each module uses typed domain models and explicit transitions.
+As rotas de negócio registram requisições; operações auditadas registram eventos e alterações. O log de eventos tem cadeia de hashes por marca ou condomínio. A verificação de integridade está exposta às permissões administrativas indicadas no contrato. A cadeia ajuda a detectar mudanças indevidas, mas a segurança operacional também depende de restringir acesso ao banco e proteger backups externos.
 
 `Database.query` runs blocking JDBC work on the IO dispatcher. Every transaction
 takes a database row lock on `app_mutex`. It serializes reads and writes across
