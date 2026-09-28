@@ -34,6 +34,14 @@ data class ApiError(val code: String, val message: String, val requestId: String
 
 val v1Handled = AttributeKey<Boolean>("v1-handled")
 
+private suspend fun ApplicationCall.respondHttpError(status: HttpStatusCode, code: String, message: String) {
+    val id = callId ?: UUID.randomUUID().toString()
+    if (request.uri.startsWith("/v1/")) {
+        val body = com.community.api.v1.problem(status.value, code.uppercase(), message, id)
+        respondText(body.body.toString(), ContentType.parse("application/problem+json"), status)
+    } else respond(status, ApiError(code, message, id))
+}
+
 private val responseHeaders = createApplicationPlugin("PrivateApiHeaders") {
     onCall { call ->
         call.response.headers.append("Cache-Control", "no-store")
