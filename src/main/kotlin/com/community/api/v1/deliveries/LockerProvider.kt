@@ -16,7 +16,7 @@ internal object LockerProvider {
     fun open(c: V1Context, lockerId: String, deviceId: String, code: String, commandId: String, reason: String,
         baseUrl: String? = System.getenv("LOCKER_PROVIDER_BASE_URL"), credential: String? = System.getenv("LOCKER_PROVIDER_TOKEN"),
         allowHttp: Boolean = System.getenv("APP_ENV") != "production") {
-        val base = baseUrl?.trimEnd('/')
+        val base = baseUrl?.takeIf { it.isNotBlank() }?.trimEnd('/')
             ?: c.fail(501, "PROVIDER_NOT_CONFIGURED", "Configure um provedor de lockers")
         val token = credential?.takeIf { it.isNotBlank() }
             ?: c.fail(503, "PROVIDER_NOT_CONFIGURED", "Configure a credencial do provedor de lockers")
