@@ -1,6 +1,6 @@
 # Arquitetura da Community API
 
-# Architecture
+A API é um monólito Kotlin/Ktor para SmartLocker e Condo. A aplicação pública registra as rotas do [OpenAPI v1](openapi.yaml) em `src/main/kotlin/com/community/api/v1/`. Os pacotes `identity`, `platform`, `deliveries`, `reservations` e `community` concentram os fluxos; `core` contém banco e infraestrutura compartilhada. O ponto de entrada é `Application.kt`.
 
 ## Kotlin and Ktor modular monolith
 
