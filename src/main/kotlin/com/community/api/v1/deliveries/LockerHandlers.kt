@@ -30,7 +30,7 @@ internal fun lockerOnline(data: JsonObject, now: Instant): Boolean = data.text("
 
 internal fun V1Context.lockerRecord(): Record = store.get("locker", path.getValue("lockerId"), locationId).also { locker ->
     val deviceId = principal?.deviceId
-    if (deviceId != null && locker.data.text("deviceId") != deviceId) fail(404, "NOT_FOUND", "Locker not found")
+    if (deviceId != null && locker.data.text("deviceId") != deviceId) fail(404, "RESOURCE_NOT_FOUND", "Locker not found")
     if (deviceId == null) requirePermission("lockers.read", "lockers.manage", "parcels.receive")
 }
 
