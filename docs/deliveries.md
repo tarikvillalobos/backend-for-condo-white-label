@@ -27,16 +27,7 @@ Content-Type: application/json
 
 O provedor deve responder HTTP 202. Se enviar corpo JSON, ele deve conter o mesmo `commandId`. A API então devolve `status: command_sent`, registra o comando na auditoria e aguarda um evento confiável do equipamento para observar a abertura real. A mesma chave de idempotência produz o mesmo `commandId` em uma tentativa repetida, inclusive após perda de resposta do provedor. Sem provedor configurado a operação devolve 501 `PROVIDER_NOT_CONFIGURED`; falha ou recusa do provedor devolve 503. Não use esse comando como comprovante de retirada.
 
-Issue a credential with `{"validForMinutes":30}`; validity can be 1 to 1440
-minutes. The response contains `credential` and `expiresAt` with `Cache-Control:
-no-store`. Only a SHA-256 digest is persisted. A new credential revokes its
-predecessor. Delegation changes revoke the current credential, so the recipient
-must explicitly issue and share a replacement with the intended collector.
-
-Delegate with `{"userId":"delegate-account-id"}`. Household or unit membership
-alone never grants delivery visibility or collection permission. Delegates can
-view only the deliveries explicitly delegated to them and report a pickup.
-Only the recipient can manage delegates and issue credentials.
+O Compose conserva uploads e PostgreSQL em volumes. Operações em vários hosts precisam de armazenamento compartilhado para arquivos e de testes de carga do banco e dos provedores.
 
 Staff confirmation requires `{"collectorId":"account-id","credential":"secret"}`.
 It verifies active membership, recipient or delegate status, expiration, and the
