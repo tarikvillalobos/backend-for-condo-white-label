@@ -49,7 +49,10 @@ internal fun announcementHandlers(): Map<String, V1Handler> = mapOf(
     "listAnnouncements" to V1Handler { c ->
         val response = c.listResponse("announcement") { row ->
         if (!c.announcementVisible(row) || (c.query["unreadOnly"] == "true" && c.receipt(row.id) != null)) JsonNull else c.announcement(row)
-    } },
+        }
+        val unread = c.store.list("announcement", c.locationId).count { c.announcementVisible(it) && c.receipt(it.id) == null }
+        V1Response(response.body.jsonObject.merge(obj("unreadCount" to unread)))
+    },
     "getAnnouncement" to V1Handler { c -> V1Response(c.announcement(c.checkedAnnouncement())) },
     "markAnnouncementRead" to V1Handler { c -> c.acknowledge(c.checkedAnnouncement()); V1Response(status = 204) },
     "publishAnnouncement" to V1Handler { c ->
