@@ -6,16 +6,7 @@ A API é um monólito Kotlin/Ktor para SmartLocker e Condo. A aplicação públi
 
 PostgreSQL 17 é o banco de produção. Flyway aplica as migrações em `src/main/resources/db/migration/` e `db/postgresql/`; H2 em modo compatível é usado nos testes e no smoke test da distribuição. `app_records` armazena os registros de domínio com `tenant_id`, `location_id`, proprietário, versão e payload JSON. `V1Store` verifica tenant e marca em leituras e alterações. A marca é resolvida a partir de `X-Brand-Id`, mas o cabeçalho não concede permissão.
 
-```text
-src/main/kotlin/com/community/api/
-  Application.kt       # Server composition, CLI dispatch, SMTP worker lifecycle
-  config/              # Listener and environment validation
-  core/                # Database transactions, permissions, audit, integrations
-  identity/            # Accounts, sessions, challenges, delivery, rate limiting
-  platform/            # Clients, brands, locations, units, memberships, reports
-  deliveries/          # Packages, lockers, delegation, pickup, provider events
-  reservations/        # Facilities, local-time rules, booking and maintenance
-  community/           # Community, visitor, content, vehicle, maintenance flows
+As rotas v1 usam transações com locks por escopo, controle de versão, ETag e chaves de idempotência. Listas principais usam versões históricas, índices e cursores assinados com snapshot de 15 minutos. Coleções derivadas pequenas são materializadas com limite de 5.000 itens; filtros mais estreitos são necessários acima desse limite. Ajuste `DB_POOL_SIZE` junto com o número de réplicas e a capacidade do PostgreSQL.
   health/              # HTTP liveness and database readiness
   plugins/             # JSON, body limits, errors, correlation, redacted logging
 src/main/resources/db/migration/  # Flyway schema migrations
