@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-END_AT=$(python3 - "$START_AT" <<'PY'
-import sys
-from datetime import datetime, timedelta
-start = datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00"))
-print((start + timedelta(hours=1)).isoformat().replace("+00:00", "Z"))
-PY
-)
-
-BOOKING=$(jq -nc \
-  --arg facilityId "$FACILITY_ID" --arg startsAt "$START_AT" --arg endsAt "$END_AT" \
-  '{facilityId:$facilityId,startsAt:$startsAt,endsAt:$endsAt,attendees:3}' |
-  api_json POST "$RESIDENT_TOKEN" "/api/v1/locations/$LOCATION_ID/reservations" \
-    -H "Idempotency-Key: booking-$FACILITY_ID")
-printf '%s' "$BOOKING" | jq '{id,status:.details.status}'
-```
-
-The booking is `CONFIRMED` by default, or `PENDING` when the facility requires
-approval. Both states block overlapping reservations, including concurrent
-requests. A matching idempotent retry returns the same booking.
-
 ## 5. Publish an event linked to that reservation
 
 The administrator can link another member's reservation because the role has
