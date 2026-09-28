@@ -9,16 +9,10 @@ from openapi_spec_validator import validate_spec
 root = Path(__file__).resolve().parents[1]
 spec = yaml.safe_load((root / "docs/openapi.yaml").read_text())
 validate_spec(spec)
-actual = set()
-for file in (root / "src/main/kotlin/com/community/api").rglob("*.kt"):
-    stack = []
-    community = file.parent.name == "community" and file.name not in ["NotificationRoutes.kt", "CommunityRoutes.kt"]
-    for line in file.read_text().splitlines():
-        match = re.match(r'^(\s*)(route|get|post|put|patch|delete)(?:\(("[^"]*"|path)\))?\s*\{', line)
-        if not match:
-            continue
-        indent, kind, value = match.groups()
-        depth = len(indent)
+methods = {"get", "post", "put", "patch", "delete"}
+operations = {}
+for path, item in spec["paths"].items():
+    for method, operation in item.items():
         while stack and stack[-1][0] >= depth:
             stack.pop()
         suffixes = ["/api/v1", "/api/v1/locations/{locationId}"] if value == "path" else [json.loads(value) if value else ""]
