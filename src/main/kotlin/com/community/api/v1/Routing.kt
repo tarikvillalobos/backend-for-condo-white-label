@@ -145,6 +145,8 @@ private fun scopeFor(tx: Tx, op: ContractOperation, tenant: String, brand: Strin
     val store = V1Store(tx,tenant,brand)
     val location = path["condominiumId"] ?: path["membershipId"]?.let { store.find("membership",it)?.locationId }
         ?: path["lockerId"]?.let { store.find("locker",it)?.locationId } ?: path["parcelId"]?.let { store.find("parcel",it)?.locationId }
+        ?: path["arrivalId"]?.let { store.find("arrival",it)?.locationId }
+        ?: input.string("gateId")?.let { store.find("gate",it)?.locationId }
         ?: input.string("condominiumId") ?: input.string("nodeId")?.let { store.find("node",it)?.locationId }
     val identity = if (op.path.startsWith("/auth/")) Secrets.hash(input.string("identifier") ?: input.string("refreshToken") ?: path["challengeId"] ?: "public") else null
     return "v1:$tenant:$brand:${location ?: identity ?: "platform"}"
