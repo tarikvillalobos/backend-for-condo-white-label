@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-- `POST /visitors/{id}/revoke`.
-- `POST /visitors/{id}/check-in`: `{admissionCode}`.
-- `POST /visitors/{id}/check-out`.
-
-`VisitorInput`: `name`, `purpose`, `validFrom`, `validUntil`, optional `unitId`,
-`singleUse` (default true). Validity windows may span at most 90 days.
-Creation returns `{invitation,admissionCode}`. Only a SHA-256 credential hash is
-persisted; the admission code is returned once and is omitted from all lists.
-Creation requires `Idempotency-Key` (8–128 characters: letters, digits, `_`, `.`,
-`:`, or `-`). Reusing a key within the same user and location returns 409 without
-creating another invitation or reissuing its code. If the first response was lost,
-revoke the invitation and create a replacement with a new key.
-Checking in requires staff permission, the code, current inviter membership,
-an active validity window, and unused admission when single-use is enabled.
-Checkout is separate from revocation. Physical gate commands are not implied.
-
-Permissions: `visitors.create`, `visitors.read.own`, `visitors.read.all`,
-`visitors.manage`, `visitors.checkin`.
-
-### Concierge handover and incident notes
 
 - `GET /shift-notes`, `POST /shift-notes`: `{message,incident:false}`.
 
