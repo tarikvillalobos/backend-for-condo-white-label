@@ -24,7 +24,9 @@ internal fun notificationHandlers(): Map<String, V1Handler> = mapOf(
     "listInbox" to V1Handler { c ->
         val response = c.listResponse("notification", true) { row ->
         if (c.query["unreadOnly"] == "true" && row.data.text("readAt") != null) JsonNull else c.notification(row)
-    } },
+        }
+        V1Response(response.body.jsonObject.merge(obj("unreadCount" to c.unreadNotifications(false))))
+    },
     "markInboxRead" to V1Handler { c ->
         val row = c.record("notification", "notificationId")
         if (row.data.text("readAt") == null) c.change(row, obj("readAt" to now()), "notification.read")
