@@ -112,6 +112,19 @@ private fun V1Context.auditPage(table: String): JsonObject {
             sql.append(" AND CASE payload::jsonb ->> 'severity' WHEN 'info' THEN 1 WHEN 'notice' THEN 2 WHEN 'warning' THEN 3 WHEN 'critical' THEN 4 ELSE 0 END >= ?")
             values += minimum
         }
+        query["actorUserId"]?.let {
+            sql.append(if (table == "audit_changes") " AND payload::jsonb ->> 'actorName' = ?" else " AND actor_id = ?")
+            values += it
+        }
+        if (table == "audit_log") {
+            query["targetType"]?.let { sql.append(" AND target_type = ?"); values += it }
+            query["targetId"]?.let { sql.append(" AND target_id = ?"); values += it }
+            query["nodeId"]?.let { sql.append(" AND payload::jsonb -> 'node' ->> 'id' = ?"); values += it }
+        }
+        if (table == "audit_changes") {
+            query["table"]?.let { sql.append(" AND payload::jsonb ->> 'table' = ?"); values += it }
+            query["outsideApi"]?.let { sql.append(if (it == "true") " AND request_id IS NULL" else " AND request_id IS NOT NULL") }
+        }
     }
     sql.append(" ORDER BY created_at DESC,$idColumn LIMIT ?"); values += limit+1
     val rows = tx.connection.prepareStatement(sql.toString()).use { statement ->
