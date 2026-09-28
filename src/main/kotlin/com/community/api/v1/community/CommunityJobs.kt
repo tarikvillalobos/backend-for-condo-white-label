@@ -18,3 +18,18 @@ fun processCommunityNotifications(db: Database) {
                     val data = json.parseToJsonElement(rows.getString("payload")).jsonObject
                     if (data.text("_deletedAt") == null && data.flag("pushNotify") && data.text("notifiedAt") == null && !timestamp(data.text("publishedAt")!!).isAfter(Instant.now()))
                         add(DueAnnouncement(rows.getString("tenant_id"), data.text("_brandId")!!, rows.getString("location_id"), data.text("_id")!!, rows.getString("owner_id")))
+                }
+            } }
+        }
+    }
+    pending.forEach { job -> db.scopedTx("community-notification:${job.id}") { tx ->
+        val c = V1Context(tx, "publishScheduledAnnouncement", job.tenant, job.brand, UUID.randomUUID().toString(),
+            principal = V1Principal(userId = job.author, staff = true), locationId = job.location)
+        val row = c.store.find("announcement", job.id, job.location) ?: return@scopedTx
+        if (row.data.text("notifiedAt") != null || timestamp(row.data.text("publishedAt")!!).isAfter(c.now)) return@scopedTx
+        if (row.data.text("expiresAt")?.let { timestamp(it).isAfter(c.now) } != false)
+            c.broadcast("announcement", row.id, row.data.text("title")!!, row.data.text("body"), row.data.array("targetNodeIds"))
+        val updated = c.store.update(row, row.data.merge(obj("notifiedAt" to c.now.toString())))
+        c.audit("announcement.notifications_created", updated)
+    } }
+}
