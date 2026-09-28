@@ -29,26 +29,6 @@ O provedor deve responder HTTP 202. Se enviar corpo JSON, ele deve conter o mesm
 
 O Compose conserva uploads e PostgreSQL em volumes. Operações em vários hosts precisam de armazenamento compartilhado para arquivos e de testes de carga do banco e dos provedores.
 
-Staff confirmation requires `{"collectorId":"account-id","credential":"secret"}`.
-It verifies active membership, recipient or delegate status, expiration, and the
-credential digest. Collection consumes the credential and releases the
-compartment atomically. A resident report sets `PICKUP_REPORTED`; it does not
-confirm collection or release storage. All duplicate collection attempts fail
-after the first confirmed pickup. Cancellation also releases storage and revokes
-credentials. Secrets never appear in package views, audit, or notifications.
-
-## Lockers and provider events
-
-Create a locker using `name`, optional `maintenance`, optional `integrationId`,
-and `compartments`: `[{"id":"A1","label":"A1","maintenance":false}]`.
-Compartment IDs are unique within a locker. Occupancy is controlled by delivery
-operations. Occupied compartments cannot be removed or reassigned via locker
-updates. Maintenance blocks new deliveries without discarding existing ones.
-
-For a provider event, configure an active integration of type `locker` and bind
-its ID to the locker. Use its dedicated credential on `/locker-events`; human
-session tokens are not accepted there. The event body is:
-
 ```json
 {
   "eventId": "provider-event-123",
