@@ -4,6 +4,7 @@ import com.community.api.core.Database
 import com.community.api.module
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.jsonObject
