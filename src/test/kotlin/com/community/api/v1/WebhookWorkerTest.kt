@@ -9,6 +9,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class WebhookWorkerTest {
+    @Test fun `webhook body and signature follow published contract`() {
+        val id = UUID.randomUUID().toString()
+        val brand = UUID.randomUUID().toString()
+        val body = webhookEnvelope(id,"parcel.deposited",java.time.Instant.now().toString(),brand,null,
+            obj("target" to obj("type" to "parcel","id" to id)))
+        Contract.validate(Contract.schemas.getValue("WebhookEnvelope").jsonObject,body)
+        assertEquals("bac79868ba85cd66bf48432a71b8667a28af2222a6933283ee0df24af0c496d3",
+            webhookSignature("secret","1700000000","abc"))
+    }
+
     @Test fun `events older than retry window are skipped`() = Database.memory().use { db ->
         var id = ""
         db.scopedTx(null) { tx ->
