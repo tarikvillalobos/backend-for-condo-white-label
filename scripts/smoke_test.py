@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Exercise the packaged server with an isolated, temporary persistent database."""
-import datetime
+"""Exercise the packaged v1 API, PostgreSQL-compatible schema, and restart persistence."""
+import base64
 import json
 import os
 from pathlib import Path
