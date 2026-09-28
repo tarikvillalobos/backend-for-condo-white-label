@@ -16,14 +16,7 @@ As rotas de negócio registram requisições; operações auditadas registram ev
 
 ## Processos externos
 
-This deliberately favors simple consistency over throughput. A busy deployment
-must replace the global lock with tested location/resource locks and appropriate
-database constraints before expecting high write concurrency. The current JSON
-store also loads records before pagination and domain filtering; large datasets
-need dedicated indexes, SQL queries, and possibly per-module relational tables.
-There are no database foreign keys between JSON payload references. Domain
-services validate these references inside the transaction; direct database writes
-must not bypass those rules.
+Workers processam e-mail, notificações, exportações, webhooks, limpeza de uploads e pedidos de exclusão de dados. O Compose usa Mailpit para capturar e-mails de teste. SMS, WhatsApp e push exigem provedores próprios; a API informa indisponibilidade onde não há integração ativa.
 
 ## Identity and sessions
 
