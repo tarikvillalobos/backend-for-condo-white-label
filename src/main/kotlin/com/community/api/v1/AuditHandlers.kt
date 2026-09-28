@@ -64,7 +64,7 @@ private fun V1Context.auditWhere(table: String, extra: Map<String,String>): Pair
     val sql = StringBuilder("tenant_id = ? AND brand_id = ?")
     val values = mutableListOf<Any>(tenantId,brandId)
     if (locationId != null) { sql.append(" AND location_id = ?"); values += locationId }
-    path["organizationId"]?.let { org ->
+    (path["organizationId"] ?: query["organizationId"])?.let { org ->
         val condos = store.list("organization_condominium",filters=mapOf("organizationId" to org,"status" to "active")).mapNotNull { it.locationId }
         if (condos.isEmpty()) sql.append(" AND 1 = 0")
         else { sql.append(" AND location_id IN (${condos.joinToString(",") { "?" }})"); values.addAll(condos) }
