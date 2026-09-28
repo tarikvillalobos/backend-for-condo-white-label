@@ -12,16 +12,16 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 
 Administradores criam o locker em `/v1/admin/condominiums/{condominiumId}/lockers`, associam um dispositivo ativo e definem compartimentos em `PUT .../lockers/{lockerId}/compartments`. O dispositivo usa `X-Device-Key` em `POST /v1/ops/lockers/{lockerId}/events` e `/credential-validations`. O contrato `LockerEvent` define os tipos, campos e códigos aceitos. Eventos `heartbeat` atualizam a disponibilidade observada; `door_opened` registra abertura física. A API não infere que uma encomenda foi retirada apenas porque uma porta abriu.
 
-```json
-{
-  "recipientId": "recipient-account-id",
-  "description": "Small parcel",
-  "carrier": "Carrier name",
-  "trackingNumber": "TRACK123",
-  "lockerId": "locker-id",
-  "compartmentId": "A1",
-  "collectionDeadline": "2030-01-04T20:00:00Z"
-}
+## Abertura remota
+
+`POST /v1/admin/condominiums/{condominiumId}/lockers/{lockerId}/compartments/{compartmentCode}/open` exige `lockers.manage`, verificação recente de identidade, motivo e `Idempotency-Key`. Configure `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` no `.env` do Compose. Em produção, a URL deve usar HTTPS. O provedor recebe:
+
+```text
+POST {LOCKER_PROVIDER_BASE_URL}/lockers/{lockerId}/compartments/{compartmentCode}/open
+Authorization: Bearer {LOCKER_PROVIDER_TOKEN}
+Idempotency-Key: {commandId}
+Content-Type: application/json
+
 ```
 
 Omit both locker fields for reception desk storage. The deadline is an
