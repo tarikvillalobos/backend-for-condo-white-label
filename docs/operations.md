@@ -20,6 +20,19 @@ Use Java 21, PostgreSQL, `APP_ENV=production`, `DATABASE_URL`, `DATABASE_USER`, 
 
 O endpoint `/v1/health/live` verifica a resposta HTTP. `/v1/health/ready` consulta o banco e retorna 503 quando indisponível. Monitore falhas 5xx, disponibilidade do banco, filas de e-mail, exportações, webhooks e espaço dos volumes. Os logs HTTP contêm método, status e ID de requisição, sem corpos ou tokens.
 
+Flyway aplica migrações ao iniciar. O PostgreSQL deve ter backup agendado e recuperação para um ponto no tempo. Faça backup também do diretório `UPLOAD_DIRECTORY` ou do volume `uploads`; arquivos e metadados precisam ser restaurados juntos. Teste a restauração em ambiente isolado. Não execute testes com a base de produção.
+
+## Concorrência, retenção e provedores
+
+As rotas `/v1` usam locks por escopo, controle de versão e idempotência. Consultas principais são indexadas e listas usam cursores com snapshot de 15 minutos. Os workers processam e-mail, comunicados agendados, exportações, webhooks e pedidos de exclusão. O PostgreSQL e os workers devem ser monitorados quando aumentar o número de réplicas e conexões.
+
+O volume de arquivos do Compose é compartilhado apenas no mesmo host Docker. Para vários hosts, adapte `UPLOAD_DIRECTORY` a um armazenamento de objetos compartilhado antes de distribuir as réplicas. Meça latência e vazão com a carga esperada; o número de usuários cadastrados, sozinho, não define capacidade.
+
+Retenções legais podem bloquear exclusão de dados. O worker de privacidade verifica os pedidos antes de anonimizar; eventos de auditoria preservam a cadeia de hashes e ocultam segredos. A cadeia detecta alterações acidentais ou não autorizadas nos registros sob a política operacional, mas um operador com controle total do banco e da aplicação pode recomputar hashes. Restrinja esse acesso e proteja backups externos.
+
+Câmeras precisam das variáveis do provedor de vídeo. Webhooks aceitam destinos HTTPS públicos na porta 443 e devem sair por uma rede com proteção contra acesso a endereços internos. SMS, WhatsApp e entrega push precisam de provedores próprios; o Compose não os envia. O Mailpit captura e-mails sem entregá-los externamente. A API não presume retirada de encomenda ou entrada física sem evento confiável do equipamento.
+
+## Verificação
 
 ```sh
 docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD api bootstrap
