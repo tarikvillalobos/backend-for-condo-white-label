@@ -56,6 +56,7 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
         val query = request.queryParameters.names().associateWith { request.queryParameters[it]!! }
         val headers = request.headers.names().associateWith { request.headers[it]!! } + ("X-Remote-Host" to request.local.remoteHost)
         val input = if (operation.definition.containsKey("requestBody")) {
+            if (!request.contentType().match(ContentType.Application.Json)) throw ApiException(415,"VALIDATION_ERROR","Use application/json")
             val text = receiveText()
             if (text.isBlank()) obj() else json.parseToJsonElement(text) as? JsonObject ?: throw ApiException(422,"VALIDATION_ERROR","JSON object required")
         } else obj()
