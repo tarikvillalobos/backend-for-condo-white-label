@@ -18,3 +18,23 @@ private data class WebhookJob(val tenant:String,val brand:String,val id:String,v
 private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3))
     .followRedirects(HttpClient.Redirect.NEVER).build()
 
+fun processWebhooks(db: Database): Int {
+    val subscriptions = db.scopedTx(null) { tx ->
+        tx.connection.prepareStatement("SELECT tenant_id,payload FROM app_records WHERE kind='v1_webhook' ORDER BY created_at LIMIT 500").use {
+            it.executeQuery().use { rows -> buildList {
+                while (rows.next()) {
+                    val data = json.parseToJsonElement(rows.getString("payload")).jsonObject
+                    if (data["active"] == JsonPrimitive(true) && data.string("_deletedAt") == null)
+                        add(Triple(rows.getString("tenant_id"),data.string("_brandId")!!,data.string("_id")!!))
+                }
+            } }
+        }
+    }
+    var delivered = 0
+    for ((tenant,brand,id) in subscriptions) {
+        val job = claimWebhook(db,tenant,brand,id) ?: continue
+        val ok = runCatching { sendWebhook(job) }.getOrDefault(false)
+        db.scopedTx("webhook:$tenant:$brand:$id") { tx ->
+            val store = V1Store(tx,tenant,brand)
+            val row = store.find("webhook",id) ?: return@scopedTx
+            if (row.data.string("leaseId") != job.lease) return@scopedTx
