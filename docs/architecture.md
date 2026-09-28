@@ -21,26 +21,6 @@ Workers processam e-mail, notificações, exportações, webhooks, limpeza de up
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
 Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
-source; forwarding headers are not trusted as authentication or network identity.
-
-Authentication email uses a transactional private outbox and SMTP worker.
-The worker claims deliveries under a lease and releases the database transaction
-before network I/O. SMTP acceptance and user receipt remain distinct. A crash
-after SMTP acceptance may repeat an email, so delivery is at least once.
-Provider errors are reduced to safe status information. Pending delivery records
-contain short-lived secrets and require protected storage and backup access.
-
-See [Identity API](identity.md) for refresh, credential, recovery, and SMTP details.
-
-## Authorization and white-label isolation
-
-An authenticated actor establishes the client; request payloads cannot switch it.
-Each protected operation checks the active client, account, membership, selected
-location, enabled feature, and action permission. Location/resource ownership
-and field-level restrictions are checked inside the same transaction as writes.
-The same resource restrictions apply to reports and exports.
-
-Memberships may be scoped to a location and unit, or deliberately client-wide.
 Roles are permission sets; custom roles and direct grants are constrained by the
 assigning administrator's authority. Client administrators have explicit
 client-wide privileges. Other roles remain scoped to their memberships.
