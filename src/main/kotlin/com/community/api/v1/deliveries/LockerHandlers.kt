@@ -28,6 +28,12 @@ internal fun lockerHandlers(): Map<String, V1Handler> = mapOf(
         if (device.data.text("status") != "active") c.fail(409, "DEVICE_REVOKED", "Equipamento inativo")
         val reason = c.input.text("reason")?.trim()?.takeIf { it.length >= 3 }
             ?: c.fail(422, "VALIDATION_ERROR", "Informe o motivo da abertura")
+        val key = c.header("Idempotency-Key") ?: c.fail(400, "VALIDATION_ERROR", "Idempotency-Key obrigatório")
+        val commandId = java.util.UUID.nameUUIDFromBytes("${c.tenantId}:${c.brandId}:${c.userId}:${locker.id}:$code:$key".toByteArray()).toString()
+        LockerProvider.open(c, locker.id, device.id, code, commandId, reason)
+        appendAudit(c, "locker.remote_open_requested", locker, details = obj("commandId" to commandId, "reasonHash" to c.hash(reason)))
+        V1Response(obj("lockerId" to locker.id, "compartmentCode" to code, "status" to "command_sent",
+            "commandId" to commandId, "sentAt" to c.now), 202)
     },
 )
 
