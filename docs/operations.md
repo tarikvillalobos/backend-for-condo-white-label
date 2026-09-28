@@ -44,5 +44,3 @@ build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 O smoke test usa um banco temporário e testa bootstrap, login, idempotência, auditoria e persistência após reinício. O workflow de CI também executa testes com PostgreSQL e compila a imagem Docker.
-push after validating each complete batch. Never force-push to resolve a diverged
-remote automatically.
