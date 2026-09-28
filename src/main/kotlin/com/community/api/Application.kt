@@ -81,7 +81,7 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
             delay(10_000)
         }
     }
-    if (mailConfig != null) launch(Dispatchers.IO) {
+    launch(Dispatchers.IO) {
         while (isActive) {
             try {
                 processCommunityNotifications(database)
