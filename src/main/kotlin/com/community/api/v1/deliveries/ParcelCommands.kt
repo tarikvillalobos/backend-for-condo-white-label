@@ -51,7 +51,7 @@ private fun occupy(c: V1Context, parcelId: String, condoId: String) {
     val locker = c.store.get("locker", lockerId, condoId)
     if (!locker.data.flag("available")) c.fail(409, "LOCKER_UNAVAILABLE", "Locker is unavailable")
     val compartment = locker.data.array("compartments").map { it.jsonObject }.find { it.text("code") == code }
-        ?: c.fail(404, "NOT_FOUND", "Compartment not found")
+        ?: c.fail(404, "RESOURCE_NOT_FOUND", "Compartment not found")
     if (compartment.text("status") != "free" || compartment.text("parcelId") != null) c.fail(409, "COMPARTMENT_OCCUPIED", "Compartment is unavailable")
     val compartments = locker.data.array("compartments").map {
         if (it.jsonObject.text("code") == code) it.jsonObject.changed("status" to JsonPrimitive("occupied"),
