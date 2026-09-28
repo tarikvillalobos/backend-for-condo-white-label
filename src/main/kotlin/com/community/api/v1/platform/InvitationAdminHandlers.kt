@@ -40,6 +40,7 @@ internal fun V1Context.createPlatformInvitation(data: JsonObject, membershipId: 
     val condoId = condominiumId()
     val nodeId = data.string("nodeId") ?: rootNode().id
     store.get("node", nodeId, condoId)
+    if (assignmentId == null) checkAddressableNode(nodeId)
     val cpf = data.string("cpf")?.let(::checkedCpf)
     val id = UUID.randomUUID().toString()
     val code = "${id}_${Secrets.token()}"
