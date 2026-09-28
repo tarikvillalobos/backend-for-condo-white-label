@@ -18,16 +18,7 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
-## Pets and lost notices
-
-- `GET /pets`, `POST /pets`, `PUT /pets/{id}`, `DELETE /pets/{id}`.
-- `GET /lost-pets`, `POST /lost-pets`, `POST /lost-pets/{id}/resolve`.
-
-`PetInput`: `name`, `species`, optional `unitId`, `identification`, `photoUrl`, and
-`vaccinationUrls`. Unit association must belong to the caller unless a manager
-performs the operation. Vaccination and owner records stay private.
-`LostPetInput`: owned `petId`, public `message`, public `lastSeen`.
-Lost-notice responses contain pet name/species/photo and public text; they omit
+Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
 owner identifiers, units, identification numbers, and vaccination attachments.
 
 Permissions: `pets.read.own`, `pets.read.all`, `pets.create`, `pets.manage.own`,
