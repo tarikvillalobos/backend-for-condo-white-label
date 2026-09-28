@@ -24,7 +24,7 @@ docker compose run --rm -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP
 
 O comando imprime o ID da marca. Envie esse ID no cabeçalho `X-Brand-Id` em todas as chamadas de negócio. A marca identifica o tenant e sua configuração; ela não concede permissão. O login é `POST /v1/auth/password/login` com `identifier` e `password`; use o `accessToken` como `Authorization: Bearer ...`. A senha inicial de teste deve atender à política retornada pela API.
 
-### Bootstrap the first client
+## Ver o OpenAPI
 
 Set these environment variables through your shell or secret manager before
 running the command. Credentials must not be committed:
