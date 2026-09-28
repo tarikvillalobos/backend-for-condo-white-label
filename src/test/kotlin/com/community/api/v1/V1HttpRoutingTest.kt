@@ -14,6 +14,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
