@@ -130,7 +130,7 @@ internal fun handover(c: V1Context): V1Response {
     val supplied = c.input.text("code") ?: c.input.text("qrPayload")
     val validCode = credentialMatches(c, row, supplied)
     val collector = if (validCode) row.data.text("credentialMemberId")!! else c.input.text("collectorMembershipId")
-        ?: c.fail(422, "COLLECTOR_REQUIRED", "Identify the collector or provide a valid credential")
+        ?: c.fail(422, "VALIDATION_ERROR", "Identify the collector or provide a valid credential")
     val member = c.member(collector)
     val nodeRecipient = row.data.text("recipientKind") == "node" && c.nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == member.data.text("nodeId") }
     if (row.data.text("membershipId") != collector && row.data.array("delegates").none { it.jsonPrimitive.content == collector } && !nodeRecipient)
