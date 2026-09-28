@@ -5,26 +5,6 @@ API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotli
 ## Testar com Docker
 
 Configure uma vez `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY` no arquivo `.env` da raiz. Gere a senha com `openssl rand -hex 24` e a chave com `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os próximos reinícios. O arquivo `.env` é ignorado pelo Git.
-- [Community and operations endpoints](docs/community.md)
-- [API walkthrough](docs/api.md)
-- [Deployment, recovery, and verification](docs/operations.md)
-
-## Product scope
-
-The following sections preserve the full product brief. Use the implementation
-matrix above and endpoint documentation to distinguish available workflows from
-provider-dependent or future capabilities.
-
-
-### Authentication and Account Management
-
-Account activation, invitations, login, recovery, verified contact changes, and profile management. Support password-based and one-time-code authentication according to the configured login policy.
-
-Include session expiration, renewal, logout, session revocation, device/session visibility, and additional verification for privileged or sensitive actions. Protect login and recovery flows against repeated attempts and account enumeration.
-
-### Clients, Brands, and Feature Configuration
-
-Manage client organizations, white-label brands, app configuration, support contacts, and available features. Allow configuration by client, property, and application where appropriate.
 
 Keep brand identity separate from data ownership and access permissions. A client may manage multiple properties or standalone locker locations.
 
