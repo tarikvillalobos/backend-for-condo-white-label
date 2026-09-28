@@ -38,3 +38,11 @@ private fun V1Context.sqlCounts(kind: String, conditions: Map<String, String>): 
         statement.executeQuery().use { rows -> rows.next(); obj(*conditions.keys.mapIndexed { index, key -> key to rows.getLong(index + 1) }.toTypedArray()) }
     }
 }
+private fun V1Context.compartmentCounts(): JsonObject = tx.connection.prepareStatement(
+    "SELECT COUNT(*), COUNT(*) FILTER (WHERE entry ->> 'status' = 'occupied'), COUNT(*) FILTER (WHERE entry ->> 'status' = 'faulty') " +
+        "FROM app_records CROSS JOIN LATERAL jsonb_array_elements(COALESCE(payload::jsonb -> 'compartments','[]'::jsonb)) AS entry " +
+        "WHERE kind = 'v1_locker' AND tenant_id = ? AND location_id = ? AND payload::jsonb ->> '_brandId' = ? AND payload::jsonb ->> '_deletedAt' IS NULL",
+).use { statement ->
+    listOf(tenantId, locationId, brandId).forEachIndexed { index, value -> statement.setString(index + 1, value) }
+    statement.executeQuery().use { rows -> rows.next(); obj("compartments" to rows.getLong(1), "occupied" to rows.getLong(2), "faulty" to rows.getLong(3)) }
+}
