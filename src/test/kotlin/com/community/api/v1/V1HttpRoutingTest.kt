@@ -1,7 +1,7 @@
 package com.community.api.v1
 
 import com.community.api.core.Database
-import com.community.api.core.ClientSettings
+import com.community.api.platform.ClientSettings
 import com.community.api.core.Membership
 import com.community.api.core.body
 import com.community.api.identity.createAccount
