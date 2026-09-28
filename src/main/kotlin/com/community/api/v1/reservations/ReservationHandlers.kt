@@ -89,7 +89,7 @@ private fun reservationView(c: V1Context, row: Record): JsonObject {
 private fun adminView(c: V1Context, row: Record): JsonObject {
     val member = c.store.get("membership", row.data.text("membershipId")!!, condominium(c))
     val name = member.data.text("name") ?: member.ownerId?.let { c.tx.get("account", it, c.tenantId)?.data?.text("name") }.orEmpty()
-    val nodeId = member.data.text("nodeId") ?: c.fail(409, "MEMBERSHIP_NODE_REQUIRED", "Reservation holder needs a node")
+    val nodeId = member.data.text("nodeId") ?: c.fail(409, "NODE_PATH_NOT_FOUND", "Reservation holder needs a node")
     return obj("reservation" to reservationView(c, row), "holderName" to name, "node" to nodeReference(c, nodeId))
 }
 
