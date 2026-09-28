@@ -24,6 +24,9 @@ import io.ktor.server.response.respond
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import java.util.UUID
+import io.ktor.util.AttributeKey
+import io.ktor.server.response.respondText
+import io.ktor.http.ContentType
 
 @Serializable
 data class ApiError(val code: String, val message: String, val requestId: String?)
