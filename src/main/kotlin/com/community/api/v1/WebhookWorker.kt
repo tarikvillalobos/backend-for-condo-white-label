@@ -122,7 +122,7 @@ private fun sendWebhook(job:WebhookJob):Boolean {
     val signature = webhookSignature(job.secret,timestamp,body)
     val request = HttpRequest.newBuilder(URI(job.url)).timeout(Duration.ofSeconds(10))
         .header("Content-Type","application/json").header("X-Community-Event-Id",job.eventId)
-        .header("X-Community-Timestamp",timestamp).header("X-Community-Signature","sha256=$signature")
+        .header("X-Signature","t=$timestamp,v1=$signature")
         .POST(HttpRequest.BodyPublishers.ofString(body)).build()
     return webhookClient.send(request,HttpResponse.BodyHandlers.discarding()).statusCode() in 200..299
 }
