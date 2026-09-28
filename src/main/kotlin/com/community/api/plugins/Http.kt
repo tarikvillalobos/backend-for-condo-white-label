@@ -75,7 +75,11 @@ fun Application.configureHttp() {
             call.respond(HttpStatusCode.InternalServerError, ApiError("internal_error", "An unexpected error occurred", call.callId))
         }
         status(HttpStatusCode.NotFound) { call, status ->
-            call.respond(status, ApiError("not_found", "Resource not found", call.callId))
+            if (call.attributes.getOrNull(v1Handled) == true) return@status
+            if (call.request.uri.startsWith("/v1/")) {
+                val body = com.community.api.v1.problem(404,"RESOURCE_NOT_FOUND","Resource not found",call.callId ?: UUID.randomUUID().toString())
+                call.respondText(body.body.toString(),ContentType.parse("application/problem+json"),status)
+            } else call.respond(status, ApiError("not_found", "Resource not found", call.callId))
         }
     }
 }
