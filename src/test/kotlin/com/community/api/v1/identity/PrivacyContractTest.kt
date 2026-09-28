@@ -18,3 +18,23 @@ class PrivacyContractTest {
         assertEquals(JsonPrimitive(false), changed["marketingConsent"])
         Contract.validate(Contract.schemas.getValue("PrivacySettings").jsonObject, changed)
     }
+
+    @Test fun `account deletion requires OTP even after password authentication`() = IdentityFixture().use { f ->
+        val token = f.login().string("accessToken")!!
+        assertEquals("OTP_VERIFICATION_REQUIRED", assertFailsWith<ApiException> {
+            f.invoke("createDataRequest", obj("kind" to "deletion"), token)
+        }.code)
+        val (challenge, otp) = f.challenge("step_up", token)
+        f.invoke("verifyStepUp", obj("challengeId" to challenge["id"], "code" to otp), token)
+        val requested = f.invoke("createDataRequest", obj("kind" to "deletion"), token)
+        assertEquals(202, requested.status)
+        assertEquals("received", requested.body.jsonObject.string("status"))
+        assertEquals(0, runBlocking { processIdentityDataRequests(f.db) })
+    }
+
+    @Test fun `deletion worker observes grace period and anonymizes after it expires`() = IdentityFixture().use { f ->
+        f.login()
+        f.db.tx { tx ->
+            val store = V1Store(tx, tenant, brand)
+            store.create("data_request", obj("kind" to "deletion", "status" to "received",
+                "requestedAt" to Instant.now().minusSeconds(86400), "executeAfter" to Instant.now().minusSeconds(1)), ownerId = f.user.id)
