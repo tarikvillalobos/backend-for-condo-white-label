@@ -6,16 +6,7 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 
 `POST /v1/ops/parcels` registra entrega na portaria ou em um compartimento configurado. A criação é idempotente quando o contrato exige `Idempotency-Key`. O destinatário consulta seu código em `GET /v1/memberships/{membershipId}/parcels/{parcelId}/pickup-credential`; o código é sigiloso, tem prazo e pode ser revogado ou reemitido após mudança de delegação. Delegados precisam de vínculo explícito.
 
-| Method and path | Permission and behavior |
-| --- | --- |
-| `GET /packages` | `packages.read.own` or `packages.read.all`; filters ownership |
-| `GET /packages/{id}` | Same; includes safe status and event history |
-| `POST /packages` | `packages.receive`; requires `Idempotency-Key` |
-| `POST /packages/{id}/credential` | Recipient with `packages.read.own`; returns secret once |
-| `DELETE /packages/{id}/credential` | Recipient; invalidates the credential immediately |
-| `POST /packages/{id}/delegates` | Recipient; explicitly authorizes an active member |
-| `DELETE /packages/{id}/delegates/{userId}` | Recipient; revokes delegation |
-| `POST /packages/{id}/report-pickup` | Recipient or delegate; records an unconfirmed report |
+`POST /v1/memberships/{membershipId}/parcels/{parcelId}/manual-pickup` registra relato manual e revoga a credencial, mas não confirma a retirada física. A equipe confirma entrega em `POST /v1/ops/parcels/{parcelId}/handover`. Um evento `pickup` autenticado do locker também pode confirmar a coleta. A transição física libera o compartimento e consome a credencial dentro da transação. Repetir um evento com o mesmo identificador e payload devolve resultado duplicado; reutilizar o identificador com outro payload é rejeitado.
 | `POST /packages/{id}/confirm-pickup` | `packages.collect`; validates collector and credential |
 | `POST /packages/{id}/remind` | `packages.receive`; inbox reminder, at most once per 24 hours |
 | `POST /packages/{id}/cancel` | `packages.manage`; cancels an outstanding delivery |
