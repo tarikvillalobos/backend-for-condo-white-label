@@ -32,6 +32,14 @@ class LockerProviderTest {
                 val c = V1Context(tx, "adminOpenCompartment", "tenant", "brand", UUID.randomUUID().toString())
                 LockerProvider.open(c, "locker", "device", "A1", command, "Encomenda presa",
                     "http://127.0.0.1:${server.address.port}", "test-token", allowHttp = true)
+                providerStatus.set(200)
+                assertEquals(503, assertFailsWith<ApiException> {
+                    LockerProvider.open(c, "locker", "device", "A1", command, "Motivo",
+                        "http://127.0.0.1:${server.address.port}", "test-token", allowHttp = true)
+                }.status)
+                assertEquals(501, assertFailsWith<ApiException> {
+                    LockerProvider.open(c, "locker", "device", "A1", command, "Motivo", null, null)
+                }.status)
                 assertEquals(503, assertFailsWith<ApiException> {
                     LockerProvider.open(c, "locker", "device", "A1", command, "Motivo",
                         "http://127.0.0.1:${server.address.port}", "test-token", allowHttp = false)
