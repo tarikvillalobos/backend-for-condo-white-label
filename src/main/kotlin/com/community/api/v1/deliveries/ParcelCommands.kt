@@ -126,7 +126,7 @@ internal fun handover(c: V1Context): V1Response {
     val row = c.parcel()
     if (c.header("If-Match") != null) c.requireVersion(row)
     c.outstanding(row)
-    if (row.data.text("storage") != "front_desk") c.fail(409, "WRONG_STORAGE", "Locker pickups require a hardware event")
+    if (row.data.text("storage") != "front_desk") c.fail(409, "PARCEL_NOT_EDITABLE", "Locker pickups require a hardware event")
     val supplied = c.input.text("code") ?: c.input.text("qrPayload")
     val validCode = credentialMatches(c, row, supplied)
     val collector = if (validCode) row.data.text("credentialMemberId")!! else c.input.text("collectorMembershipId")
