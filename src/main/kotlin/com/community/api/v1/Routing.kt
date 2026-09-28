@@ -17,7 +17,7 @@ import kotlinx.serialization.json.*
 import java.util.UUID
 
 fun v1Handlers(): Map<String,V1Handler> {
-    val groups = listOf(identityHandlers(),communityHandlers(),deliveryHandlers(),reservationHandlers(),platformHandlers(),contextHandlers(),fileHandlers(),auditHandlers(),healthHandlers())
+    val groups = listOf(identityHandlers(),communityHandlers(),deliveryHandlers(),reservationHandlers(),platformHandlers(),contextHandlers(),fileHandlers(),webhookHandlers(),auditHandlers(),healthHandlers())
     val entries = groups.flatMap { it.entries }
     check(entries.map { it.key }.distinct().size == entries.size) { "Duplicate operation handlers" }
     return entries.associate { it.key to it.value }
