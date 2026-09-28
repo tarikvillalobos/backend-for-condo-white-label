@@ -27,7 +27,7 @@ fun auditHandlers(): Map<String,V1Handler> = mapOf(
         V1Response(c.pageItems(history))
     },
     "verifyAuditIntegrity" to V1Handler { c -> V1Response(c.verifyChain()) },
-    "reportAuditEvents" to V1Handler { c -> V1Response(obj("items" to c.input["events"]!!.jsonArray.mapIndexed { index,event -> c.acceptClientEvent(index,event.jsonObject) }),202) },
+    "reportAuditEvents" to V1Handler { c -> V1Response(obj("results" to c.input["events"]!!.jsonArray.mapIndexed { index,event -> c.acceptClientEvent(index,event.jsonObject) })) },
     "addAuditNote" to V1Handler { c ->
         c.auditRow("audit_log",c.path.getValue("entryId"))
         val row = c.store.create("audit_note",obj("auditEntryId" to c.path.getValue("entryId"),"authorName" to c.userId,
