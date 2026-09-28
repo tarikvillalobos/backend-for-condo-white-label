@@ -31,8 +31,7 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 
 ## Áreas do contrato
 
-The `condominium` kind supports residential units. For a standalone locker
-deployment, change `kind` to `standalone`; package workflows do not require units.
+O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 ```bash
 LOCATION=$(printf '%s' '{"name":"API walkthrough","kind":"condominium","timeZone":"America/Sao_Paulo"}' |
