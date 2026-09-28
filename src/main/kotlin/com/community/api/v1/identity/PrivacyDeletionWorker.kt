@@ -40,7 +40,7 @@ suspend fun processIdentityDataRequests(db: Database): Int {
 private fun V1Context.completeIdentityDeletion(request: Record) {
     store.list("session", ownerId = userId).forEach { revokeIdentitySession(it.id) }
     val personalKinds = listOf("profile", "membership", "staff_assignment", "vehicle", "pet", "vaccination",
-        "visitor", "access_invite", "reservation", "attendance", "ticket", "comment", "occurrence", "notification")
+        "visitor", "access_invite", "reservation", "attendance", "ticket", "comment", "occurrence", "notification", "upload")
     for (kind in personalKinds) {
         store.list(kind, ownerId = userId).forEach { record ->
             val anonymous = obj("status" to "deleted", "anonymizedAt" to now.toString(), "_deletedAt" to now.toString())
