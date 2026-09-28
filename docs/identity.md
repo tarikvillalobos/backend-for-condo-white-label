@@ -1,3 +1,5 @@
+> Documento histórico da API `/api/v1`. Consulte o [OpenAPI atual](openapi.yaml) e o [guia operacional](operations.md) para usar `/v1`.
+
 # Identity and account API
 
 All requests and responses use JSON. Account identities are scoped to `tenantId`; the same email in another client is a separate account. Authorization uses `Authorization: Bearer <accessToken>`.
