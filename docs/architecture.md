@@ -14,12 +14,7 @@ Sessões de morador, sessões de equipe e chaves de dispositivo têm credenciais
 
 As rotas de negócio registram requisições; operações auditadas registram eventos e alterações. O log de eventos tem cadeia de hashes por marca ou condomínio. A verificação de integridade está exposta às permissões administrativas indicadas no contrato. A cadeia ajuda a detectar mudanças indevidas, mas a segurança operacional também depende de restringir acesso ao banco e proteger backups externos.
 
-`Database.query` runs blocking JDBC work on the IO dispatcher. Every transaction
-takes a database row lock on `app_mutex`. It serializes reads and writes across
-API instances, so capacity checks and writes cannot race. Package allocation,
-single-use credentials, idempotency guards, booking overlap checks, authorization,
-and audit changes commit or roll back together. Version comparisons add stale
-record protection when updating or deleting records.
+## Processos externos
 
 This deliberately favors simple consistency over throughput. A busy deployment
 must replace the global lock with tested location/resource locks and appropriate
