@@ -4,7 +4,10 @@ O fluxo completo está no [OpenAPI](openapi.yaml), nas seções Authentication e
 
 ## Entrar e renovar
 
-## Authentication
+- `POST /v1/auth/password/login` recebe `identifier` e `password` e devolve tokens de acesso e renovação.
+- `POST /v1/auth/challenges` inicia o acesso por código. `POST /v1/auth/challenges/{challengeId}/verify` conclui o desafio. O Compose entrega e-mail no Mailpit; outros canais dependem de provedor configurado.
+- `POST /v1/auth/refresh` renova a sessão; `POST /v1/auth/logout` a encerra. Rotação e revogação invalidam credenciais antigas.
+- Equipe que precisa de segundo fator usa `POST /v1/auth/mfa/{challengeId}/verify`, conforme a resposta de autenticação e as exigências do contrato.
 
 | Method and path | Request | Behavior |
 | --- | --- | --- |
