@@ -92,6 +92,8 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
         }
     }
     routing {
+        v1Routes(database)
+        if (enableLegacyApi) {
         healthRoutes(database)
         identityRoutes(database)
         platformRoutes(database)
