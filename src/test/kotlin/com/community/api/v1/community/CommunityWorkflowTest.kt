@@ -40,7 +40,7 @@ class CommunityWorkflowTest {
         f.run("updateTicket", obj("status" to "in_progress"), ids, staff = true)
         f.run("updateTicket", obj("status" to "resolved", "resolution" to "Reparado"), ids, staff = true)
     }
-    @Test fun `work order completion requires valid transition and evidence`() = CommunityFixture().use { f ->
+    @Test fun `work order completion requires valid transition and evidence`(): Unit = CommunityFixture().use { f ->
         val order = f.run("adminCreateWorkOrder", obj("title" to "Inspeção", "scheduledAt" to future(3600)), staff = true)
         val ids = mapOf("workOrderId" to order.id())
         assertEquals(409, assertFailsWith<ApiException> { f.run("adminTransitionWorkOrder", obj("status" to "completed", "notes" to "Pronto"), ids, staff = true) }.status)
