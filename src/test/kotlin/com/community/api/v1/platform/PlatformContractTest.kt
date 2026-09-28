@@ -38,3 +38,23 @@ class PlatformContractTest {
         assertEquals("pending", membership.string("status"))
         val code = registered["invitation"]!!.jsonObject.string("code")!!
         val accepted = f.identity.invoke("acceptInvitation", obj("name" to "New Resident", "cpf" to "11144477735",
+            "email" to "new@example.test", "password" to "new-resident-password-123", "acceptedTermsVersion" to "1"), path = mapOf("code" to code))
+        assertEquals(201, accepted.status)
+        assertEquals(membership["user"]!!.jsonObject["id"], accepted.body.jsonObject["userId"])
+        assertEquals("active", f.invoke("adminGetMembership", path = mapOf("membershipId" to membership.string("id")!!)).body.jsonObject.string("status"))
+        assertEquals(409, assertFailsWith<ApiException> { f.invoke("deleteNode", path = mapOf("nodeId" to unit.string("id")!!)) }.status)
+    }
+
+    @Test fun `membership import dry run writes no accounts or memberships`() = PlatformFixture().use { f ->
+        val created = f.createCondo()
+        val type = created["nodeTypes"]!!.jsonArray.first { it.jsonObject.string("code") == "unit" }.jsonObject
+        val unit = f.invoke("createNode", obj("typeId" to type["id"], "parentId" to created["rootNodeId"], "label" to "101")).body.jsonObject
+        val result = f.invoke("adminImportMemberships", obj("dryRun" to true, "rows" to listOf(obj("rowRef" to "1",
+            "nodeId" to unit["id"], "role" to "resident", "person" to obj("name" to "Import Test", "email" to "import@example.test")))))
+        assertEquals(1, result.body.jsonObject["created"]!!.jsonPrimitive.int)
+        f.identity.db.tx { tx ->
+            assertEquals(1, tx.list("account", tenant).size)
+            assertTrue(V1Store(tx, tenant, brand).list("membership").isEmpty())
+        }
+    }
+}
