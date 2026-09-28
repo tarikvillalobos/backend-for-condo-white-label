@@ -153,8 +153,8 @@ private fun scopeFor(tx: Tx, op: ContractOperation, tenant: String, brand: Strin
 }
 
 private fun healthHandlers(): Map<String,V1Handler> = mapOf(
-    "healthLive" to V1Handler { V1Response(obj("status" to "UP")) },
-    "healthReady" to V1Handler { V1Response(obj("status" to "UP")) },
+    "healthLive" to V1Handler { V1Response(obj("status" to "ok")) },
+    "healthReady" to V1Handler { V1Response(obj("status" to "ok")) },
 )
 
 private val documentationHtml = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Community API</title>
