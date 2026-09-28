@@ -22,6 +22,16 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class V1HttpRoutingTest {
+    @Test fun signedFileErrorsUseProblemDocument() = testApplication {
+        val db = Database.memory()
+        application { module(db, enableLegacyApi = false) }
+        val response = client.get("/v1/files/00000000-0000-0000-0000-000000000000")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertTrue(response.headers["Content-Type"]!!.startsWith("application/problem+json"))
+        val body = com.community.api.core.json.parseToJsonElement(response.bodyAsText()).jsonObject
+        assertEquals("ACCESS_DENIED", body["code"]!!.jsonPrimitive.content)
+    }
+
     @Test fun bootstrappedBrandServesItsConfiguration() = testApplication {
         val db = Database.memory()
         val brand = "11111111-1111-4111-8111-111111111111"
