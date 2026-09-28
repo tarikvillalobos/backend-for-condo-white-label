@@ -34,8 +34,8 @@ private fun V1Context.previewIdentityInvitation(): V1Response {
     val organization = invitation.data.string("organizationId")?.let { store.get("organization", it) }
     val name = invitation.data.string("name")
     return V1Response(obj("purpose" to (invitation.data.string("purpose") ?: "first_access"),
-        "condominiumName" to condo.data["name"], "unitLabel" to node.data["label"],
-        "nodePath" to (node.data["nodePath"] ?: JsonArray(emptyList())), "blockLabel" to null,
+        "condominiumName" to (condo?.data?.get("name") ?: organization?.data?.get("name") ?: store.get("brand", brandId).data["name"]), "unitLabel" to node?.data?.get("label"),
+        "nodePath" to (node?.let { nodePathView(this, it.id) } ?: JsonArray(emptyList())), "blockLabel" to null,
         "role" to invitation.data["role"], "expiresAt" to invitation.data["expiresAt"],
         "requiresCpf" to (invitation.data.string("cpf") != null || invitation.data.string("cpfHash") != null),
         "maskedName" to name?.let { it.take(1) + "***" }))
