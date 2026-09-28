@@ -18,3 +18,18 @@ BEGIN
       VALUES (NEW.id,NEW.version,NEW.kind,NEW.tenant_id,NEW.location_id,NEW.owner_id,brand,NEW.payload,NEW.created_at,NEW.updated_at,moment,after_data ->> '_deletedAt' IS NOT NULL);
     END IF;
   END IF;
+  IF row_data.kind IN ('v1_derived_snapshot','rate_limit','auth_delivery','notification_delivery','v1_identifier','v1_idempotency') THEN RETURN NULL; END IF;
+  IF row_data.kind IN ('account','session','challenge','v1_session','v1_challenge','v1_push_registration','v1_installation') THEN
+    before_data := CASE WHEN before_data IS NULL THEN NULL ELSE '{"sensitive":"***"}'::jsonb END;
+    after_data := CASE WHEN after_data IS NULL THEN NULL ELSE '{"sensitive":"***"}'::jsonb END;
+  END IF;
+  change_id := gen_random_uuid()::text;
+  INSERT INTO audit_changes (id,tenant_id,brand_id,location_id,request_id,table_name,row_id,created_at,payload)
+  VALUES (change_id,row_data.tenant_id,brand,row_data.location_id,request,'app_records',target_id,to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    jsonb_build_object('id',change_id,'requestId',request,'table',row_data.kind,'rowPk',jsonb_build_object('id',target_id),
+      'op',lower(TG_OP),'changes',jsonb_build_object('before',audit_redact(before_data),'after',audit_redact(after_data)),
+      'actorKind',CASE WHEN request IS NULL THEN 'database' ELSE coalesce(nullif(current_setting('app.actor_kind',true),''),'anonymous') END,
+      'actorName',actor,'actorRole',nullif(current_setting('app.actor_role',true),''),'operationId',nullif(current_setting('app.operation_id',true),''),
+      'createdAt',to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"'))::text);
+  RETURN NULL;
+END $$;
