@@ -60,6 +60,7 @@ private fun V1Context.acceptIdentityInvitation(): V1Response {
     val email = (input.string("email") ?: invitation.data.string("email"))?.let(::checkedEmail)
     val phone = (input.string("phone") ?: invitation.data.string("phone"))?.let(::checkedPhone)
     if (email == null && phone == null) fail(422, "CONTACT_REQUIRED", "Informe pelo menos um contato")
+    val invitedAccount = invitation.data.string("userId")?.let { tx.get("account", it, tenantId) }
     for ((type, value) in listOf("cpf" to cpf, "email" to email, "phone" to phone)) {
         if (value != null && findIdentity(type, value) != null) {
             fail(409, "ACCOUNT_ALREADY_EXISTS", "Entre em sua conta para continuar")
