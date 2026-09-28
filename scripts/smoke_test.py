@@ -38,8 +38,8 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             del env[key]
     base = f"http://127.0.0.1:{port}"
 
-    def request(method, path, payload=None, token=None, key=None, expected=200):
-        headers = {}
+    def request(method, path, payload=None, token=None, key=None, expected=200, brand_header=True):
+        headers = {"X-Brand-Id": brand} if brand_header else {}
         if token:
             headers["Authorization"] = f"Bearer {token}"
         if key:
