@@ -99,8 +99,8 @@ private fun V1Context.auditPage(table: String): JsonObject {
     val idColumn = if (table=="api_requests") "request_id" else "id"
     val sql = StringBuilder("SELECT $idColumn,created_at,payload FROM $table WHERE $where AND created_at <= ?")
     values += snapshot
-    query["since"]?.let { sql.append(" AND created_at >= ?"); values += it }
-    query["until"]?.let { sql.append(" AND created_at < ?"); values += it }
+    query["since"]?.let { sql.append(" AND created_at >= ?"); values += auditAt(Instant.parse(it)) }
+    query["until"]?.let { sql.append(" AND created_at < ?"); values += auditAt(Instant.parse(it)) }
     if (cursor != null) { sql.append(" AND (created_at < ? OR (created_at = ? AND $idColumn > ?))"); values.addAll(listOf(cursor.string("at")!!,cursor.string("at")!!,cursor.string("last")!!)) }
     if (tx.postgres) mapOf("category" to "category","action" to "action","outcome" to "outcome","severity" to "severity","operationId" to "operationId").forEach { (queryKey,payloadKey) ->
         query[queryKey]?.let { sql.append(" AND payload::jsonb ->> ? = ?"); values.addAll(listOf(payloadKey,it)) }
