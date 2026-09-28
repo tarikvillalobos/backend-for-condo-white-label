@@ -4,9 +4,7 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 
 ## Recebimento e retirada
 
-The prefix below is `/api/v1/locations/{locationId}`. Lists return a page with
-`items`, `total`, `offset`, and `limit`. Identifiers from another location or
-client cannot be used to access or modify a resource.
+`POST /v1/ops/parcels` registra entrega na portaria ou em um compartimento configurado. A criação é idempotente quando o contrato exige `Idempotency-Key`. O destinatário consulta seu código em `GET /v1/memberships/{membershipId}/parcels/{parcelId}/pickup-credential`; o código é sigiloso, tem prazo e pode ser revogado ou reemitido após mudança de delegação. Delegados precisam de vínculo explícito.
 
 | Method and path | Permission and behavior |
 | --- | --- |
