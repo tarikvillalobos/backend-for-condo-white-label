@@ -7,14 +7,6 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 `POST /v1/ops/parcels` registra entrega na portaria ou em um compartimento configurado. A criação é idempotente quando o contrato exige `Idempotency-Key`. O destinatário consulta seu código em `GET /v1/memberships/{membershipId}/parcels/{parcelId}/pickup-credential`; o código é sigiloso, tem prazo e pode ser revogado ou reemitido após mudança de delegação. Delegados precisam de vínculo explícito.
 
 `POST /v1/memberships/{membershipId}/parcels/{parcelId}/manual-pickup` registra relato manual e revoga a credencial, mas não confirma a retirada física. A equipe confirma entrega em `POST /v1/ops/parcels/{parcelId}/handover`. Um evento `pickup` autenticado do locker também pode confirmar a coleta. A transição física libera o compartimento e consome a credencial dentro da transação. Repetir um evento com o mesmo identificador e payload devolve resultado duplicado; reutilizar o identificador com outro payload é rejeitado.
-| `POST /packages/{id}/confirm-pickup` | `packages.collect`; validates collector and credential |
-| `POST /packages/{id}/remind` | `packages.receive`; inbox reminder, at most once per 24 hours |
-| `POST /packages/{id}/cancel` | `packages.manage`; cancels an outstanding delivery |
-| `GET /lockers` | `lockers.manage`; includes compartment occupancy |
-| `POST /lockers` | `lockers.manage`; creates locker and compartments |
-| `PUT /lockers/{id}` | `lockers.manage`; updates names and maintenance settings |
-| `POST /lockers/{id}/open` | `lockers.manage`; currently returns `501 provider_unavailable` |
-| `POST /locker-events` | Dedicated integration credential; accepts trusted pickup confirmation |
 
 ## Receive and collect
 
