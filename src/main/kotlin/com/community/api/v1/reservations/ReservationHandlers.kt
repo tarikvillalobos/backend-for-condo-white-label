@@ -58,8 +58,8 @@ private fun saveSpace(c: V1Context): V1Response {
     listOf("nodeId", "visibleFromNodeId").forEach { key -> data.text(key)?.let { c.store.get("node", it, condominium(c)) } }
     c.input.text("photoKey")?.let { key ->
         val upload = c.store.get("upload", key)
-        if (upload.ownerId != c.userId) c.fail(404, "NOT_FOUND", "Upload not found")
-        if (upload.data.text("status") != "complete") c.fail(409, "UPLOAD_INCOMPLETE", "Complete the upload first")
+        if (upload.ownerId != c.userId) c.fail(404, "RESOURCE_NOT_FOUND", "Upload not found")
+        if (upload.data.text("status") != "complete") c.fail(409, "OPERATION_IN_PROGRESS", "Complete the upload first")
     }
     val saved = if (old == null) c.store.create("space", data, condominium(c)) else c.store.update(old, data)
     c.audit(if (old == null) "space.created" else "space.updated", saved)
