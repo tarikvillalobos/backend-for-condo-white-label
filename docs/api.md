@@ -34,18 +34,3 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-- Most administration and community resources use a `Record` envelope with
-  `id`, `kind`, `tenantId`, `locationId`, `ownerId`, `data`, timestamps, and version.
-- Packages, lockers, reservations, visitors, and attachments use dedicated safe
-  view objects. Their fields are defined in the OpenAPI response schemas.
-- Paginated lists use `items`, `total`, `offset`, and `limit`. The default limit
-  is 50 and the maximum is 200. Session and role lists are plain arrays.
-- Errors include `code`, `message`, and `requestId`. Preserve the response's
-  `X-Request-ID` when reporting an error.
-- Readiness is available without authentication at `GET /health/ready`.
-- Locker opening and camera viewing/recordings return `501` until a supported
-  hardware provider is integrated. They do not simulate physical actions.
-
-Only replay requests when their endpoint documents retry behavior. Package and
-reservation keys return the original result; account and visitor invitation
-keys return a conflict after the first successful issuance.
