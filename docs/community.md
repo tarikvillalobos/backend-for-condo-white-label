@@ -19,7 +19,3 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-reading another member's resources or adding internal staff comments.
-These modules store metadata and auditable staff operations; provider-specific
-delivery, live video, gate actuation, and external attachment access policies are
-separate integration responsibilities.
