@@ -39,6 +39,12 @@ fun Route.v1Routes(db: Database) {
 }
 
 private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractOperation, handler: V1Handler) {
+    if (operation.id in setOf("healthLive","healthReady")) {
+        val healthy = operation.id == "healthLive" || db.healthy()
+        respondText(obj("status" to if (healthy) "ok" else "down").toString(), ContentType.Application.Json,
+            if (healthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable)
+        return
+    }
     val requestId = callId ?: UUID.randomUUID().toString()
     val started = System.nanoTime()
     var tenantId: String? = null
