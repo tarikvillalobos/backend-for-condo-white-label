@@ -44,7 +44,10 @@ fun V1Context.page(
         sql.append(" AND deleted = FALSE")
         if (locationId != null) { sql.append(" AND location_id = ?"); values += locationId }
         if (ownerId != null) { sql.append(" AND owner_id = ?"); values += ownerId }
-        if (tx.postgres) filters.forEach { (key, value) -> sql.append(" AND payload::jsonb ->> ? = ?"); values += key; values += value }
+        if (tx.postgres) filters.forEach { (key, value) ->
+            require(Regex("[A-Za-z][A-Za-z0-9_]*").matches(key))
+            sql.append(" AND payload::jsonb ->> '$key' = ?"); values += value
+        }
         if (lastId.isNotEmpty()) {
             sql.append(" AND ($sortColumn ${if (descending) "<" else ">"} ? OR ($sortColumn = ? AND logical_id > ?))")
             values.addAll(listOf(lastCreated,lastCreated,lastId))
