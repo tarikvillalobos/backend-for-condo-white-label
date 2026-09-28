@@ -16,16 +16,7 @@ Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de
 - `POST /v1/admin/condominiums/{condominiumId}/spaces/{spaceId}/blocks` bloqueia um intervalo; `DELETE .../blocks/{blockId}` libera o bloqueio.
 - `POST .../reservations/{reservationId}/approve`, `/reject` e `/cancel` executam as decisões da equipe.
 
-Each reservation exclusively occupies the facility for its interval. Capacity
-is the maximum attendance for that booking, not a pool of separately bookable
-seats. Minimum notice and duration use elapsed minutes. Advance limits use the
-facility's local calendar date. Active limits are per member and facility.
-
-Rule changes apply to subsequent bookings. Existing reservations remain recorded.
-Before enabling whole-facility maintenance, staff must cancel future active
-reservations. For a shorter closure, create a maintenance interval instead.
-
-## Book, approve, and cancel
+Listas usam cursor e snapshot. Respostas 409 `RESERVATION_CONFLICT` indicam conflito de intervalo ou estado; 422 cobre regras de horário e validação. Use o schema de cada operação no OpenAPI para os campos exatos, cabeçalhos de idempotência, permissões e ETag.
 
 ```json
 {
