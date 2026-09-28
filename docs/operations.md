@@ -30,7 +30,7 @@ O volume de arquivos do Compose é compartilhado apenas no mesmo host Docker. Pa
 
 Retenções legais podem bloquear exclusão de dados. O worker de privacidade verifica os pedidos antes de anonimizar; eventos de auditoria preservam a cadeia de hashes e ocultam segredos. A cadeia detecta alterações acidentais ou não autorizadas nos registros sob a política operacional, mas um operador com controle total do banco e da aplicação pode recomputar hashes. Restrinja esse acesso e proteja backups externos.
 
-Câmeras precisam das variáveis do provedor de vídeo. Webhooks aceitam destinos HTTPS públicos na porta 443 e devem sair por uma rede com proteção contra acesso a endereços internos. SMS, WhatsApp e entrega push precisam de provedores próprios; o Compose não os envia. O Mailpit captura e-mails sem entregá-los externamente. A API não presume retirada de encomenda ou entrada física sem evento confiável do equipamento.
+Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN`; o [protocolo do comando](deliveries.md#abertura-remota) exige resposta 202 e `commandId` idempotente. No Compose, configure essas variáveis no `.env`. Em produção, os dois provedores devem usar HTTPS. Webhooks aceitam destinos HTTPS públicos na porta 443 e devem sair por uma rede com proteção contra acesso a endereços internos. SMS, WhatsApp e entrega push precisam de provedores próprios; o Compose não os envia. O Mailpit captura e-mails sem entregá-los externamente. A API não presume retirada de encomenda ou entrada física sem evento confiável do equipamento.
 
 ## Verificação
 
