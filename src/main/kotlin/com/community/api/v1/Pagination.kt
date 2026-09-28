@@ -24,8 +24,8 @@ fun V1Context.page(
     val limit = query["limit"]?.toIntOrNull() ?: 20
     if (limit !in 1..100) fail(422, "VALIDATION_ERROR", "Limit must be between 1 and 100")
     require(sortField in setOf("createdAt","depositedAt","startsAt"))
-    val sortColumn = if (sortField == "createdAt") "created_at" else "sort_at"
-    val binding = hash(obj("operation" to operationId, "path" to path, "query" to query.filterKeys { it != "cursor" }, "actor" to principal?.userId, "device" to principal?.deviceId, "kind" to kind, "location" to locationId, "owner" to ownerId, "filters" to filters,"descending" to descending).toString())
+    val sortColumn = if (sortField == "createdAt") (if (tx.postgres) "created_sort" else "created_at") else "sort_at"
+    val binding = hash(obj("operation" to operationId, "path" to path, "query" to query.filterKeys { it != "cursor" }, "actor" to principal?.userId, "device" to principal?.deviceId, "kind" to kind, "location" to locationId, "owner" to ownerId, "filters" to filters,"descending" to descending,"sortField" to sortField).toString())
     val snapshot = snapshot(binding)
     var lastCreated = snapshot.lastCreated
     var lastId = snapshot.lastId
