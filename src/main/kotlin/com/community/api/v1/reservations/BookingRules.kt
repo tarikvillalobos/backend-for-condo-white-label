@@ -63,7 +63,7 @@ internal object BookingRules {
             bookingError("VALIDATION_ERROR", "Reservation duration must follow the space slots and limit")
         val guests = input.number("guestsCount") ?: 0
         if (guests < 0 || rules.number("capacity")?.let { guests > it } == true)
-            bookingError("CAPACITY_EXCEEDED", "Guest count exceeds space capacity")
+            bookingError("VALIDATION_ERROR", "Guest count exceeds space capacity")
         val localStart = start.atZone(zone)
         val localEnd = end.atZone(zone)
         if (localStart.toLocalDate() != localEnd.toLocalDate()) bookingError("OUTSIDE_OPENING_HOURS", "Reservation crosses local dates")
