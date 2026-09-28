@@ -24,6 +24,8 @@ private val webhookAliases = mapOf(
     "arrival.decided" to "access.arrival_decided",
     "ticket.status_changed" to "request.updated",
     "ticket.commented" to "request.updated",
+    "ticket.updated" to "request.updated",
+    "reservation.cancelled_by_block" to "reservation.cancelled",
 )
 private val webhookClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3))
     .followRedirects(HttpClient.Redirect.NEVER).build()
