@@ -5,6 +5,14 @@ import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class CommunityWorkflowTest {
+    @Test fun `occurrence creation emits subscribable event`(): Unit = CommunityFixture().use { f ->
+        f.run("createOccurrence", obj("category" to "noise", "description" to "Barulho persistente",
+            "occurredAt" to java.time.Instant.now(), "anonymous" to false))
+        val count = f.db.tx { tx -> tx.connection.prepareStatement("SELECT COUNT(*) FROM audit_log WHERE action='occurrence.created'")
+            .use { it.executeQuery().use { rows -> rows.next(); rows.getInt(1) } } }
+        assertEquals(1,count)
+    }
+
     @Test fun `event capacity is enforced and cancellation ends attendance`(): Unit = CommunityFixture().use { f ->
         val event = f.run("adminCreateEvent", obj("title" to "Assembleia", "kind" to "assembly", "startsAt" to future(60),
             "endsAt" to future(3600), "allDay" to false, "notify" to false, "capacity" to 1, "rsvpEnabled" to true), staff = true)
