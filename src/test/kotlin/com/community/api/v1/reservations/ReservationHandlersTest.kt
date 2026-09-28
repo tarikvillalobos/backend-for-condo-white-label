@@ -48,6 +48,16 @@ class ReservationHandlersTest {
         "rules" to rules, "openingHours" to opening), staff = true).body.jsonObject.string("id")!!
     private fun input(spaceId: String) = obj("spaceId" to spaceId, "startsAt" to "2030-01-02T12:00:00Z", "endsAt" to "2030-01-02T13:00:00Z", "guestsCount" to 3)
 
+    @Test fun `immediate confirmation emits webhook event`() = database().use { db ->
+        val direct = JsonObject(rules + obj("requiresApproval" to false))
+        val id = call(db,"adminCreateSpace",obj("name" to "Hall","active" to true,
+            "rules" to direct,"openingHours" to opening),staff=true).body.jsonObject.string("id")!!
+        assertEquals("confirmed",call(db,"createReservation",input(id)).body.jsonObject.string("status"))
+        val count = db.scopedTx(null) { tx -> tx.connection.prepareStatement("SELECT COUNT(*) FROM audit_log WHERE action='reservation.confirmed'")
+            .use { it.executeQuery().use { rows -> rows.next(); rows.getInt(1) } } }
+        assertEquals(1,count)
+    }
+
     @Test fun `concurrent reservations for same slot produce one booking and one conflict`() = database().use { db ->
         val input = input(space(db))
         val gate = CountDownLatch(1)
