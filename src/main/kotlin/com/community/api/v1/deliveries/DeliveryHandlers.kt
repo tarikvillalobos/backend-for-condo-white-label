@@ -124,6 +124,6 @@ private fun createSupportIssue(c: V1Context): V1Response {
 }
 private fun getSupportIssue(c: V1Context): V1Response {
     val row = c.store.get("ticket", c.path.getValue("issueId"), c.locationId)
-    if (row.data.text("kind") != "support_issue" || row.data.text("membershipId") != c.membershipId) c.fail(404, "NOT_FOUND", "Issue not found")
+    if (row.data.text("kind") != "support_issue" || row.data.text("membershipId") != c.membershipId) c.fail(404, "RESOURCE_NOT_FOUND", "Issue not found")
     return V1Response(supportView(row))
 }
