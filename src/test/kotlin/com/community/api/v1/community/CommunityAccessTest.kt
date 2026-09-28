@@ -24,7 +24,7 @@ class CommunityAccessTest {
         assertFalse(exit["consumedNow"]!!.jsonPrimitive.boolean)
         assertEquals(409, assertFailsWith<ApiException> { f.run("getAccessCredential", ids = mapOf("inviteId" to invite.id())) }.status)
     }
-    @Test fun `visitor deletion revokes active invitations`() = CommunityFixture().use { f ->
+    @Test fun `visitor deletion revokes active invitations`(): Unit = CommunityFixture().use { f ->
         val visitor = f.run("createVisitor", obj("name" to "Visitante", "kind" to "visitor"))
         val invite = f.run("createAccessInvite", obj("visitorId" to visitor.id(), "validFrom" to future(-60), "validUntil" to future(3600), "singleUse" to false))
         f.run("deleteVisitor", ids = mapOf("visitorId" to visitor.id()))
