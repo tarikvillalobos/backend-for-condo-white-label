@@ -128,7 +128,7 @@ class DeliveryHandlersTest {
         val secondId = frontDesk(db).string("id")!!
         val page = call(db, "listParcels", query = mapOf("limit" to "1")).body.jsonObject
         val first = page["items"]!!.jsonArray.single().jsonObject.string("id")!!
-        val cursor = page["page"]!!.jsonObject.string("nextCursor")!!
+        val cursor = page["pageInfo"]!!.jsonObject.string("nextCursor")!!
         frontDesk(db)
         val next = call(db, "listParcels", query = mapOf("limit" to "1", "cursor" to cursor)).body.jsonObject
         val second = next["items"]!!.jsonArray.single().jsonObject.string("id")!!
