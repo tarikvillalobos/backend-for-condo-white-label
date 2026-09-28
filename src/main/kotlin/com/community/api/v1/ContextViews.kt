@@ -22,7 +22,7 @@ fun capabilitiesView(): JsonObject {
     return obj("features" to obj("manualPickup" to true,"undoManualPickup" to true,"contactEditing" to true,
         "recipients" to true,"supportIssues" to true,"pushRegistration" to true),
         "channels" to obj("inApp" to channel(true),"email" to channel(System.getenv("SMTP_HOST") != null),
-            "sms" to channel(false),"whatsapp" to channel(false),"push" to channel(System.getenv("FCM_PROJECT_ID") != null)))
+            "sms" to channel(false),"whatsapp" to channel(false),"push" to channel(false)))
 }
 
 fun membershipView(c: V1Context, member: Record): JsonObject {
