@@ -13,7 +13,7 @@ Use `Authorization: Bearer <accessToken>` nas rotas protegidas. `GET /v1/me/cont
 
 ## Convites, conta e segurança
 
-Access tokens expire after 15 minutes. Refresh tokens expire after 30 days from the original login. All tokens contain 256 random bits; only hashes are stored in session records. Refresh is single-use: replaying a previously consumed token revokes that session, including its replacement tokens. Clients must serialize refresh calls and discard the old pair after success. There are at most 20 unrevoked sessions per account; the oldest sessions are revoked when necessary. Client and account activation are checked on every authenticated request.
+Convites são consultados em `GET /v1/auth/invitations/{code}` e aceitos em `POST /v1/auth/invitations/{code}/accept`. Uma conta já autenticada vincula outro convite em `POST /v1/me/invitations/{code}/link`. Alterações de senha, recuperação, troca de contato e preferências têm rotas próprias no contrato.
 
 ## Profile and sessions
 
