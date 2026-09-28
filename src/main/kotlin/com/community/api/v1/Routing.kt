@@ -87,6 +87,7 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
             problem(400,"VALIDATION_ERROR","Malformed request",requestId)
         else {
             application.log.error("V1 operation {} failed ({}) requestId={}",operation.id,failure.javaClass.simpleName,requestId)
+            if (failure is IllegalStateException) application.log.error("Contract/server invariant: {}", failure.message)
             problem(500,"INTERNAL_ERROR","Unexpected server error",requestId)
         }
     }
