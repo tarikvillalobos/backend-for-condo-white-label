@@ -4,16 +4,7 @@ API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotli
 
 ## Testar com Docker
 
-Community API provides shared identity, scoped access, and business workflows for residents, smart locker users, concierge teams, property managers, and client administrators.
-
-Both applications use the same identity, package, notification, and access rules. Condominium features are enabled per client and location; a brand selects presentation and application configuration without changing data ownership.
-
-Smart locker operations must remain usable at standalone locations without requiring a condominium or residential unit.
-
-## Status
-
-The Kotlin/Ktor backend includes persistent storage, authentication, authorization,
-and working APIs for the modules below. The repository contains tests, deployment
+Configure uma vez `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY` no arquivo `.env` da raiz. Gere a senha com `openssl rand -hex 24` e a chave com `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os próximos reinícios. O arquivo `.env` é ignorado pelo Git.
 configuration, operational documentation, and an OpenAPI contract. The broader
 [Product scope](#product-scope) records requirements and possible extensions;
 provider-dependent features and optional workflows are identified separately.
