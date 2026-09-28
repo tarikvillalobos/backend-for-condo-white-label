@@ -14,26 +14,6 @@ curl http://127.0.0.1:8080/v1/health/ready
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
 Crie a primeira marca e o administrador informando as variáveis abaixo:
-Handle resident requests, complaints, incidents, maintenance reports, and support tickets with categories, priority, attachments, responsible teams, status, and response history.
-
-Support assignment, internal notes, deadlines, escalation, resolution, and reopening. Separate staff-only information from resident-visible communication and protect sensitive reports from unrelated users.
-
-### Concierge and Visitor Management
-
-Provide concierge workflows for expected visitors, guests, contractors, delivery personnel, resident contact, arrival approval, and entry/exit records.
-
-Support visitor invitations with validity windows, permitted locations, revocation, and configurable single-use rules. Record who approved or registered each action.
-
-Include authorized pickup verification, delivery handover, shift notes, and operational incident logs. Gate or door commands require explicit permissions and a supported integration; issuing a command must not be treated as proof that physical entry occurred.
-
-### Vehicles and Parking
-
-Manage resident vehicles, authorized visitor vehicles, assigned parking spaces, temporary authorizations, and relevant entry/exit records.
-
-Support configurable parking rules and restrict access to vehicle and owner information. Hardware-dependent access features require the corresponding integration.
-
-### Staff, Contractors, and Maintenance
-
 Manage staff responsibilities, approved service providers, work orders, scheduled maintenance, inspections, and common equipment records.
 
 Support temporary access for contractors, task assignment, completion evidence, and service history. Staff access must be limited to the properties and work they are authorized to handle.
