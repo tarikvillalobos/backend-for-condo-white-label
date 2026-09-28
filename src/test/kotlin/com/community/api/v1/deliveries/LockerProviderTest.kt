@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
