@@ -9,7 +9,16 @@ fun bootstrapV1(tx: Tx, tenantId: String, userId: String, name: String, brandId:
     val existing = tx.connection.prepareStatement("SELECT tenant_id FROM v1_brands WHERE brand_id = ?").use {
         it.setString(1,brandId); it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else null }
     }
-    if (existing != null) { require(existing == tenantId); return }
+    if (existing != null) {
+        require(existing == tenantId)
+        val store = V1Store(tx,tenantId,brandId)
+        store.find("brand",brandId)?.let { brand ->
+            val support = brand.data["support"]?.jsonObject ?: obj()
+            val complete = JsonObject(obj("email" to null,"phone" to null,"whatsapp" to null,"hours" to null,
+                "privacyPolicyUrl" to null,"termsUrl" to null) + support)
+            if (complete != support) store.update(brand,JsonObject(brand.data+obj("support" to complete)))
+        }
+        return
     tx.connection.prepareStatement("INSERT INTO v1_brands (brand_id,tenant_id) VALUES (?,?)").use {
         it.setString(1,brandId); it.setString(2,tenantId); it.executeUpdate()
     }
