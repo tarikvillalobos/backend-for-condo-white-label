@@ -58,3 +58,23 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
     val events = data["events"]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
     if (events.isEmpty()) return@scopedTx null
     val placeholders = events.joinToString(",") { "?" }
+    val scope = if (row.locationId == null) "" else " AND location_id=?"
+    val sql = "SELECT sequence,id,action,created_at,payload FROM audit_log WHERE tenant_id=? AND brand_id=? AND sequence>?$scope AND action IN ($placeholders) ORDER BY sequence LIMIT 1"
+    val result = tx.connection.prepareStatement(sql).use { statement ->
+        val values = listOf(tenant,brand,data["lastSequence"]?.jsonPrimitive?.longOrNull ?: 0L) +
+            (row.locationId?.let(::listOf) ?: emptyList()) + events
+        values.forEachIndexed { index,value -> statement.setObject(index+1,value) }
+        statement.executeQuery().use { rows -> if (rows.next()) listOf(rows.getLong(1),rows.getString(2),rows.getString(3),rows.getString(4),rows.getString(5)) else null }
+    } ?: return@scopedTx null
+    val lease = UUID.randomUUID().toString()
+    store.update(row,JsonObject(data+obj("leaseId" to lease,"leaseUntil" to now.plusSeconds(30))))
+    val payload = json.parseToJsonElement(result[4].toString()).jsonObject
+    WebhookJob(tenant,brand,id,data.string("url")!!,Secrets.unseal(data.string("sealedSecret")!!),lease,
+        result[0] as Long,result[1].toString(),result[2].toString(),result[3].toString(),payload["target"])
+}
+
+private fun sendWebhook(job:WebhookJob):Boolean {
+    validateWebhookUrl(job.url)
+    val timestamp = Instant.now().epochSecond.toString()
+    val body = obj("id" to job.eventId,"event" to job.action,"occurredAt" to job.occurredAt,
+        "brandId" to job.brand,"target" to job.target).toString()
