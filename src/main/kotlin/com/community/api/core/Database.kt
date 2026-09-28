@@ -16,7 +16,8 @@ class Database(url: String, user: String = "sa", password: String = "", poolSize
         jdbcUrl = url
         username = user
         this.password = password
-        maximumPoolSize = 8
+        maximumPoolSize = poolSize
+        minimumIdle = minOf(2,poolSize)
         connectionTimeout = 5000
         transactionIsolation = "TRANSACTION_READ_COMMITTED"
     })
