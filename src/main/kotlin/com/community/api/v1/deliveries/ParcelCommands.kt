@@ -134,8 +134,8 @@ internal fun handover(c: V1Context): V1Response {
     val member = c.member(collector)
     val nodeRecipient = row.data.text("recipientKind") == "node" && c.nodePath(row.data.text("nodeId")).any { it.jsonObject.text("id") == member.data.text("nodeId") }
     if (row.data.text("membershipId") != collector && row.data.array("delegates").none { it.jsonPrimitive.content == collector } && !nodeRecipient)
-        c.fail(403, "FORBIDDEN", "Collector is not authorized for this parcel")
-    if (!validCode && !c.input.flag("identityChecked")) c.fail(422, "IDENTITY_REQUIRED", "Check collector identity when a credential is unavailable")
+        c.fail(403, "ACCESS_DENIED", "Collector is not authorized for this parcel")
+    if (!validCode && !c.input.flag("identityChecked")) c.fail(422, "VALIDATION_ERROR", "Check collector identity when a credential is unavailable")
     return V1Response(c.parcelView(collected(c, row, collector, c.now)))
 }
 
