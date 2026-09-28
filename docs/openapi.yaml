@@ -7757,8 +7757,8 @@ paths:
       tags:
       - Uploads
       summary: Obter URL para enviar arquivo (foto, anexo, planilha)
-      description: Tipo e tamanho validados aqui e de novo após o envio. O conteúdo passa por antivírus antes de
-        ficar disponível.
+      description: Tipo, assinatura, tamanho e conteúdo são validados aqui e no envio. A URL de upload expira em
+        15 minutos.
       parameters:
       - $ref: '#/components/parameters/BrandId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -22102,7 +22102,8 @@ components:
       - method
       - headers
       - expiresAt
-      description: Upload direto ao storage por URL pré-assinada. Arquivo não referenciado em 24 h é descartado.
+      description: URL assinada por 15 minutos para upload no endpoint de arquivos desta API. O arquivo não referenciado
+        expira após 24 horas.
     AdminDashboard:
       type: object
       additionalProperties: false
