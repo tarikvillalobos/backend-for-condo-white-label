@@ -60,7 +60,8 @@ fun main(args: Array<String>) {
     }.start(wait = true)
 }
 
-fun Application.module(database: Database = Database.fromEnvironment(), mailConfig: MailConfig? = null) {
+fun Application.module(database: Database = Database.fromEnvironment(), mailConfig: MailConfig? = null, enableLegacyApi: Boolean = true) {
+    migrateLegacyBrands(database)
     monitor.subscribe(ApplicationStopped) { database.close() }
     configureHttp()
     if (mailConfig != null) launch(Dispatchers.IO) {
