@@ -18,7 +18,7 @@ class CommunityOwnershipTest {
         f.run("deleteVehicle", ids = mapOf("vehicleId" to vehicle.id()))
         assertTrue(f.run("listVehicles").items().isEmpty())
     }
-    @Test fun `node assignment cannot escape membership subtree`() = CommunityFixture().use { f ->
+    @Test fun `node assignment cannot escape membership subtree`(): Unit = CommunityFixture().use { f ->
         assertEquals(403, assertFailsWith<ApiException> {
             f.run("createVehicle", obj("nodeId" to f.otherUnit, "plate" to "ABC1D23", "model" to "Carro", "kind" to "car"))
         }.status)
