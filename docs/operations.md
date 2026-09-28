@@ -6,6 +6,8 @@ Instale e inicie o Docker Desktop. Na raiz do projeto, crie `.env` com `DATABASE
 
 ```sh
 docker compose up -d --build
+docker compose ps
+curl http://127.0.0.1:8080/v1/health/ready
 ```
 
 Export `BOOTSTRAP_CLIENT_NAME`, `BOOTSTRAP_EMAIL`, and `BOOTSTRAP_PASSWORD`, then:
