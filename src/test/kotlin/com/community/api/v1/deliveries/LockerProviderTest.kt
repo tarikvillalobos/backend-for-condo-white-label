@@ -23,7 +23,7 @@ class LockerProviderTest {
             received.set(Triple(exchange.requestHeaders.getFirst("Idempotency-Key"),
                 exchange.requestHeaders.getFirst("Authorization"), exchange.requestBody.bufferedReader().readText()))
             val body = "{\"commandId\":\"$command\"}".toByteArray()
-            exchange.sendResponseHeaders(202, body.size.toLong())
+            exchange.sendResponseHeaders(providerStatus.get(), body.size.toLong())
             exchange.responseBody.use { it.write(body) }
         }
         server.start()
