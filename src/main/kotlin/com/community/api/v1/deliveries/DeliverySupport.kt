@@ -52,7 +52,7 @@ internal fun V1Context.canReadParcel(row: Record, includeClosed: Boolean = false
     } == true
 }
 internal fun V1Context.recipient(row: Record) {
-    if (row.data.text("membershipId") != membershipId) fail(403, "FORBIDDEN", "Only the recipient can perform this action")
+    if (row.data.text("membershipId") != membershipId) fail(403, "ACCESS_DENIED", "Only the recipient can perform this action")
 }
 internal fun V1Context.outstanding(row: Record) {
     if (row.data.text("status") !in setOf("waiting", "manual")) fail(409, "PARCEL_NOT_EDITABLE", "Parcel is already closed")
