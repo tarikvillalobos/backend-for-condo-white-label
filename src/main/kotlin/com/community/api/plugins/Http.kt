@@ -31,6 +31,8 @@ import io.ktor.http.ContentType
 @Serializable
 data class ApiError(val code: String, val message: String, val requestId: String?)
 
+val v1Handled = AttributeKey<Boolean>("v1-handled")
+
 private val responseHeaders = createApplicationPlugin("PrivateApiHeaders") {
     onCall { call ->
         call.response.headers.append("Cache-Control", "no-store")
