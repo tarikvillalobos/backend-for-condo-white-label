@@ -33,6 +33,8 @@ services:
       SMTP_PORT: 1025
       SMTP_FROM: community@example.test
       SMTP_STARTTLS: "false"
+    volumes:
+      - uploads:/app/data/uploads
     depends_on:
       db:
         condition: service_healthy
