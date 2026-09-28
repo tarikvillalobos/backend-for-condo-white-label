@@ -134,7 +134,7 @@ private fun validateRequest(op: ContractOperation, path: Map<String,String>, que
 
 private fun validateResponse(op: ContractOperation, response: V1Response) {
     if (response.status >= 400 || response.status == 204) return
-    val definition = op.definition["responses"]!!.jsonObject[response.status.toString()]?.jsonObject ?: error("Undocumented success status ${op.id} ${response.status}")
+    val definition = Contract.resolve(op.definition["responses"]!!.jsonObject[response.status.toString()]?.jsonObject ?: error("Undocumented success status ${op.id} ${response.status}"))
     val schema = definition["content"]?.jsonObject?.get("application/json")?.jsonObject?.get("schema")?.jsonObject ?: return
     val errors = Contract.errors(schema,response.body,"response")
     check(errors.isEmpty()) { "Response contract violation ${op.id}: ${errors.take(6)}" }
