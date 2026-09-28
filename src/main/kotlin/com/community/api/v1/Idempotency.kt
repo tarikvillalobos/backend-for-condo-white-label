@@ -11,7 +11,7 @@ fun V1Context.idempotent(operation: ContractOperation, handler: V1Handler): Pair
     val key = header("Idempotency-Key") ?: fail(400,"VALIDATION_ERROR","Idempotency-Key is required")
     if (runCatching { UUID.fromString(key) }.isFailure || key.length != 36) fail(422,"VALIDATION_ERROR","Idempotency-Key must be a UUID")
     val id = hash("$tenantId:$brandId:${principal?.userId}:${principal?.deviceId}:$operationId:${path.toSortedMap()}:$key")
-    val fingerprint = Secrets.sign(input.toString() + ":" + (header("If-Match") ?: ""))
+    val fingerprint = Secrets.sign(canonicalJson(input).toString() + ":" + (header("If-Match") ?: ""))
     tx.lock("idempotency:$id")
     val previous = tx.connection.prepareStatement("SELECT * FROM v1_idempotency WHERE id = ?").use {
         it.setString(1,id)
