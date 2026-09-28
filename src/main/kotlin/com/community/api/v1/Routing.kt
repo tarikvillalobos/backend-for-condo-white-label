@@ -74,6 +74,11 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
                 tx.requestMetadata(requestId,operation.id,c.principal)
                 val (response,wasReplay) = c.idempotent(operation,handler)
                 replay = wasReplay
+                if (operation.id == "createCondominium") {
+                    val createdId = (response.body as? JsonObject)?.get("condominium")?.jsonObject?.string("id")
+                    if (createdId != null) context = V1Context(tx,c.operationId,c.tenantId,c.brandId,c.requestId,c.input,
+                        c.path,c.query,c.headers,c.principal,createdId,c.membership,c.now)
+                }
                 if (!wasReplay && operation.definition["x-audit"]?.jsonObject?.get("layers")?.jsonArray?.contains(JsonPrimitive("event")) == true) {
                     appendAudit(c,operation.id,outcome=if (response.status < 400) "success" else "failed")
                 }
