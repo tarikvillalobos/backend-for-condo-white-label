@@ -3,6 +3,7 @@ WORKDIR /workspace
 COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
 COPY gradle ./gradle
 COPY src ./src
+COPY docs/openapi.yaml ./docs/openapi.yaml
 RUN sh ./gradlew --no-daemon installDist
 
 FROM eclipse-temurin:21-jre
