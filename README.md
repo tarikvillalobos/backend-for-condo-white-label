@@ -13,6 +13,8 @@ curl http://127.0.0.1:8080/v1/health/ready
 
 O Compose inicia PostgreSQL 17, API e Mailpit. O banco e os arquivos enviados ficam em volumes persistentes. A caixa de e-mails de teste fica em [http://127.0.0.1:8025](http://127.0.0.1:8025).
 
+O [guia da API](docs/api.md) mostra login e cabeçalhos. Há guias de [identidade](docs/identity.md), [comunidade](docs/community.md), [encomendas e lockers](docs/deliveries.md) e [reservas](docs/reservations.md).
+
 Crie a primeira marca e o administrador informando as variáveis abaixo:
 
 ```sh
