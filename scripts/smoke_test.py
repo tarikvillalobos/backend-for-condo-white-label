@@ -87,16 +87,16 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
     with open(Path(temporary) / "server.log", "w") as log:
         process = start(log)
         try:
-            admin = request("POST", "/api/v1/auth/login", {"tenantId": tenant, "email": "admin@example.test", "password": password})["accessToken"]
-            location = request("POST", "/api/v1/locations", {"name": "Standalone lockers", "kind": "standalone", "timeZone": "UTC"}, admin, expected=201)["id"]
-            prefix = f"/api/v1/locations/{location}"
-            invitation = request("POST", prefix + "/invitations", {"email": "resident@example.test", "name": "Resident", "locationId": location}, admin, "smoke-invitation", 201)
-            request("POST", "/api/v1/auth/activate", {"token": invitation["token"], "password": password})
-            resident = request("POST", "/api/v1/auth/login", {"tenantId": tenant, "email": "resident@example.test", "password": password})["accessToken"]
-            receipt = {"recipientId": invitation["userId"], "description": "Smoke delivery"}
-            package = request("POST", prefix + "/packages", receipt, admin, "smoke-receipt", 201)
-            retry = request("POST", prefix + "/packages", receipt, admin, "smoke-receipt", 201)
-            assert package["id"] == retry["id"]
+            assert request("GET", "/v1/configuration")["brandId"] == brand
+            assert request("GET", "/v1/configuration", brand_header=False, expected=400)["code"] == "VALIDATION_ERROR"
+            admin = request("POST", "/v1/auth/password/login",
+                {"identifier": "admin@example.test", "password": password})["accessToken"]
+            modules = {name: True for name in ("parcels lockers cameras visitors pets reservations vehicles announcements "
+                "requests occurrences events maintenance documents contacts").split()}
+            condo = {"name": "Smoke condominium", "address": "Example 100", "timeZone": "UTC", "modules": modules}
+            key = str(uuid.uuid4())
+            first = request("POST", "/v1/admin/condominiums", condo, admin, key, 201)
+            replay = request("POST", "/v1/admin/condominiums", condo, admin, key, 201)
             package_path = prefix + "/packages/" + package["id"]
             credential = request("POST", package_path + "/credential", {}, resident)["credential"]
             collected = request("POST", package_path + "/confirm-pickup", {"collectorId": invitation["userId"], "credential": credential}, admin)
