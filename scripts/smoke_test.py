@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
         if payload is not None:
             headers["Content-Type"] = "application/json"
             data = json.dumps(payload).encode()
-        req = urllib.request.Request(base + path, data=data, headers=headers, method=method)
+        call = urllib.request.Request(base + path, data=data, headers=headers, method=method)
         try:
             response = urllib.request.urlopen(req, timeout=10)
         except urllib.error.HTTPError as error:
