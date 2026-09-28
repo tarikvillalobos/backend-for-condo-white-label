@@ -38,3 +38,5 @@ internal object LockerProvider {
                 .getOrElse { c.fail(503, "SERVICE_UNAVAILABLE", "Resposta inválida do provedor") }
             if (accepted.string("commandId") != commandId) c.fail(503, "SERVICE_UNAVAILABLE", "Identificador do comando divergente")
         }
+    }
+}
