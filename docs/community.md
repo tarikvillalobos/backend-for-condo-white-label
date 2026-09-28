@@ -16,10 +16,7 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 
 ## Câmeras e integrações
 
-`EventInput` requires `title`, `description`, `startsAt`, `endsAt`, and `capacity`
-(1–10,000). Registration closes at the start and rejects cancellation or full
-capacity. Transactions prevent concurrent registrations from overbooking.
-Permissions: `events.read`, `events.manage`, `events.attend`.
+O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 ## Pets and lost notices
 
