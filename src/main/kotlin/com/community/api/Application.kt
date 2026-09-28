@@ -19,6 +19,7 @@ import com.community.api.plugins.configureHttp
 import com.community.api.v1.Secrets
 import com.community.api.v1.processFileCleanup
 import com.community.api.v1.processWebhooks
+import com.community.api.v1.deliveries.processParcelDeadlines
 import com.community.api.v1.migrateLegacyBrands
 import com.community.api.v1.v1Routes
 import com.community.api.v1.community.processCommunityNotifications
