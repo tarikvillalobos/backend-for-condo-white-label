@@ -41,7 +41,7 @@ internal fun V1Context.nodePath(id: String?): JsonArray {
 }
 internal fun V1Context.parcel(id: String = path.getValue("parcelId"), own: Boolean = membershipId != null): Record =
     store.get("parcel", id, locationId).also { row ->
-        if (own && !canReadParcel(row)) fail(404, "NOT_FOUND", "Parcel not found")
+        if (own && !canReadParcel(row)) fail(404, "RESOURCE_NOT_FOUND", "Parcel not found")
     }
 internal fun V1Context.canReadParcel(row: Record, includeClosed: Boolean = false): Boolean {
     if (!includeClosed && row.data.text("status") in setOf("returned", "cancelled")) return false
