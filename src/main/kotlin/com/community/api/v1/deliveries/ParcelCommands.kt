@@ -161,7 +161,7 @@ internal fun resendNotice(c: V1Context): V1Response {
     val memberId = row.data.text("membershipId") ?: c.fail(422, "VALIDATION_ERROR", "Node recipient has no individual delivery channel")
     val member = c.member(memberId)
     val email = member.ownerId?.let { c.tx.get("account", it, c.tenantId)?.data?.text("email") }
-        ?: c.fail(422, "CHANNEL_UNAVAILABLE", "Recipient email is unavailable")
+        ?: c.fail(422, "FEATURE_UNAVAILABLE", "Recipient email is unavailable")
     c.enqueueMail(email, "Encomenda aguardando retirada", "Uma encomenda da transportadora ${row.data.text("carrier")} aguarda retirada.")
     c.notifyParcel(row, "Encomenda aguardando retirada")
     c.audit("parcel.notice_queued", row)
