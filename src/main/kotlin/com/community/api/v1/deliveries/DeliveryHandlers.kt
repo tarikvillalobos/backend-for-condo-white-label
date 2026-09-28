@@ -107,7 +107,10 @@ private fun delegate(c: V1Context): V1Response {
 private fun supportView(row: Record): JsonObject = obj("id" to row.id, "reference" to row.data.text("reference"),
     "membershipId" to row.data.text("membershipId"), "parcelId" to row.data.text("parcelId"), "message" to row.data.text("message"),
     "status" to row.data.text("status"), "createdAt" to row.createdAt, "updatedAt" to row.updatedAt, "resolution" to row.data["resolution"])
-private fun supportIssues(c: V1Context): V1Response = V1Response(c.page("ticket", filters = mapOf("kind" to "support_issue", "membershipId" to c.membershipId!!), descending = true, transform = ::supportView))
+private fun supportIssues(c: V1Context): V1Response {
+    val page = c.page("ticket", filters = mapOf("kind" to "support_issue", "membershipId" to c.membershipId!!), descending = true, transform = ::supportView)
+    return V1Response(JsonObject((page - "page") + ("pageInfo" to page.getValue("page"))))
+}
 private fun createSupportIssue(c: V1Context): V1Response {
     c.parcel(c.input.text("parcelId")!!)
     val message = c.input.text("message")!!.trim()
