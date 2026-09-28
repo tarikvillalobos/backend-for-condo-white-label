@@ -38,3 +38,8 @@ fun processParcelDeadlines(db: Database, now: Instant = Instant.now()): Int {
             val updated = store.update(row,JsonObject(row.data + obj("deadlineNearNotifiedAt" to now)))
             c.notifyParcel(updated,"Prazo de retirada próximo")
             appendAudit(c,"parcel.deadline_near",updated)
+            1
+        }
+    }
+    return processed
+}
