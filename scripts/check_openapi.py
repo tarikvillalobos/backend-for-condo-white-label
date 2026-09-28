@@ -15,11 +15,13 @@ for path, item in spec["paths"].items():
     for method, operation in item.items():
         if method not in methods:
             continue
-        assert operation["operationId"] not in seen
-        seen.add(operation["operationId"])
-        parameters = {p["name"] for p in operation.get("parameters", []) if p.get("in") == "path"}
-        assert parameters == set(re.findall(r"\{(.*?)\}", path)), path
-        for status, response in operation["responses"].items():
-            if status == "204":
-                assert "content" not in response
-print(f"OpenAPI validated: {len(actual)} operations with matching Ktor routes.")
+        operation_id = operation["operationId"]
+        assert operation_id not in operations, f"Duplicate operationId: {operation_id}"
+        operations[operation_id] = (method, path)
+        parameters = [spec["components"]["parameters"][p["$ref"].split("/")[-1]] if "$ref" in p else p
+                      for p in item.get("parameters", []) + operation.get("parameters", [])]
+        actual = {p["name"] for p in parameters if p["in"] == "path"}
+        assert actual == set(re.findall(r"\{([^}]+)\}", path)), path
+        assert "responses" in operation and operation["responses"], operation_id
+        if "204" in operation["responses"]:
+            assert "content" not in operation["responses"]["204"], operation_id
