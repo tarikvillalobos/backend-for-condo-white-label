@@ -27,7 +27,9 @@ internal fun V1Context.createExport(): V1Response {
 private data class PendingExport(val id: String, val tenant: String, val brand: String, val location: String, val user: String)
 fun processReportExports(db: Database) {
     val pending = db.scopedTx(null) { tx ->
-        tx.connection.prepareStatement("SELECT * FROM app_records WHERE kind = 'v1_export' ORDER BY created_at LIMIT 200").use { statement ->
+        val queued = if (tx.postgres) "payload::jsonb ->> 'status' IN ('queued','processing') AND payload::jsonb ->> '_deletedAt' IS NULL"
+            else "(payload LIKE '%\"status\":\"queued\"%' OR payload LIKE '%\"status\":\"processing\"%')"
+        tx.connection.prepareStatement("SELECT * FROM app_records WHERE kind = 'v1_export' AND $queued ORDER BY created_at LIMIT 200").use { statement ->
             statement.executeQuery().use { rows -> buildList {
                 while (rows.next()) {
                     val data = json.parseToJsonElement(rows.getString("payload")).jsonObject
