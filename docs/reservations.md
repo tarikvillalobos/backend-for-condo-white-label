@@ -9,12 +9,6 @@ Cada espaço define horários por dia da semana, duração dos slots, antecedên
 Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de espaço também impedem agendamento. A transação serializa alterações no escopo do condomínio e revalida conflitos ao criar ou aprovar, para impedir dupla reserva sob concorrência. O morador pode cancelar conforme o prazo configurado; a equipe pode aprovar, rejeitar ou cancelar pelas rotas administrativas.
 
 ## Operações principais
-  "maxDaysAhead": 90,
-  "maxActivePerMember": 5,
-  "requiresApproval": true,
-  "maintenance": false
-}
-```
 
 Provide the property's IANA time zone explicitly when creating a facility; the
 default is `America/Sao_Paulo`. Weekdays use ISO numbering (Monday = 1). Local
