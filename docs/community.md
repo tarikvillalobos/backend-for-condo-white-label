@@ -19,26 +19,6 @@ Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e
 O cadastro de câmeras, a lista de gravações e sessões de vídeo dependem de um provedor real. Configure `CAMERA_PROVIDER_BASE_URL` e, se exigido pelo provedor, `CAMERA_PROVIDER_TOKEN`. O servidor solicita sessões temporárias e valida URL, prazo e protocolo retornados. Sem provedor, as operações de mídia respondem com erro explícito. O volume local de arquivos do Compose atende um único host; veja [operations.md](operations.md) para implantação distribuída.
 
 Para testar os fluxos sem adivinhar campos, abra `/docs`, selecione a operação e use os schemas de request e response publicados. Os erros v1 usam `application/problem+json` com `requestId` para correlação.
-and nullable `vehicleId`; setting null releases the allocation. Allocated
-vehicles and vehicles currently checked in cannot be deleted. Staff enter movements with sequence validation;
-expired vehicle authorization and inactive owner membership prevent entry.
-
-Permissions: `vehicles.read.own`, `vehicles.read.all`, `vehicles.create`,
-`vehicles.manage.own`, `vehicles.manage`.
-
-## Staff, contractors, equipment, and work orders
-
-- `GET /staff`, `POST /staff`: upsert `{userId,responsibility,active}`. A staff
-  profile describes duties; it does not grant roles or access permissions.
-- `GET /contractors`, `POST /contractors`, `PUT /contractors/{id}`:
-  `{name,service,contact,approved}`.
-- `GET /equipment`, `POST /equipment`, `PUT /equipment/{id}`:
-  `{name,description,serialNumber?,nextInspectionAt?}`.
-- `GET /work-orders`, `POST /work-orders`:
-  `{title,description,assignedTo,scheduledAt,contractorId?,equipmentId?}`.
-- `POST /work-orders/{id}/status`: `{status,notes,evidence:[]}`.
-- `GET /work-orders/{id}/history`: retained status notes and completion evidence.
-
 An assignee must be active and have scoped maintenance access; referenced
 contractors must be approved. Workers see assigned work only. Managers see all
 work in their location. Statuses follow `scheduled → in_progress → completed`;
