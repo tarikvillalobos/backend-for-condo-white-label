@@ -5,26 +5,6 @@ API compartilhada para os aplicativos SmartLocker e Condo, implementada em Kotli
 ## Testar com Docker
 
 Configure uma vez `DATABASE_PASSWORD` e `API_ENCRYPTION_KEY` no arquivo `.env` da raiz. Gere a senha com `openssl rand -hex 24` e a chave com `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. Guarde os mesmos valores para os próximos reinícios. O arquivo `.env` é ignorado pelo Git.
-| Notifications | Private inbox, unread count, read status, preferences, generic SMTP email, delivery status and retries | Push and SMS need provider adapters; SMTP acceptance does not confirm reading |
-| Cameras | Camera metadata, enabled state, unit audience, separate live/recording permissions | Live sessions and recordings return 501 until a real provider is configured |
-| Reporting and audit | Permission-filtered counts, statuses, CSV exports, recent-authentication checks, audit records | External analytics pipelines and automated retention are operational extensions |
-
-## Technology stack
-
-- Kotlin/JVM 2.4.20, Ktor 3.6.0, Netty, and Java 21.
-- Gradle 9.4.1 with Kotlin DSL and the included Gradle Wrapper.
-- Kotlin serialization for JSON; opaque bearer sessions with hashed secrets.
-- PostgreSQL for production; persistent H2 for local development and H2 for tests.
-- HikariCP connection pooling and Flyway schema migrations.
-- Eclipse Angus Mail for authentication and notification email; Logback for redacted HTTP logs.
-
-## Documentation
-
-- [Architecture and transaction design](docs/architecture.md)
-- [OpenAPI contract](docs/openapi.yaml)
-- [Identity, sessions, SMTP, and recovery](docs/identity.md)
-- [Packages and smart lockers](docs/deliveries.md)
-- [Facilities and reservations](docs/reservations.md)
 - [Community and operations endpoints](docs/community.md)
 - [API walkthrough](docs/api.md)
 - [Deployment, recovery, and verification](docs/operations.md)
