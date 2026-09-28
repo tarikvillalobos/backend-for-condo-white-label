@@ -10,6 +10,8 @@ import java.util.UUID
 fun processFileCleanup(db: Database): Int {
     val cutoff = Instant.now().minusSeconds(86400)
     val candidates = db.scopedTx(null) { tx ->
+        val filter = if (tx.postgres) "payload::jsonb ->> '_deletedAt' IS NULL"
+            else "payload NOT LIKE '%\"_deletedAt\"%'"
         val sql = "SELECT tenant_id,payload,created_at FROM app_records WHERE kind = 'v1_upload' AND created_at < ? " +
             "AND payload NOT LIKE '%\"_deletedAt\"%' ORDER BY created_at LIMIT 100"
         tx.connection.prepareStatement(sql).use { statement ->
