@@ -4,10 +4,7 @@ O contrato completo é [openapi.yaml](openapi.yaml). Com Docker ativo, consulte 
 
 ## Primeira chamada
 
-This walkthrough uses a local development client created with the `bootstrap`
-command in the [README](../README.md#getting-started). Start the API first with
-`./gradlew run`. The examples require Bash, curl, jq, and Python 3.9 or later.
-Use a test client: these calls create real application records in its database.
+Siga o [README](../README.md) para iniciar o Compose e criar a primeira marca com `bootstrap`. Guarde o ID impresso pelo comando e envie-o em `X-Brand-Id`. O cabeçalho seleciona a marca; cada operação ainda exige a autenticação e as permissões indicadas no OpenAPI.
 
 ## 1. Sign in as the bootstrapped administrator
 
