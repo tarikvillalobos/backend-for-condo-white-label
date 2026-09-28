@@ -10,6 +10,7 @@ internal fun V1Context.reportRows(kind: String, scope: String? = query["nodeId"]
     scope == null || inSubtree(it.data.text("nodeId"), scope)
 }
 internal fun V1Context.adminDashboard(): JsonObject {
+    if (tx.postgres && query["nodeId"] == null) return postgresDashboard()
     val timezone = store.get("condominium", location()).data.text("timeZone") ?: "UTC"
     val day = now.atZone(ZoneId.of(timezone)).toLocalDate()
     fun today(value: String?) = value?.let { timestamp(it).atZone(ZoneId.of(timezone)).toLocalDate() == day } ?: false
