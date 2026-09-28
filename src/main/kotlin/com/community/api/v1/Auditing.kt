@@ -64,7 +64,7 @@ fun redact(value: JsonElement): JsonElement = when (value) {
 
 fun recordRequest(db: Database, requestId: String, operation: ContractOperation?, tenantId: String?, brandId: String?, locationId: String?, actor: V1Principal?, method: String, route: String, status: Int, duration: Long, code: String?, replay: Boolean = false) {
     db.scopedTx(null) { tx ->
-        val at = Instant.now().toString()
+        val at = auditAt(Instant.now())
         fun count(table: String): Int = tx.connection.prepareStatement("SELECT COUNT(*) FROM $table WHERE request_id = ?").use {
             it.setString(1, requestId); it.executeQuery().use { rows -> rows.next(); rows.getInt(1) }
         }
