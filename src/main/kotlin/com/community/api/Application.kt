@@ -78,6 +78,19 @@ fun Application.module(database: Database = Database.fromEnvironment(), mailConf
             delay(10_000)
         }
     }
+    if (mailConfig != null) launch(Dispatchers.IO) {
+        while (isActive) {
+            try {
+                processCommunityNotifications(database)
+                processReportExports(database)
+                processIdentityDataRequests(database)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                log.error("Background jobs failed: {}", failure.javaClass.simpleName)
+            }
+            delay(30_000)
+        }
+    }
     routing {
         healthRoutes(database)
         identityRoutes(database)
