@@ -16,7 +16,7 @@ class CommunityWorkflowTest {
         f.run("adminCancelEvent", obj("reason" to "Cancelado por chuva"), mapOf("eventId" to event.id()), staff = true)
         assertEquals(409, assertFailsWith<ApiException> { f.run("attendEvent", ids = mapOf("eventId" to event.id())) }.status)
     }
-    @Test fun `announcement targets and receipts respect audience`() = CommunityFixture().use { f ->
+    @Test fun `announcement targets and receipts respect audience`(): Unit = CommunityFixture().use { f ->
         val announcement = f.run("publishAnnouncement", obj("title" to "Aviso importante", "body" to "Texto", "category" to "general",
             "pinned" to false, "pushNotify" to true, "targetNodeIds" to JsonArray(listOf(JsonPrimitive(f.unit)))), staff = true)
         assertEquals(1, f.run("listAnnouncements").items().size)
