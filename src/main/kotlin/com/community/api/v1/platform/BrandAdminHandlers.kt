@@ -28,12 +28,6 @@ private fun V1Context.updatePlatformBrand(): V1Response {
     if (input.arr("authMethods").isEmpty() && "authMethods" in input) fail(422, "AUTH_METHOD_REQUIRED", "Mantenha pelo menos um método de acesso")
     input.string("logoFileKey")?.let { store.get("upload", it) }
     val updated = platformUpdate(brand, JsonObject(brand.data + input))
-    (input["modules"] as? JsonObject)?.let { modules ->
-        val disabled = modules.filterValues { it == JsonPrimitive(false) }
-        if (disabled.isNotEmpty()) store.list("condominium").forEach { condo ->
-            store.update(condo, condo.data.plusFields("modules" to JsonObject(condo.data["modules"]!!.jsonObject + disabled)))
-        }
-    }
     return platformResult("BrandSettings", updated)
 }
 
