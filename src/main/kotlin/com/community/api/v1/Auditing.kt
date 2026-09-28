@@ -37,8 +37,8 @@ fun appendAudit(c: V1Context, action: String, record: Record? = null, outcome: S
         "changes" to null, "details" to redact(details), "createdAt" to at, "source" to source, "occurredAt" to (occurredAt ?: at))
     val hash = Secrets.hash(previous + entry.toString())
     val saved = JsonObject(entry + obj("hash" to hash))
-    c.tx.connection.prepareStatement("INSERT INTO audit_log (id,tenant_id,brand_id,location_id,request_id,actor_id,action,target_type,target_id,created_at,previous_hash,hash,payload) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
-        listOf(id,c.tenantId,c.brandId,c.locationId,c.requestId,actor?.userId,action,record?.kind?.removePrefix("v1_"),record?.id,at,previous,hash,saved.toString()).forEachIndexed { index, value -> it.setObject(index + 1, value) }
+    c.tx.connection.prepareStatement("INSERT INTO audit_log (id,tenant_id,brand_id,location_id,request_id,actor_id,action,target_type,target_id,created_at,previous_hash,hash,payload,chain_scope) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)").use {
+        listOf(id,c.tenantId,c.brandId,c.locationId,c.requestId,actor?.userId,action,record?.kind?.removePrefix("v1_"),record?.id,at,previous,hash,saved.toString(),chainScope).forEachIndexed { index, value -> it.setObject(index + 1, value) }
         it.executeUpdate()
     }
     return saved
