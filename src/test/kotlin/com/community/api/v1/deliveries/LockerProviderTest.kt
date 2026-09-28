@@ -17,6 +17,7 @@ class LockerProviderTest {
     @Test fun `remote command requires provider acceptance and forwards stable identifier`() {
         val command = UUID.randomUUID().toString()
         val received = AtomicReference<Triple<String, String, String>>()
+        val providerStatus = AtomicInteger(202)
         val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/lockers/locker/compartments/A1/open") { exchange ->
             received.set(Triple(exchange.requestHeaders.getFirst("Idempotency-Key"),
