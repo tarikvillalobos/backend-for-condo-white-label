@@ -27,7 +27,7 @@ class CommunityWorkflowTest {
         assertEquals(1, f.run("listInbox").items().size)
         assertEquals(0, f.run("listInbox", other = true).items().size)
     }
-    @Test fun `internal staff comments never reach resident`() = CommunityFixture().use { f ->
+    @Test fun `internal staff comments never reach resident`(): Unit = CommunityFixture().use { f ->
         val ticket = f.run("createServiceRequest", obj("title" to "Vazamento", "description" to "Cano vazando", "category" to "maintenance"))
         val ids = mapOf("ticketId" to ticket.id())
         f.run("adminCommentTicket", obj("body" to "Informação interna", "internal" to true), ids, staff = true)
