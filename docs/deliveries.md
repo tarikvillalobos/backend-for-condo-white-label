@@ -22,6 +22,7 @@ Authorization: Bearer {LOCKER_PROVIDER_TOKEN}
 Idempotency-Key: {commandId}
 Content-Type: application/json
 
+{"commandId":"uuid-estavel","deviceId":"uuid-do-dispositivo","reason":"motivo"}
 ```
 
 Omit both locker fields for reception desk storage. The deadline is an
