@@ -104,6 +104,8 @@ private fun cursor(snapshot: Snapshot): String {
     val payload = Base64.getUrlEncoder().withoutPadding().encodeToString(obj("id" to snapshot.id, "created" to snapshot.lastCreated, "last" to snapshot.lastId).toString().toByteArray())
     return "$payload.${Secrets.sign(payload)}"
 }
+private val stableFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'").withZone(ZoneOffset.UTC)
+private fun stableInstant(value: String): String = stableFormat.format(Instant.parse(value))
 private fun microInstant(value: Long): String = Instant.ofEpochSecond(value / 1_000_000, value % 1_000_000 * 1000).toString()
 
 fun V1Context.pageRecords(records: List<Record>, transform: (Record) -> JsonElement): JsonObject = pageItems(records.map(transform))
