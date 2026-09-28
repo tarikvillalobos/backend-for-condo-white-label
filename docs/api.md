@@ -16,14 +16,6 @@ curl -sS "$API_BASE/v1/auth/password/login" \
   -H "X-Brand-Id: $BRAND_ID" -H 'Content-Type: application/json' \
   -d "$(jq -nc --arg identifier "$ADMIN_EMAIL" --arg password "$ADMIN_PASSWORD" \
       '{identifier:$identifier,password:$password}')"
-
-ADMIN_SESSION=$(jq -nc \
-  --arg tenantId "$TENANT_ID" --arg email "$ADMIN_EMAIL" \
-  --arg password "$ADMIN_PASSWORD" \
-  '{tenantId:$tenantId,email:$email,password:$password,device:"API walkthrough"}' |
-  curl -fsS "$API_BASE/api/v1/auth/login" \
-    -H 'Content-Type: application/json' --data-binary @-)
-ADMIN_TOKEN=$(printf '%s' "$ADMIN_SESSION" | jq -er .accessToken)
 ```
 
 For the following calls, define a helper that sends JSON from standard input:
