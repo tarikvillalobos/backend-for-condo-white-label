@@ -29,8 +29,9 @@ private fun V1Context.identityInvitation(): Record {
 
 private fun V1Context.previewIdentityInvitation(): V1Response {
     val invitation = identityInvitation()
-    val condo = store.get("condominium", invitation.locationId!!)
-    val node = store.get("node", invitation.data.string("nodeId")!!, invitation.locationId)
+    val condo = invitation.locationId?.let { store.get("condominium", it) }
+    val node = invitation.data.string("nodeId")?.let { store.get("node", it, invitation.locationId) }
+    val organization = invitation.data.string("organizationId")?.let { store.get("organization", it) }
     val name = invitation.data.string("name")
     return V1Response(obj("purpose" to (invitation.data.string("purpose") ?: "first_access"),
         "condominiumName" to condo.data["name"], "unitLabel" to node.data["label"],
