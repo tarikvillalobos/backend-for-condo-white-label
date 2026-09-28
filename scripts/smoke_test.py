@@ -25,7 +25,6 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
         port = probe.getsockname()[1]
     password = secrets.token_urlsafe(24)
     env = {key: value for key, value in os.environ.items() if not key.startswith("SMTP_")}
-    password = secrets.token_urlsafe(32)
     env.update(HOST="127.0.0.1", PORT=str(port), APP_ENV="test",
         DATABASE_URL=f"jdbc:h2:file:{temporary}/community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
         DATABASE_USER="sa", DATABASE_PASSWORD="", BOOTSTRAP_CLIENT_NAME="Smoke client",
