@@ -132,7 +132,7 @@ private fun V1Context.verifyChain(): JsonObject {
             val inRange=Instant.parse(rows.getString("created_at")).let { at -> !at.isBefore(Instant.parse(since)) && at.isBefore(Instant.parse(until)) }
             if(inRange) {
                 checked++
-                if(broken==null && (rows.getString("previous_hash")!=previous || Secrets.hash(previous+JsonObject(entry-"hash").toString())!=rows.getString("hash"))) broken=rows.getString("id")
+                if(broken==null && (rows.getString("previous_hash")!=prior || Secrets.hash(prior+JsonObject(entry-"hash").toString())!=rows.getString("hash"))) broken=rows.getString("id")
             }
             previous=rows.getString("hash")
         } }
