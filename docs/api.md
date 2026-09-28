@@ -34,26 +34,6 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 O OpenAPI agrupa autenticação e perfil; estrutura e pessoas; encomendas, lockers e portaria; reservas; comunicação, documentos, pets e veículos; manutenção; relatórios; organizações; integrações; e auditoria. Consulte cada operação para o corpo, as permissões, os possíveis códigos e o escopo do identificador. Os guias de [identidade](identity.md), [encomendas](deliveries.md), [reservas](reservations.md) e [comunidade](community.md) explicam os fluxos principais.
 
 `GET /v1/health/live` confirma a resposta HTTP. `GET /v1/health/ready` verifica a conexão com o banco. Para configuração, backup e limites de implantação, consulte [operations.md](operations.md).
-  curl -fsS "$API_BASE/api/v1/auth/activate" \
-    -H 'Content-Type: application/json' --data-binary @-
-
-RESIDENT_SESSION=$(jq -nc \
-  --arg tenantId "$TENANT_ID" --arg email "$RESIDENT_EMAIL" \
-  --arg password "$RESIDENT_PASSWORD" \
-  '{tenantId:$tenantId,email:$email,password:$password,device:"Resident walkthrough"}' |
-  curl -fsS "$API_BASE/api/v1/auth/login" \
-    -H 'Content-Type: application/json' --data-binary @-)
-RESIDENT_TOKEN=$(printf '%s' "$RESIDENT_SESSION" | jq -er .accessToken)
-```
-
-Activation and recovery completion return `{"accepted":true}`. Sign in
-separately to obtain session tokens. An invitation key is accepted only once;
-retrying an already successful invitation returns `409` without another token.
-
-## 3. Receive a delivery, issue a credential, and confirm pickup
-
-The administrator acts as authorized reception staff in this example. Regular
-concierge accounts use the narrower `packages.receive` and `packages.collect`
 permissions. Omitted locker fields mean reception desk storage.
 
 ```bash
