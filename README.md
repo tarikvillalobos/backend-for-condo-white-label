@@ -41,7 +41,7 @@ Os 294 métodos do contrato têm handlers registrados. Há fluxos para identidad
 
 A API valida entradas e respostas com os schemas do OpenAPI, exige chaves de idempotência onde o contrato determina e usa ETag/`If-Match` nas alterações versionadas. A auditoria registra requisições, eventos e alterações de linhas; exportações e avisos agendados rodam em workers. Arquivos privados usam URLs assinadas por tempo limitado e validação de tamanho, tipo e assinatura do conteúdo.
 
-Recursos externos dependem de configuração real. O Compose captura e-mail no Mailpit; SMS e WhatsApp indicam indisponibilidade. Vídeo de câmeras exige um provedor configurado. Operações físicas de lockers e portões exigem equipamento e credenciais próprios: a API não transforma um comando em prova de retirada ou entrada. O canal push ainda requer integração de envio com o provedor.
+Recursos externos dependem de configuração real. O Compose captura e-mail no Mailpit; SMS e WhatsApp indicam indisponibilidade. Vídeo de câmeras e abertura remota de lockers aceitam provedores configurados no `.env`. Operações físicas exigem equipamento e credenciais próprios: a API não transforma um comando em prova de retirada ou entrada. O canal push ainda requer integração de envio com o provedor.
 
 ## Implantação e crescimento
 
