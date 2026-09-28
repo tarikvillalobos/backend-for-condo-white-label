@@ -28,7 +28,8 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
     env.update(HOST="127.0.0.1", PORT=str(port), APP_ENV="test",
         DATABASE_URL=f"jdbc:h2:file:{temporary}/community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
         DATABASE_USER="sa", DATABASE_PASSWORD="", BOOTSTRAP_CLIENT_NAME="Smoke client",
-        BOOTSTRAP_EMAIL="admin@example.test", BOOTSTRAP_PASSWORD=password)
+        BOOTSTRAP_EMAIL="admin@example.test", BOOTSTRAP_PASSWORD=password,
+        API_ENCRYPTION_KEY=base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("="))
     env.pop("BOOTSTRAP_CLIENT_ID", None)
     result = subprocess.run([str(command), "bootstrap"], env=env, cwd=root, capture_output=True, text=True, check=True)
     tenant = re.search(r"Client created: ([a-f0-9-]+)", result.stdout).group(1)
