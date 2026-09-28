@@ -14,12 +14,7 @@ Convites de visitantes, chegadas e credenciais de acesso têm janelas de validad
 
 Pets, alertas, veículos, manutenção e reservas seguem o contexto do morador e as permissões do contrato. A equipe administra registros do condomínio nas rotas `/v1/admin/condominiums/{condominiumId}`. Fotos e documentos privados usam uploads e URLs assinadas; dados de proprietário e de saúde animal não devem ser copiados para notificações públicas.
 
-- `GET /events`, `POST /events`, `PUT /events/{id}`: list, publish, and update.
-  Updates cannot lower capacity below confirmed attendance.
-- `POST /events/{id}/cancel`: cancel an event.
-- `POST /events/{id}/attendance`, `DELETE /events/{id}/attendance`: register or
-  cancel the caller's attendance. Repeated registration returns the same record.
-- `GET /events/{id}/attendance`: own registration; publishers can list attendees.
+## Câmeras e integrações
 
 `EventInput` requires `title`, `description`, `startsAt`, `endsAt`, and `capacity`
 (1–10,000). Registration closes at the start and rejects cancellation or full
