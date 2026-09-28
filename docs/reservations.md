@@ -17,10 +17,3 @@ Reservas confirmadas e pendentes ocupam o período. Bloqueios administrativos de
 - `POST .../reservations/{reservationId}/approve`, `/reject` e `/cancel` executam as decisões da equipe.
 
 Listas usam cursor e snapshot. Respostas 409 `RESERVATION_CONFLICT` indicam conflito de intervalo ou estado; 422 cobre regras de horário e validação. Use o schema de cada operação no OpenAPI para os campos exatos, cabeçalhos de idempotência, permissões e ETag.
-back only one active event; simultaneous attempts to reuse it conflict.
-
-Editing an event validates its link again. Omit `reservationId` or send `null` to
-remove the link. Cancelling an event frees its link for another event but retains
-the reservation. Reservation and event cancellation are separate staff actions;
-a reservation status change does not automatically cancel a published event.
-Event responses expose the linked ID without embedding private booking details.
