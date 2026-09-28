@@ -69,7 +69,7 @@ fun Application.configureHttp() {
             call.respondHttpError(HttpStatusCode.fromValue(cause.status), cause.code, cause.message)
         }
         exception<BadRequestException> { call, _ ->
-            call.respond(HttpStatusCode.BadRequest, ApiError("bad_request", "Invalid request", call.callId))
+            call.respondHttpError(HttpStatusCode.BadRequest, "bad_request", "Invalid request")
         }
         exception<UnsupportedMediaTypeException> { call, _ ->
             call.respond(HttpStatusCode.UnsupportedMediaType, ApiError("unsupported_media_type", "Unsupported content type", call.callId))
