@@ -3,7 +3,7 @@
 from collections import Counter
 from pathlib import Path
 import re
-
+import yaml
 from openapi_spec_validator import validate_spec
 import yaml
 
