@@ -25,3 +25,11 @@ for path, item in spec["paths"].items():
         assert "responses" in operation and operation["responses"], operation_id
         if "204" in operation["responses"]:
             assert "content" not in operation["responses"]["204"], operation_id
+source = "\n".join(p.read_text() for p in (root / "src/main/kotlin/com/community/api/v1").rglob("*.kt"))
+handlers = Counter(re.findall(r'"([A-Za-z][A-Za-z0-9]+)"\s+to\s+V1Handler', source))
+missing = sorted(operations.keys() - handlers.keys())
+duplicates = sorted(key for key, count in handlers.items() if count > 1 and key in operations)
+assert not missing, f"Missing handlers: {missing}"
+assert not duplicates, f"Duplicate handlers: {duplicates}"
+assert 'route("/v1${operation.path}"' in source, "Contract routes are not registered"
+print(f"OpenAPI validated: {len(operations)} operations with handlers and Ktor dispatch.")
