@@ -91,6 +91,7 @@ object Contract {
             schema.string("pattern")?.let { if (!Regex(it).containsMatchIn(text)) errors += "$field has an invalid format" }
             val valid = when (schema.string("format")) {
                 "date-time" -> runCatching { Instant.parse(text) }.isSuccess
+                "uri" -> runCatching { java.net.URI(text).isAbsolute }.getOrDefault(false)
                 "date" -> runCatching { LocalDate.parse(text) }.isSuccess
                 "uuid" -> runCatching { UUID.fromString(text) }.isSuccess && text.length == 36
                 "email" -> Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(text)
