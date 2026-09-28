@@ -12,7 +12,7 @@ import java.time.Duration
 internal object CameraProvider {
     private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build()
     fun request(c: V1Context, method: String, path: String, body: JsonObject): JsonObject {
-        val base = System.getenv("CAMERA_PROVIDER_BASE_URL")?.trimEnd('/')
+        val base = System.getenv("CAMERA_PROVIDER_BASE_URL")?.takeIf { it.isNotBlank() }?.trimEnd('/')
             ?: c.fail(501, "CAMERA_PROVIDER_UNAVAILABLE", "Configure um provedor de câmeras")
         val uri = runCatching { URI(base + path) }.getOrElse { c.fail(503, "CAMERA_PROVIDER_CONFIGURATION", "URL do provedor inválida") }
         if (uri.scheme != "https" && !(System.getenv("APP_ENV") != "production" && uri.scheme == "http"))
