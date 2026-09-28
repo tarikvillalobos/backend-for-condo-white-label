@@ -80,7 +80,7 @@ private suspend fun ApplicationCall.executeV1(db: Database, operation: ContractO
                         c.path,c.query,c.headers,c.principal,createdId,c.membership,c.now)
                 }
                 if (!wasReplay && operation.definition["x-audit"]?.jsonObject?.get("layers")?.jsonArray?.contains(JsonPrimitive("event")) == true) {
-                    appendAudit(c,operation.id,outcome=if (response.status < 400) "success" else "failed")
+                    appendAudit(context ?: c,operation.id,outcome=if (response.status < 400) "success" else "failed")
                 }
                 validateResponse(operation,response)
                 response
