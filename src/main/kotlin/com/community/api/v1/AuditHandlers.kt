@@ -91,8 +91,8 @@ private fun V1Context.auditPage(table: String): JsonObject {
     if (limit !in 1..100) fail(422,"VALIDATION_ERROR","Invalid limit")
     val binding = hash("$tenantId:$brandId:${principal?.userId}:$operationId:${path.toSortedMap()}:${query.filterKeys { it!="cursor" }.toSortedMap()}")
     val cursor = query["cursor"]?.let { json.parseToJsonElement(unseal(it)).jsonObject }
-    val snapshot = cursor?.string("snapshot") ?: now.toString()
-    val expires = cursor?.string("expires") ?: now.plusSeconds(900).toString()
+    val snapshot = cursor?.string("snapshot") ?: auditAt(now)
+    val expires = cursor?.string("expires") ?: auditAt(now.plusSeconds(900))
     if (cursor != null && (cursor.string("binding") != binding || Instant.parse(expires).isBefore(now))) fail(410,"CURSOR_EXPIRED","Snapshot expired")
     val (where,initial) = auditWhere(table,emptyMap())
     val values = initial.toMutableList()
