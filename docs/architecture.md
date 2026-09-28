@@ -20,16 +20,7 @@ Workers processam e-mail, notificações, exportações, webhooks, limpeza de up
 
 Câmeras usam `CAMERA_PROVIDER_BASE_URL` e `CAMERA_PROVIDER_TOKEN`. Abertura remota de locker usa `LOCKER_PROVIDER_BASE_URL` e `LOCKER_PROVIDER_TOKEN` segundo o [protocolo de lockers](deliveries.md). Um comando aceito pelo provedor não comprova abertura física: somente o evento autenticado do equipamento confirma o estado. Webhooks exigem destino HTTPS público e devem operar com proteção de saída de rede.
 
-Accounts belong to one client. Authentication uses opaque access and refresh
-tokens with random secrets and stored hashes, rather than signed JWT claims.
-Every request reloads session/account/client state, so revocation takes effect
-without waiting for token expiry. Access lasts 15 minutes; refresh lasts at most
-30 days, rotates on use, and detects replay. Password hashes use PBKDF2-HMAC-SHA256
-with individual salts and 600,000 iterations.
-
-Invitations, recovery, OTP, and verified contact changes have expiring, bounded,
-single-use challenges. Sensitive administration requires recent password
-verification. Rate limits are durable and scoped to account and connection
+Uploads privados usam URLs assinadas e o diretório `UPLOAD_DIRECTORY`. O volume do Compose atende um único host Docker; múltiplos hosts precisam de armazenamento de objetos compartilhado. Consulte [operations.md](operations.md) para instalação, backup, monitoramento e limites de escala. A capacidade de atender um milhão de usuários precisa ser medida com tráfego e dados representativos.
 source; forwarding headers are not trusted as authentication or network identity.
 
 Authentication email uses a transactional private outbox and SMTP worker.
