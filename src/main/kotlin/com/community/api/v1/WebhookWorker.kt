@@ -38,9 +38,16 @@ fun processWebhooks(db: Database): Int {
             delivered += processWebhook(db,tenant,brand,id)
         }
     }
-    var delivered = 0
-    for ((tenant,brand,id) in subscriptions) {
-        val job = claimWebhook(db,tenant,brand,id) ?: continue
+    return delivered
+}
+
+private fun nextWebhookBatch(db: Database): List<Triple<String,String,String>> = db.scopedTx(null) { tx ->
+    val after = webhookScanAfter.get()?.takeIf { it.first === db }?.second
+    val filter = if (tx.postgres) "payload::jsonb ->> 'active' = 'true' AND payload::jsonb ->> '_deletedAt' IS NULL"
+        else "payload LIKE '%\"active\":true%' AND payload NOT LIKE '%\"_deletedAt\"%'"
+    val cursor = if (after == null) "" else " AND (created_at > ? OR (created_at = ? AND id > ?))"
+    val sql = "SELECT tenant_id,payload,created_at,id FROM app_records WHERE kind='v1_webhook' AND $filter$cursor ORDER BY created_at,id LIMIT 500"
+    val rows = tx.connection.prepareStatement(sql).use { statement ->
         val ok = runCatching { sendWebhook(job) }.getOrDefault(false)
         db.scopedTx("webhook:$tenant:$brand:$id") { tx ->
             val store = V1Store(tx,tenant,brand)
