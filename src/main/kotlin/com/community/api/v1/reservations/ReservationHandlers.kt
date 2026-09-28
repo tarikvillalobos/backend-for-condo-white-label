@@ -71,7 +71,7 @@ internal fun zone(c: V1Context): ZoneId = BookingRules.timeZone(
 )
 
 private fun reservation(c: V1Context): Record = c.store.get("reservation", c.path.getValue("reservationId"), condominium(c)).also {
-    if (c.membershipId != null && it.data.text("membershipId") != c.membershipId) c.fail(404, "NOT_FOUND", "Reservation not found")
+    if (c.membershipId != null && it.data.text("membershipId") != c.membershipId) c.fail(404, "RESOURCE_NOT_FOUND", "Reservation not found")
 }
 
 private fun reservationView(c: V1Context, row: Record): JsonObject {
