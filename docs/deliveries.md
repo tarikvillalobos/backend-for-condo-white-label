@@ -8,6 +8,8 @@ As rotas e schemas estão no [OpenAPI](openapi.yaml). O morador usa `/v1/members
 
 `POST /v1/memberships/{membershipId}/parcels/{parcelId}/manual-pickup` registra relato manual e revoga a credencial, mas não confirma a retirada física. A equipe confirma entrega em `POST /v1/ops/parcels/{parcelId}/handover`. Um evento `pickup` autenticado do locker também pode confirmar a coleta. A transição física libera o compartimento e consome a credencial dentro da transação. Repetir um evento com o mesmo identificador e payload devolve resultado duplicado; reutilizar o identificador com outro payload é rejeitado.
 
+Um worker registra `parcel.deadline_near` e cria uma notificação interna uma única vez quando restam até 24 horas para o prazo de uma encomenda pendente. O evento também pode ser entregue a assinaturas de webhook; o prazo vencido continua consultável nos filtros e relatórios.
+
 ## Equipamentos e eventos
 
 Administradores criam o locker em `/v1/admin/condominiums/{condominiumId}/lockers`, associam um dispositivo ativo e definem compartimentos em `PUT .../lockers/{lockerId}/compartments`. O dispositivo usa `X-Device-Key` em `POST /v1/ops/lockers/{lockerId}/events` e `/credential-validations`. O contrato `LockerEvent` define os tipos, campos e códigos aceitos. Eventos `heartbeat` atualizam a disponibilidade observada; `door_opened` registra abertura física. A API não infere que uma encomenda foi retirada apenas porque uma porta abriu.
