@@ -4,7 +4,7 @@ O contrato completo é [openapi.yaml](openapi.yaml). Com Docker ativo, consulte 
 
 ## Primeira chamada
 
-Siga o [README](../README.md) para iniciar o Compose e criar a primeira marca com `bootstrap`. Guarde o ID impresso pelo comando e envie-o em `X-Brand-Id`. O cabeçalho seleciona a marca; cada operação ainda exige a autenticação e as permissões indicadas no OpenAPI.
+Siga o [README](../README.md) para iniciar o Compose e criar a primeira marca com `bootstrap`. O exemplo abaixo usa `curl` e `jq`. Guarde o ID impresso pelo comando e envie-o em `X-Brand-Id`. O cabeçalho seleciona a marca; cada operação ainda exige a autenticação e as permissões indicadas no OpenAPI.
 
 ```sh
 export API_BASE=http://127.0.0.1:8080
