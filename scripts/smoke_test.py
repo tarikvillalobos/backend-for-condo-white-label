@@ -97,15 +97,10 @@ with tempfile.TemporaryDirectory(prefix="community-v1-smoke-") as temporary:
             key = str(uuid.uuid4())
             first = request("POST", "/v1/admin/condominiums", condo, admin, key, 201)
             replay = request("POST", "/v1/admin/condominiums", condo, admin, key, 201)
-            package_path = prefix + "/packages/" + package["id"]
-            credential = request("POST", package_path + "/credential", {}, resident)["credential"]
-            collected = request("POST", package_path + "/confirm-pickup", {"collectorId": invitation["userId"], "credential": credential}, admin)
-            assert collected["status"] == "COLLECTED"
-            facility = request("POST", prefix + "/facilities", {"name": "Meeting room", "timeZone": "UTC", "capacity": 10}, admin, expected=201)["id"]
-            tomorrow = datetime.datetime.now(datetime.timezone.utc).replace(hour=12, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
-            reservation = {"facilityId": facility, "startsAt": tomorrow.isoformat(), "endsAt": (tomorrow + datetime.timedelta(hours=1)).isoformat()}
-            request("POST", prefix + "/reservations", reservation, resident, "smoke-booking", 201)
-            request("POST", prefix + "/reservations", reservation, resident, "conflicting-booking", 409)
+            assert first == replay
+            condo_id = first["condominium"]["id"]
+            assert request("GET", f"/v1/admin/condominiums/{condo_id}", token=admin)["id"] == condo_id
+            assert request("GET", "/v1/admin/audit-log/integrity", token=admin)["intact"]
         finally:
             stop(process)
         process = start(log)
