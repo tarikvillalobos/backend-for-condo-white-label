@@ -57,26 +57,6 @@ build/spec-venv/bin/python scripts/check_openapi.py
 ```
 
 Crie `build/spec-venv` e instale `requirements-dev.txt` antes do último comando se o ambiente ainda não tiver as dependências Python. Os commits na `main` usam `tarik.villalobos@gmail.com`, um arquivo por commit e até 20 linhas alteradas; `docs/openapi.yaml` é a exceção autorizada.
-The Docker image runs the Java 21 distribution. Docker Compose includes `api`,
-`db` (PostgreSQL 17), and `mail` (Mailpit for local email capture). Export a
-`DATABASE_PASSWORD` before starting the development stack:
-
-```sh
-docker compose up -d --build
-docker compose run --rm \
-  -e BOOTSTRAP_CLIENT_NAME -e BOOTSTRAP_EMAIL -e BOOTSTRAP_PASSWORD \
-  api bootstrap
-```
-
-The bootstrap environment variables must be set in the calling shell. The API
-is exposed on loopback port 8080, PostgreSQL on 5432, and Mailpit's development
-inbox at `http://127.0.0.1:8025`. This Compose setup uses development mode and
-local mail capture. Production requires authenticated STARTTLS SMTP and a
-deployment-specific TLS/proxy setup. Persist the PostgreSQL volume and keep
-database backups outside the application container.
-
-An operator can suspend or reactivate a client with `CLIENT_ID` and
-`CLIENT_ACTIVE=true|false` through `./gradlew run --args=client-state`.
 Suspension revokes the client's account credentials; it does not delete records.
 
 ### Health endpoints
