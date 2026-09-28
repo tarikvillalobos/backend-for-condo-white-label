@@ -8,7 +8,7 @@ PostgreSQL 17 é o banco de produção. Flyway aplica as migrações em `src/mai
 
 As rotas v1 usam transações com locks por escopo, controle de versão, ETag e chaves de idempotência. Listas principais usam versões históricas, índices e cursores assinados com snapshot de 15 minutos. Coleções derivadas pequenas são materializadas com limite de 5.000 itens; filtros mais estreitos são necessários acima desse limite. Ajuste `DB_POOL_SIZE` junto com o número de réplicas e a capacidade do PostgreSQL.
 
-## Persistence and transaction boundaries
+## Autorização e auditoria
 
 PostgreSQL is the production store. Development defaults to a persistent H2 file;
 tests use isolated in-memory H2 databases in PostgreSQL compatibility mode.
