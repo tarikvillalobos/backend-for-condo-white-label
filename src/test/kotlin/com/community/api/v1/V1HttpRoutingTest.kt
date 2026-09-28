@@ -18,3 +18,9 @@ class V1HttpRoutingTest {
         application { module(db, enableLegacyApi = false) }
         val response = client.get("/v1/configuration") {
             header("X-Brand-Id", "00000000-0000-0000-0000-000000000000")
+        }
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertTrue(response.headers["Content-Type"]!!.startsWith("application/problem+json"))
+        assertEquals("RESOURCE_NOT_FOUND", com.community.api.core.json.parseToJsonElement(response.bodyAsText()).jsonObject["code"]!!.jsonPrimitive.content)
+    }
+}
