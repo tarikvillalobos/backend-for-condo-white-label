@@ -31,5 +31,8 @@ missing = sorted(operations.keys() - handlers.keys())
 duplicates = sorted(key for key, count in handlers.items() if count > 1 and key in operations)
 assert not missing, f"Missing handlers: {missing}"
 assert not duplicates, f"Duplicate handlers: {duplicates}"
+codes = set(re.findall(r'(?:\.fail|\bfail|ApiException|identityError|identityFailure)\s*\(\s*\d+\s*,\s*"([A-Z][A-Z0-9_]+)"', source))
+known = set(spec["components"]["schemas"]["Problem"]["properties"]["code"]["enum"])
+assert codes <= known, f"Undocumented problem codes: {sorted(codes - known)}"
 assert 'route("/v1${operation.path}"' in source, "Contract routes are not registered"
 print(f"OpenAPI validated: {len(operations)} operations with handlers and Ktor dispatch.")
