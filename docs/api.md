@@ -22,9 +22,12 @@ O login devolve `accessToken`. Nas operações protegidas, envie `Authorization:
 
 ## Regras comuns
 
-Access tokens expire after 15 minutes. `/api/v1/auth/refresh` accepts
-`{"refreshToken":"..."}` and returns a new access/refresh pair. Keep the newest
-pair: reusing a consumed refresh token revokes that session.
+- Envie `Content-Type: application/json` quando houver corpo JSON. O servidor valida entrada e resposta contra os schemas do contrato.
+- Operações que declaram `Idempotency-Key` exigem um UUID. Repetir a mesma chave e o mesmo corpo devolve a resposta original; reutilizá-la com outro corpo devolve 409.
+- Alterações que declaram `If-Match` exigem o ETag atual. Uma versão antiga devolve 412. Consulte o recurso novamente antes de tentar outra alteração.
+- Listas paginadas devolvem `items` e `page.nextCursor`. Envie `cursor` com os mesmos filtros para avançar no snapshot; o cursor expira em 15 minutos.
+- Erros v1 usam `application/problem+json`, com `code`, `detail`, `status` e `requestId`. O servidor também envia `X-Request-ID`.
+- Módulos desativados na marca, no condomínio ou no vínculo respondem 403 `MODULE_DISABLED` nas operações correspondentes.
 
 ## 2. Create a location and invite a resident
 
