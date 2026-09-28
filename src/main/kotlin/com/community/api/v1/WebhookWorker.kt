@@ -80,7 +80,7 @@ private fun claimWebhook(db:Database,tenant:String,brand:String,id:String):Webho
     store.update(row,JsonObject(data+obj("leaseId" to lease,"leaseUntil" to now.plusSeconds(30))))
     val payload = json.parseToJsonElement(result[4].toString()).jsonObject
     WebhookJob(tenant,brand,id,data.string("url")!!,Secrets.unseal(data.string("sealedSecret")!!),lease,
-        result[0] as Long,result[1].toString(),result[2].toString(),result[3].toString(),payload["target"])
+        result[0] as Long,result[1].toString(),webhookAliases[result[2].toString()] ?: result[2].toString(),result[3].toString(),payload["target"])
 }
 
 private fun sendWebhook(job:WebhookJob):Boolean {
