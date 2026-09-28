@@ -58,3 +58,20 @@ class CommunityDocumentsAndReportsTest {
         val files = mutableMapOf<String, String>()
         ZipInputStream(ByteArrayInputStream(xlsx(rows))).use { zip ->
             var entry = zip.nextEntry
+            while (entry != null) { files[entry.name] = zip.readBytes().toString(Charsets.UTF_8); entry = zip.nextEntry }
+        }
+        assertTrue("xl/workbook.xml" in files)
+        val sheet = files.getValue("xl/worksheets/sheet1.xml")
+        assertTrue(sheet.contains("A&amp;B &lt;ok&gt;"))
+        assertFalse(sheet.contains("<f>"))
+    }
+    @Test fun `dashboards count scoped records rather than current page`(): Unit = CommunityFixture().use { f ->
+        f.run("createServiceRequest", obj("title" to "Problema", "category" to "other", "description" to "Descrição"))
+        f.run("createServiceRequest", obj("title" to "Outro", "category" to "other", "description" to "Descrição"), other = true)
+        assertEquals(1, f.run("getDashboard").body.jsonObject["openRequests"]!!.jsonPrimitive.int)
+        assertEquals(2, f.run("adminDashboard", staff = true).body.jsonObject["tickets"]!!.jsonObject["open"]!!.jsonPrimitive.int)
+        assertEquals(1, f.run("adminDashboard", staff = true, query = mapOf("nodeId" to f.unit)).body.jsonObject["tickets"]!!.jsonObject["open"]!!.jsonPrimitive.int)
+        val report = f.run("adminReport", ids = mapOf("metric" to "tickets"), staff = true).body.jsonObject
+        assertEquals(2, report["buckets"]!!.jsonArray.single().jsonObject["values"]!!.jsonObject["created"]!!.jsonPrimitive.int)
+    }
+}
