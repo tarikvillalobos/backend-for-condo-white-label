@@ -35,6 +35,8 @@ internal fun lockerEvents(c: V1Context): V1Response {
                 obj("eventId" to eventId, "result" to "duplicate", "reason" to existing.data["reason"])
             else obj("eventId" to eventId, "result" to "rejected", "reason" to "event_id_reused")
         } else {
+            val parcelBefore = locker.data.array("compartments").map { it.jsonObject }.firstOrNull {
+                it.text("code") == input.text("compartmentCode") }?.text("parcelId")
             val reason = try { applyLockerEvent(c, c.store.get("locker", locker.id), input); null }
                 catch (failure: ApiException) { failure.code.lowercase() }
             val result = if (reason == null) "accepted" else "rejected"
