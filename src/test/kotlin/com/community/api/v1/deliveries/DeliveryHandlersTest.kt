@@ -133,7 +133,7 @@ class DeliveryHandlersTest {
         val next = call(db, "listParcels", query = mapOf("limit" to "1", "cursor" to cursor)).body.jsonObject
         val second = next["items"]!!.jsonArray.single().jsonObject.string("id")!!
         assertEquals(setOf(firstId, secondId), setOf(first, second))
-        assertEquals(JsonNull, next["page"]!!.jsonObject["nextCursor"])
+        assertEquals(JsonNull, next["pageInfo"]!!.jsonObject["nextCursor"])
         assertTrue(call(db, "listParcels", user = "bob").body.jsonObject["items"]!!.jsonArray.isEmpty())
         call(db, "addParcelDelegate", obj("membershipId" to "bob"), mapOf("parcelId" to firstId))
         assertEquals(firstId, call(db, "listParcels", user = "bob").body.jsonObject["items"]!!.jsonArray.single().jsonObject.string("id"))
