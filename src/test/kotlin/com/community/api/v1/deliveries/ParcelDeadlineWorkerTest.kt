@@ -18,3 +18,13 @@ class ParcelDeadlineWorkerTest {
                 "membershipId" to "member", "carrier" to "Postal"),"condo")
         }
         assertEquals(1,processParcelDeadlines(db,now))
+        assertEquals(0,processParcelDeadlines(db,now.plusSeconds(10)))
+        db.scopedTx(null) { tx ->
+            val store = V1Store(tx,"tenant","brand")
+            assertEquals(1,store.list("notification","condo").size)
+            val events = tx.connection.prepareStatement("SELECT COUNT(*) FROM audit_log WHERE action='parcel.deadline_near'")
+                .use { it.executeQuery().use { rows -> rows.next(); rows.getInt(1) } }
+            assertEquals(1,events)
+        }
+    }
+}
