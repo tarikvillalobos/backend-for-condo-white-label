@@ -66,7 +66,7 @@ internal object BookingRules {
             bookingError("VALIDATION_ERROR", "Guest count exceeds space capacity")
         val localStart = start.atZone(zone)
         val localEnd = end.atZone(zone)
-        if (localStart.toLocalDate() != localEnd.toLocalDate()) bookingError("OUTSIDE_OPENING_HOURS", "Reservation crosses local dates")
+        if (localStart.toLocalDate() != localEnd.toLocalDate()) bookingError("VALIDATION_ERROR", "Reservation crosses local dates")
         val opening = space.arrayAt("openingHours").map { it.jsonObject }.firstOrNull {
             it.number("weekday") == localStart.dayOfWeek.value % 7 &&
                 !localStart.toLocalTime().isBefore(localTime(it.text("opens"))) &&
