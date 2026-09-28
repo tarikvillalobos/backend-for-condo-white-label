@@ -18,3 +18,23 @@ fun processFileCleanup(db: Database): Int {
                 while (rows.next()) {
                     val data = com.community.api.core.json.parseToJsonElement(rows.getString("payload")).jsonObject
                     val brand = data.string("_brandId")
+                    val id = data.string("_id")
+                    if (brand != null && id != null) add(Triple(rows.getString("tenant_id"),brand,id))
+                }
+            } }
+        }
+    }
+    var removed = 0
+    for ((tenant,brand,id) in candidates) {
+        val cleaned = db.scopedTx("file-cleanup:$tenant:$brand:$id") { tx ->
+            val store = V1Store(tx,tenant,brand)
+            val file = store.find("upload",id) ?: return@scopedTx false
+            val used = tx.connection.prepareStatement("SELECT 1 FROM app_records WHERE tenant_id = ? AND kind <> 'v1_upload' AND payload LIKE ? LIMIT 1").use {
+                it.setString(1,tenant); it.setString(2,"%$id%")
+                it.executeQuery().use { result -> result.next() }
+            }
+            if (used) return@scopedTx false
+            if (runCatching { UUID.fromString(id) }.isFailure) return@scopedTx false
+            val directory = Path.of(System.getenv("UPLOAD_DIRECTORY") ?: "data/uploads").toAbsolutePath()
+            Files.deleteIfExists(directory.resolve(id))
+            store.update(file, kotlinx.serialization.json.JsonObject(file.data + obj("_deletedAt" to Instant.now(),"status" to "expired")))
