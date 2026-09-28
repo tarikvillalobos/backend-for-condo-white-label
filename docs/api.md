@@ -20,15 +20,7 @@ curl -sS "$API_BASE/v1/auth/password/login" \
 
 O login devolve `accessToken`. Nas operações protegidas, envie `Authorization: Bearer <accessToken>`. Se uma rota exigir `StaffBearer`, use uma sessão de equipe; equipamentos usam `X-Device-Key` nas rotas de hardware autorizadas. Os contextos de morador são listados por `GET /v1/me/contexts`.
 
-```bash
-api_json() {
-  local method="$1" token="$2" path="$3"
-  shift 3
-  curl -fsS -X "$method" "$API_BASE$path" \
-    -H "Authorization: Bearer $token" \
-    -H 'Content-Type: application/json' "$@" --data-binary @-
-}
-```
+## Regras comuns
 
 Access tokens expire after 15 minutes. `/api/v1/auth/refresh` accepts
 `{"refreshToken":"..."}` and returns a new access/refresh pair. Keep the newest
